@@ -1,0 +1,47 @@
+{
+  "name": "Ori3dita",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server/server.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "nodemon"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/weblab-workshops/skeleton.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "homepage": "",
+  "engines": {
+    "node": ">=18.x"
+  },
+  "dependencies": {
+    "@react-oauth/google": "^0.12.1",
+    "connect-ensure-login": "^0.1.1",
+    "core-js": "^3.8.1",
+    "dotenv": "^16.0.3",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "google-auth-library": "^6.1.3",
+    "jwt-decode": "^3.1.2",
+    "mongodb": "^6.13.0",
+    "mongoose": "^7.8.3",
+    "nodemon": "^3.1.9",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router": "^5.3.4",
+    "react-router-dom": "^6.0.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "url-loader": "^4.1.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react-swc": "^3.0.0",
+    "vite": "^4.0.0",
+    "vite-plugin-svgr": "^2.4.0"
+  }
+}
