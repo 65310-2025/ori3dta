@@ -1,36 +1,32 @@
 import React, { useState, useEffect, createContext } from "react";
 import { Outlet } from "react-router-dom";
-
 import jwt_decode from "jwt-decode";
-
-import "../utilities.css";
-
 import { socket } from "../client-socket";
-
 import { get, post } from "../utilities";
+import { User, AuthContextValue } from "../types/types";
 
-export const UserContext = createContext(null);
+export const UserContext = createContext<AuthContextValue | null>(null);
 
 /**
  * Define the "App" component
  */
-const App = () => {
-  const [userId, setUserId] = useState(undefined);
+const App: React.FC = () => {
+  const [userId, setUserId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    get("/api/whoami").then((user) => {
+    get("/api/whoami").then((user: User) => {
       if (user._id) {
-        // they are registed in the database, and currently logged in.
+        // they are registered in the database, and currently logged in.
         setUserId(user._id);
       }
     });
   }, []);
 
-  const handleLogin = (credentialResponse) => {
+  const handleLogin = (credentialResponse: any) => {
     const userToken = credentialResponse.credential;
-    const decodedCredential = jwt_decode(userToken);
+    const decodedCredential = jwt_decode(userToken) as { name: string };
     console.log(`Logged in as ${decodedCredential.name}`);
-    post("/api/login", { token: userToken }).then((user) => {
+    post("/api/login", { token: userToken }).then((user: User) => {
       setUserId(user._id);
       post("/api/initsocket", { socketid: socket.id });
     });
@@ -41,7 +37,7 @@ const App = () => {
     post("/api/logout");
   };
 
-  const authContextValue = {
+  const authContextValue: AuthContextValue = {
     userId,
     handleLogin,
     handleLogout,

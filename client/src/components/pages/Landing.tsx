@@ -2,11 +2,18 @@ import React, { useContext } from "react";
 import { GoogleLogin, googleLogout } from "@react-oauth/google";
 
 import "../../utilities.css";
-import "./Skeleton.css";
 import { UserContext } from "../App";
+import { AuthContextValue } from "../../types/types";
 
-const Skeleton = () => {
-  const { userId, handleLogin, handleLogout } = useContext(UserContext);
+const Landing: React.FC = () => {
+  const context = useContext(UserContext);
+
+  if (!context) {
+    return null; // or handle the case where context is null
+  }
+
+  const { userId, handleLogin, handleLogout } = context;
+
   return (
     <>
       {userId ? (
@@ -19,7 +26,7 @@ const Skeleton = () => {
           Logout
         </button>
       ) : (
-        <GoogleLogin onSuccess={handleLogin} onError={(err) => console.log(err)} />
+        <GoogleLogin onSuccess={handleLogin} onError={() => console.log("Login failed")} />
       )}
       <h1>Good luck on your project :)</h1>
       <h2> What you need to change in this skeleton</h2>
@@ -43,4 +50,4 @@ const Skeleton = () => {
   );
 };
 
-export default Skeleton;
+export default Landing;

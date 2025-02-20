@@ -1,13 +1,13 @@
 /*
 |--------------------------------------------------------------------------
-| server.js -- The core of your server
+| server.ts -- The core of your server
 |--------------------------------------------------------------------------
 |
 | This file defines how your server starts up. Think of it as the main() of your server.
 | At a high level, this file does the following things:
 | - Connect to the database
 | - Sets up server middleware (i.e. addons that enable things like json parsing, user login)
-| - Hooks up all the backend routes specified in api.js
+| - Hooks up all the backend routes specified in api.ts
 | - Fowards frontend routes that should be handled by the React router
 | - Sets up error handling in case something goes wrong when handling a request
 | - Actually starts the webserver
@@ -15,28 +15,28 @@
 
 // validator runs some basic checks to make sure you've set everything up correctly
 // this is a tool provided by staff, so you don't need to worry about it
-const validator = require("./validator");
-validator.checkSetup();
+import { checkSetup, checkRoutes } from "./validator";
+checkSetup();
 
 //allow us to use process.ENV
-require("dotenv").config();
+import dotenv from "dotenv";
+dotenv.config();
 
 //import libraries needed for the webserver to work!
-const http = require("http");
-const express = require("express"); // backend framework for our node server.
-const session = require("express-session"); // library that stores info about each connected user
-const mongoose = require("mongoose"); // library to connect to MongoDB
-const path = require("path"); // provide utilities for working with file and directory paths
-
-const api = require("./api");
-const auth = require("./auth");
+import http from "http";
+import express, { Request, Response, NextFunction } from "express"; // backend framework for our node server.
+import session from "express-session"; // library that stores info about each connected user
+import mongoose from "mongoose"; // library to connect to MongoDB
+import path from "path"; // provide utilities for working with file and directory paths
+import api from "./api";
+import { populateCurrentUser } from "./auth";
 
 // socket stuff
-const socketManager = require("./server-socket");
+import socketManager from "./server-socket";
 
 // Server configuration below
 // TODO change connection URL after setting up your team database
-const mongoConnectionURL = process.env.MONGO_SRV;
+const mongoConnectionURL = process.env.MONGO_SRV as string;
 // TODO change database name to the name you chose
 const databaseName = "Cluster0";
 
@@ -45,17 +45,13 @@ mongoose.set("strictQuery", false);
 
 // connect to mongodb
 mongoose
-  .connect(mongoConnectionURL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    dbName: databaseName,
-  })
+  .connect(mongoConnectionURL, { dbName: databaseName})
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.log(`Error connecting to MongoDB: ${err}`));
 
 // create a new express server
 const app = express();
-app.use(validator.checkRoutes);
+app.use(checkRoutes);
 
 // allow us to process POST requests
 app.use(express.json());
@@ -63,14 +59,14 @@ app.use(express.json());
 // set up a session, which will persist login data across requests
 app.use(
   session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET as string,
     resave: false,
     saveUninitialized: false,
   })
 );
 
 // this checks if the user is logged in, and populates "req.user"
-app.use(auth.populateCurrentUser);
+app.use(populateCurrentUser);
 
 // connect user-defined routes
 app.use("/api", api);
@@ -80,8 +76,8 @@ const reactPath = path.resolve(__dirname, "..", "client", "dist");
 app.use(express.static(reactPath));
 
 // for all other routes, render index.html and let react router handle it
-app.get("*", (req, res) => {
-  res.sendFile(path.join(reactPath, "index.html"), (err) => {
+app.get("*", (req: Request, res: Response) => {
+  res.sendFile(path.join(reactPath, "index.html"), (err: any) => {
     if (err) {
       console.log("Error sending client/dist/index.html:", err.status || 500);
       res.status(err.status || 500).send("Error sending client/dist/index.html - have you run `npm run build`?");
@@ -90,7 +86,7 @@ app.get("*", (req, res) => {
 });
 
 // any server errors cause this function to run
-app.use((err, req, res, next) => {
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   const status = err.status || 500;
   if (status === 500) {
     // 500 means Internal Server Error
@@ -107,7 +103,7 @@ app.use((err, req, res, next) => {
 
 // hardcode port to 3000 for now
 const port = 3000;
-const server = http.Server(app);
+const server = http.createServer(app);
 socketManager.init(server);
 
 server.listen(port, () => {
