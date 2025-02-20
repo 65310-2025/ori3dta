@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./components/App";
-import Editor from "./components/pages/Editor";
+import Landing from "./components/pages/Landing";
 import NotFound from "./components/pages/NotFound";
 
 import {
@@ -18,7 +18,7 @@ const GOOGLE_CLIENT_ID = "1077700528117-f59tr015sdectfbjnd9b6hqguqfmb5bi.apps.go
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route errorElement={<NotFound />} element={<App />}>
-      <Route path="/" element={<Editor />} />
+      <Route path="/" element={<Landing />} />
     </Route>
   )
 );
