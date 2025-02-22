@@ -20,10 +20,9 @@
     "node": ">=18.x"
   },
   "dependencies": {
-    "@headlessui/react": "^2.2.0",
-    "@heroicons/react": "^2.2.0",
     "@react-oauth/google": "^0.12.1",
     "@tailwindcss/vite": "^4.0.8",
+    "antd": "^5.24.1",
     "connect-ensure-login": "^0.1.1",
     "core-js": "^3.8.1",
     "dotenv": "^16.0.3",
