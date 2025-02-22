@@ -25,7 +25,7 @@ const Login: React.FC = () => {
       ) : (
         <GoogleLogin onSuccess={handleLogin} onError={() => console.log("Login failed")} />
       )}
-      <h1>Good luck on your project :)</h1>
+      <h1 className="font-bold underline">Good luck on your project :)</h1>
       <h2> What you need to change in this skeleton</h2>
       <ul>
         <li>
