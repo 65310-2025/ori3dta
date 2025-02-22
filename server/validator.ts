@@ -35,18 +35,22 @@ function checkHotLoader(): Promise<boolean> {
 export const checkSetup = (): void => {
   if (!fs.existsSync("./node_modules/")) {
     throw new NodeSetupError(
-      "node_modules not found! This probably means you forgot to run 'npm install'"
+      "node_modules not found! This probably means you forgot to run 'npm install'",
     );
   }
 };
 
-export const checkRoutes = (req: Request, res: Response, next: NextFunction): void => {
+export const checkRoutes = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
   if (!routeChecked && req.url === "/") {
     checkHotLoader().then((active) => {
       if (active) {
         console.log(
           "Warning: It looks like 'npm run dev' may be running. Are you sure you don't want\n" +
-            "to use the hot reloader? To use it, visit http://localhost:5173 and not port 3000"
+            "to use the hot reloader? To use it, visit http://localhost:5173 and not port 3000",
         );
       }
     });

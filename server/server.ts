@@ -45,7 +45,7 @@ mongoose.set("strictQuery", false);
 
 // connect to mongodb
 mongoose
-  .connect(mongoConnectionURL, { dbName: databaseName})
+  .connect(mongoConnectionURL, { dbName: databaseName })
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.log(`Error connecting to MongoDB: ${err}`));
 
@@ -62,7 +62,7 @@ app.use(
     secret: process.env.SESSION_SECRET as string,
     resave: false,
     saveUninitialized: false,
-  })
+  }),
 );
 
 // this checks if the user is logged in, and populates "req.user"
@@ -80,7 +80,11 @@ app.get("*", (req: Request, res: Response) => {
   res.sendFile(path.join(reactPath, "index.html"), (err: any) => {
     if (err) {
       console.log("Error sending client/dist/index.html:", err.status || 500);
-      res.status(err.status || 500).send("Error sending client/dist/index.html - have you run `npm run build`?");
+      res
+        .status(err.status || 500)
+        .send(
+          "Error sending client/dist/index.html - have you run `npm run build`?",
+        );
     }
   });
 });

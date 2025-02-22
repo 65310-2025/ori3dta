@@ -34,7 +34,9 @@ router.get("/whoami", (req: Request, res: Response) => {
 router.post("/initsocket", (req: Request, res: Response) => {
   // do nothing if user not logged in
   if (req.user) {
-    const socket : SocketIO | undefined = socketManager.getSocketFromSocketID(req.body.socketid);
+    const socket: SocketIO | undefined = socketManager.getSocketFromSocketID(
+      req.body.socketid,
+    );
     if (!socket) {
       console.log("socket not found");
       res.status(404).send({ msg: "socket not found" });
