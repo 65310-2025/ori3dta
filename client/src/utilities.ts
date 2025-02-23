@@ -37,7 +37,10 @@ function convertToJSON(res: Response): Promise<any> {
 
 // Helper code to make a get request. Default parameter of empty JSON Object for params.
 // Returns a Promise to a JSON Object.
-export function get(endpoint: string, params: Record<string, any> = {}): Promise<any> {
+export function get(
+  endpoint: string,
+  params: Record<string, any> = {},
+): Promise<any> {
   const fullPath = endpoint + "?" + formatParams(params);
   return fetch(fullPath)
     .then(convertToJSON)
@@ -49,7 +52,10 @@ export function get(endpoint: string, params: Record<string, any> = {}): Promise
 
 // Helper code to make a post request. Default parameter of empty JSON Object for params.
 // Returns a Promise to a JSON Object.
-export function post(endpoint: string, params: Record<string, any> = {}): Promise<any> {
+export function post(
+  endpoint: string,
+  params: Record<string, any> = {},
+): Promise<any> {
   return fetch(endpoint, {
     method: "post",
     headers: { "Content-type": "application/json" },

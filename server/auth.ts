@@ -5,7 +5,8 @@ import socketManager from "./server-socket";
 import { IUser, ISession, IGoogleUser } from "./types/types";
 
 // create a new OAuth client used to verify google sign-in
-const CLIENT_ID = "1077700528117-f59tr015sdectfbjnd9b6hqguqfmb5bi.apps.googleusercontent.com";
+const CLIENT_ID =
+  "1077700528117-f59tr015sdectfbjnd9b6hqguqfmb5bi.apps.googleusercontent.com";
 const client = new OAuth2Client(CLIENT_ID);
 
 // accepts a login token from the frontend, and verifies that it's legit
@@ -72,9 +73,4 @@ function ensureLoggedIn(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-export {
-  login,
-  logout,
-  populateCurrentUser,
-  ensureLoggedIn,
-};
+export { login, logout, populateCurrentUser, ensureLoggedIn };

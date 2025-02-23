@@ -1,0 +1,11 @@
+import { Schema, model, Document } from "mongoose";
+
+export interface ICP extends Document {
+}
+
+const CPSchema = new Schema<ICP>({
+});
+
+const CP = model<ICP>("CP", CPSchema);
+
+export default CP;
