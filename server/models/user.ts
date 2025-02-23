@@ -1,15 +1,15 @@
 import { Schema, model, Document } from "mongoose";
 
-export interface IUser extends Document {
+export interface IDbUser extends Document {
   name: string;
   googleid: string;
 }
 
-const UserSchema = new Schema<IUser>({
+const UserSchema = new Schema<IDbUser>({
   name: { type: String, required: true },
   googleid: { type: String, required: true },
 });
 
-const User = model<IUser>("User", UserSchema);
+const User = model<IDbUser>("User", UserSchema);
 
 export default User;

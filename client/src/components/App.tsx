@@ -3,7 +3,8 @@ import { Outlet } from "react-router-dom";
 import jwt_decode from "jwt-decode";
 import { socket } from "../client-socket";
 import { get, post } from "../utilities";
-import { User, AuthContextValue } from "../types/types";
+import { AuthContextValue } from "../types/types";
+import { UserDto } from "../../../dto/dto";
 
 export const UserContext = createContext<AuthContextValue | null>(null);
 
@@ -14,7 +15,7 @@ const App: React.FC = () => {
   const [userId, setUserId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    get("/api/whoami").then((user: User) => {
+    get("/api/whoami").then((user: UserDto) => {
       if (user._id) {
         // they are registered in the database, and currently logged in.
         setUserId(user._id);
@@ -26,7 +27,7 @@ const App: React.FC = () => {
     const userToken = credentialResponse.credential;
     const decodedCredential = jwt_decode(userToken) as { name: string };
     console.log(`Logged in as ${decodedCredential.name}`);
-    post("/api/login", { token: userToken }).then((user: User) => {
+    post("/api/login", { token: userToken }).then((user: UserDto) => {
       setUserId(user._id);
       post("/api/initsocket", { socketid: socket.id });
     });

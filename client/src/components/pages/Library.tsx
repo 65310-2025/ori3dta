@@ -1,32 +1,135 @@
-import React, { useContext } from "react";
-import { GoogleLogin, googleLogout } from "@react-oauth/google";
+import React, { useContext, useEffect, useState } from "react";
+import { googleLogout } from "@react-oauth/google";
 import { UserContext } from "../App";
+import { Button, Menu, Modal, Form, Input, Flex, Card } from "antd";
+import type { MenuProps } from "antd";
+import { DesignMetadataDto, NewDesignDto } from "../../../../dto/dto";
+import { get, post } from "../../utilities";
+
+type MenuItem = Required<MenuProps>["items"][number];
 
 const Library: React.FC = () => {
   const context = useContext(UserContext);
 
   if (!context) {
-    return null; // or handle the case where context is null
+    return <p>Error: User context is not available.</p>;
   }
 
   const { userId, handleLogin, handleLogout } = context;
-  // TODO: fix this so that they're redirected if not logged in
-  return (
-    <>
-      {userId ? (
-        <button
-          onClick={() => {
-            googleLogout();
-            handleLogout();
-          }}
+
+  if (!userId) {
+    return <p>Error: You must be logged in to view this page.</p>;
+  }
+
+  const [designs, setDesigns] = useState<DesignMetadataDto[]>([]);
+const [isModalVisible, setIsModalVisible] = useState(false);
+  const [form] = Form.useForm();
+
+  // Get metadata for all designs from server
+  // TODO: later on, implement pagination in the /designs endpoint in case we have some
+  // extremely prolific CP creators
+  useEffect(() => {
+    const getDesigns = async () => {
+      try {
+        const designs: Array<DesignMetadataDto> = await get("/api/designs");
+        setDesigns(designs);
+        console.log("Fetched designs:", designs);
+      } catch (error) {
+        console.error("Failed to fetch designs:", error);
+      }
+    };
+
+    getDesigns();
+  }, []);
+
+  const items: MenuItem[] = [
+    {
+      label: "Some other pages that don't exist yet",
+      key: "app",
+    },
+{
+      key: "new",
+      icon: <Button onClick={() => setIsModalVisible(true)}>New Crease Pattern</Button>,
+    },
+    {
+      key: "logout",
+      icon: (
+<Button
+onClick={() => {
+        googleLogout();
+        handleLogout();
+      }}
         >
-          Logout
-        </button>
-      ) : (
-        <GoogleLogin onSuccess={handleLogin} onError={() => console.log("Login failed")} />
-      )}
-      <h1>Library goes here!</h1>
-    </>
+Logout
+</Button>
+      ),
+    },
+  ];
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+    form.resetFields();
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      const newDesign: NewDesignDto = {
+        name: values.name,
+        description: values.description,
+      };
+      await post("/api/designs", newDesign);
+      setIsModalVisible(false);
+      form.resetFields();
+      // Refresh designs
+      const designs: Array<DesignMetadataDto> = await get("/api/designs");
+      setDesigns(designs);
+    } catch (error) {
+      console.error("Failed to create new design:", error);
+    }
+  };
+
+  return (
+    // TODO: a bit more urgently, add pagination for the CP library
+    // (and need to standardize card size before I incorporate images)
+    <div className="bg-gray-100 min-h-screen">
+      <Menu mode="horizontal" items={items} />
+      <Modal
+        title="New Crease Pattern"
+        open={isModalVisible}
+        onCancel={handleCancel}
+        onOk={handleSubmit}
+        okText="Create"
+        cancelText="Cancel"
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item
+            name="name"
+            label="Name"
+            rules={[{ required: true, message: "Please enter the name" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label="Description"
+            rules={[{ required: true, message: "Please enter the description" }]}
+          >
+            <Input.TextArea />
+          </Form.Item>
+        </Form>
+      </Modal>
+      <Flex wrap>
+        {designs.map((design) => (
+          <div className="m-2">
+            <Card title={design.name} variant="borderless" key={design._id}>
+              <p>{design.description}</p>
+              <p>Creator: {design.creatorName}</p>
+            </Card>
+          </div>
+        ))}
+      </Flex>
+    </div>
   );
 };
 
