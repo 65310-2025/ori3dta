@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { googleLogout } from "@react-oauth/google";
 import { UserContext } from "../App";
 import { Button, Menu, Modal, Form, Input, Flex, Card } from "antd";
@@ -22,10 +23,13 @@ const Library: React.FC = () => {
   }
 
   const [designs, setDesigns] = useState<DesignMetadataDto[]>([]);
-const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
+  const navigate = useNavigate(); // Get the navigate function
 
   // Get metadata for all designs from server
+  // TODO: later on, implement pagination in the /designs endpoint in case we have some
+  // extremely prolific CP creators
   // TODO: later on, implement pagination in the /designs endpoint in case we have some
   // extremely prolific CP creators
   useEffect(() => {
@@ -49,25 +53,25 @@ const [isModalVisible, setIsModalVisible] = useState(false);
     },
 {
       key: "new",
-      icon: <Button onClick={() => setIsModalVisible(true)}>New Crease Pattern</Button>,
+      icon: <Button onClick={() => setIsModalOpen(true)}>New Crease Pattern</Button>,
     },
     {
       key: "logout",
       icon: (
-<Button
-onClick={() => {
-        googleLogout();
-        handleLogout();
-      }}
+        <Button
+          onClick={() => {
+                googleLogout();
+                handleLogout();
+              }}
         >
-Logout
-</Button>
+          Logout
+        </Button>
       ),
     },
   ];
 
   const handleCancel = () => {
-    setIsModalVisible(false);
+    setIsModalOpen(false);
     form.resetFields();
   };
 
@@ -79,7 +83,7 @@ Logout
         description: values.description,
       };
       await post("/api/designs", newDesign);
-      setIsModalVisible(false);
+      setIsModalOpen(false);
       form.resetFields();
       // Refresh designs
       const designs: Array<DesignMetadataDto> = await get("/api/designs");
@@ -90,13 +94,11 @@ Logout
   };
 
   return (
-    // TODO: a bit more urgently, add pagination for the CP library
-    // (and need to standardize card size before I incorporate images)
     <div className="bg-gray-100 min-h-screen">
       <Menu mode="horizontal" items={items} />
       <Modal
         title="New Crease Pattern"
-        open={isModalVisible}
+        open={isModalOpen}
         onCancel={handleCancel}
         onOk={handleSubmit}
         okText="Create"
@@ -120,11 +122,17 @@ Logout
         </Form>
       </Modal>
       <Flex wrap>
-        {designs.map((design) => (
+        {designs.map((design: DesignMetadataDto) => (
           <div className="m-2">
             <Card title={design.name} variant="borderless" key={design._id}>
               <p>{design.description}</p>
               <p>Creator: {design.creatorName}</p>
+              <Button type="default"
+                      onClick={() => {
+                        navigate(`/editor/${design.cpID}`);
+                      }}>
+                Edit
+              </Button>
             </Card>
           </div>
         ))}
