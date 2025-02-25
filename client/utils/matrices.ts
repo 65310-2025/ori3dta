@@ -3,6 +3,7 @@ Matrix related boilerplate functions
 These functions are specifically for 3x3 matrices
 These functions use radians
 */
+import * as float from './float';
 
 export function multiply2Matrices(a: number[][], b: number[][]): number[][] {
     const result: number[][] = [
@@ -78,4 +79,8 @@ export function rotationMatrix(creaseDirection: number, foldAngle: number): numb
 
 export function rotationMatrixToVector(matrix: number[][]): number[] {
     return [matrix[2][1]-matrix[1][2], matrix[0][2]-matrix[2][0], matrix[1][0]-matrix[0][1]];
+}
+
+export function isIdentity(matrix:number[][]):boolean{
+    return matrix.every((row, rowIndex) => row.every((value, colIndex) => (rowIndex === colIndex) ? float.eq(value,1) : float.eq(value,0)));
 }

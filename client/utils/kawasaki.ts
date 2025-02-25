@@ -42,7 +42,10 @@ function getRotationMatrices(fold:Fold, vertexIndex:number, ):null|{theta:number
     return zipped.map(({theta,foldAngle}) => ({theta:theta,rho:foldAngle,matrix:matrices.rotationMatrix(theta,foldAngle)})); 
 }
 
-export function checkKawasakiVertex(fold:Fold, vertexIndex:number):boolean{
+//=========================================================
+// 3D functions
+
+function checkKawasakiVertex(fold:Fold, vertexIndex:number):boolean{
     /*
     Check if a particular vertex is foldable by Kawasaki's theorem. This is a necessary condition, not sufficient. Returns true if foldable and false if not
     Should run in O(n) time where n is the number of connected vertices. In practice, n rarely exceeds 8 or so
@@ -59,17 +62,6 @@ export function checkKawasakiVertex(fold:Fold, vertexIndex:number):boolean{
     const rotationVector = matrices.rotationMatrixToVector(finalMatrix);
 
     return rotationVector.every(direction => float.eq(direction, 0));
-}
-
-export function findKawasakiErrors(fold:Fold):number[]{
-    /*
-    Find all vertices that are not foldable by Kawasaki's theorem
-
-    Returns a list of 0s and 1s. 0 means the vertex at that index is foldable, 1 means it is not foldable
-
-    Runtime of this function is important. In Oriedita, there is an option to have this function be called every time you make a change. For large crease patterns, this becomes significantly slow. A solution might be to cache the results of this function in the fold object and only recalculate for vertices affected by the user's change.
-    */
-    return fold.vertices_coords.map((_, index) => checkKawasakiVertex(fold, index) ? 0 : 1);
 }
 
 export function makeKawasakiFoldable(fold:Fold, vertexIndex:number):Array<{theta:number;rho:number}> | null{
@@ -116,17 +108,46 @@ export function makeKawasakiFoldable(fold:Fold, vertexIndex:number):Array<{theta
         const newRotationMatrices = rotationMatrices.concat(candidate);
         //sort by theta
         newRotationMatrices.sort((a,b) => a.theta - b.theta);
-        console.log(newRotationMatrices);
+        // console.log(newRotationMatrices);
         //multiply matrices
         const finalMatrix = matrices.multiplyMatricesList(newRotationMatrices.map(({matrix}) => matrix));
         //check if the vertex with this candidate would be foldable
-        const rotationVector = matrices.rotationMatrixToVector(finalMatrix);
-        console.log(rotationVector);
-        console.log("======")
-        if (rotationVector.every(direction => float.eq(direction,0))) {
+        // const rotationVector = matrices.rotationMatrixToVector(finalMatrix);
+        // console.log(rotationVector);
+        // console.log("======")
+        if (matrices.isIdentity(finalMatrix)) {
             verifiedCreases.push({theta:candidate.theta,rho:candidate.rho});
         }
     }
 
     return verifiedCreases;
 }
+
+//=========================================================
+//2d functions
+
+// function checkKawasakiVertex2d(fold:Fold, vertexIndex:number):boolean{
+//     /*
+//     Check if a particular vertex is foldable by Kawasaki's theorem. This is a necessary condition, not sufficient. Returns true if foldable and false if not
+//     Should run in O(n) time where n is the number of connected vertices. In practice, n rarely exceeds 8 or so
+//     */
+// }
+
+// function makeKawasakiFoldable2d(fold:Fold, vertexIndex:number):boolean{
+
+// }
+
+// export function checkKawasakiVertex(fold:Fold, vertexIndex:number):boolean{
+//     //Check if the vertex has any non-flat fold angles. If it does, 
+// }
+
+// export function findKawasakiErrors(fold:Fold):number[]{
+//     /*
+//     Find all vertices that are not foldable by Kawasaki's theorem
+
+//     Returns a list of 0s and 1s. 0 means the vertex at that index is foldable, 1 means it is not foldable
+
+//     Runtime of this function is important. In Oriedita, there is an option to have this function be called every time you make a change. For large crease patterns, this becomes significantly slow. A solution might be to cache the results of this function in the fold object and only recalculate for vertices affected by the user's change.
+//     */
+//     return fold.vertices_coords.map((_, index) => checkKawasakiVertex(fold, index) ? 0 : 1);
+// }
