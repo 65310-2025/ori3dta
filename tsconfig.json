@@ -12,6 +12,6 @@
     "resolveJsonModule": true, // Allows importing JSON modules
     "allowSyntheticDefaultImports": true // Allows default imports from modules with no default export
   },
-  "include": ["server/**/*.ts", "client/**/*.ts", "client/**/*.tsx"],
+  "include": ["client/utils/*.ts", "client/**/*.tsx"],
   "exclude": ["node_modules"]
 }

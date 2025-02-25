@@ -54,7 +54,7 @@ export function transposeMatrix(matrix: number[][]): number[][] {
     return result;
 }
 
-export function rotationMatrix(creaseDirection: number, foldAngle: number){
+export function rotationMatrix(creaseDirection: number, foldAngle: number): number[][]{
     /*
     Express a crease as a rotation matrix around a vertex. Takes a fold angle and crease direction. 
 
@@ -74,4 +74,8 @@ export function rotationMatrix(creaseDirection: number, foldAngle: number){
         [-srho*stheta, srho*ctheta, crho]
     ];
     return result
+}
+
+export function rotationMatrixToVector(matrix: number[][]): number[] {
+    return [matrix[2][1]-matrix[1][2], matrix[0][2]-matrix[2][0], matrix[1][0]-matrix[0][1]];
 }

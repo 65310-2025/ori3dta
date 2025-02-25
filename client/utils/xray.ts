@@ -6,14 +6,6 @@ Note: often origami designers will use a file as a "notebook" rather than a sing
 
 */
 import { Fold } from '../../server/types/fold';
-import * as fs from 'fs'; //for testing
-import * as path from 'path'; //for testing
-
-
-// const craneCpPath = path.join(__dirname, "test_files/crane_cp.fold");
-const craneCpPath = "/Users/brandonwong/Desktop/ori3dita/ori3dta/test_files/crane_cp.fold"
-const craneCpData = fs.readFileSync(craneCpPath, 'utf8');
-const craneCp = JSON.parse(craneCpData) as Fold;
 
 function xray(cp:Fold,root_index:number = 0){
     /*
@@ -23,6 +15,4 @@ function xray(cp:Fold,root_index:number = 0){
     */
     return cp.file_creator
 }
-
-console.log(xray(craneCp))
 
