@@ -47,7 +47,6 @@ router.get("/designs", async (req: Request, res: Response) => {
 
   try {
     const designs = await DesignMetadata.find({ creatorID: req.user._id }).lean();
-    console.log(designs);
     const creator = await User.findById(req.user._id).lean(); // Get creator's name
 
     if (!creator) {

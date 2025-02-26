@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./components/App";
 import Landing from "./components/pages/Landing";
+import Editor from "./components/pages/Editor";
 import NotFound from "./components/pages/NotFound";
 
 import {
@@ -19,6 +20,7 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route errorElement={<NotFound />} element={<App />}>
       <Route path="/" element={<Landing />} />
+      <Route path="/editor/:cpID" element={<Editor />} />
     </Route>
   )
 );

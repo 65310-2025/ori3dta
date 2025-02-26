@@ -7,8 +7,6 @@ import type { MenuProps } from "antd";
 import { DesignMetadataDto, NewDesignDto } from "../../../../dto/dto";
 import { get, post } from "../../utilities";
 
-type MenuItem = Required<MenuProps>["items"][number];
-
 const Library: React.FC = () => {
   const context = useContext(UserContext);
 
@@ -46,12 +44,12 @@ const Library: React.FC = () => {
     getDesigns();
   }, []);
 
-  const items: MenuItem[] = [
+  const items: MenuProps["items"] = [
     {
       label: "Some other pages that don't exist yet",
       key: "app",
     },
-{
+    {
       key: "new",
       icon: <Button onClick={() => setIsModalOpen(true)}>New Crease Pattern</Button>,
     },
@@ -123,8 +121,8 @@ const Library: React.FC = () => {
       </Modal>
       <Flex wrap>
         {designs.map((design: DesignMetadataDto) => (
-          <div className="m-2">
-            <Card title={design.name} variant="borderless" key={design._id}>
+          <div className="m-2" key={design._id}>
+            <Card title={design.name} variant="borderless">
               <p>{design.description}</p>
               <p>Creator: {design.creatorName}</p>
               <Button type="default"
