@@ -45,7 +45,7 @@ function getRotationMatrices(fold:Fold, vertexIndex:number, ):null|{theta:number
 //=========================================================
 // 3D functions
 
-function checkKawasakiVertex(fold:Fold, vertexIndex:number):boolean{
+export function checkKawasakiVertex(fold:Fold, vertexIndex:number):boolean{
     /*
     Check if a particular vertex is foldable by Kawasaki's theorem. This is a necessary condition, not sufficient. Returns true if foldable and false if not
     Should run in O(n) time where n is the number of connected vertices. In practice, n rarely exceeds 8 or so
@@ -60,8 +60,7 @@ function checkKawasakiVertex(fold:Fold, vertexIndex:number):boolean{
 
     // Check if the final matrix is an identity matrix. Equivalent to checking if rotation vector is 0
     const rotationVector = matrices.rotationMatrixToVector(finalMatrix);
-
-    return rotationVector.every(direction => float.eq(direction, 0));
+    return matrices.isIdentity(finalMatrix);
 }
 
 export function makeKawasakiFoldable(fold:Fold, vertexIndex:number):Array<{theta:number;rho:number}> | null{
@@ -120,6 +119,11 @@ export function makeKawasakiFoldable(fold:Fold, vertexIndex:number):Array<{theta
         }
     }
 
+    //Eliminate duplicate solutions
+    //NOTE: might end up with both pi and -pi because maekawa/local self intersection is not implemented
+    verifiedCreases = verifiedCreases.filter((crease, index, self) =>
+        index === self.findIndex((t) => float.eq(t.theta, crease.theta) && float.eq(t.rho, crease.rho))
+    );
     return verifiedCreases;
 }
 

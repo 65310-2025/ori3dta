@@ -7,11 +7,16 @@ Note: often origami designers will use a file as a "notebook" rather than a sing
 */
 import { Fold } from '../../server/types/fold';
 
-function xray(cp:Fold,root_index:number = 0){
+export function getFaces(cp:Fold){
     /*
     - fill out all the face fields: faces_vertices, faces_edges, faces_faces
-    - Create spanning tree, starting from the root_index face
-    - for each item
+    */
+}
+
+export function xray(cp:Fold,root_index:number = 0){
+    /*
+    - Create spanning tree, starting from the root_index face. store tree data externally?
+    - for each face, vertices will start at cp position, reflect over edges until reach the root face, and then store as folded coords. will be redundant but polynomial time
     */
     return cp.file_creator
 }
