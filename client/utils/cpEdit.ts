@@ -193,7 +193,7 @@ export function editEdge(oldfold:Fold, index:number, assignment:string, foldAngl
 //==========
 //Boilerplate helpers
 
-function splitEdge(fold:Fold,edgeIndex:number,vertexIndex:number):Fold{
+function splitEdge(fold:Fold,edgeIndex:number,vertexIndex:number):void{
     /*
     Split an existing edge based on a vertex that lies on the edge.
     Mutates the fold object
@@ -208,7 +208,7 @@ function splitEdge(fold:Fold,edgeIndex:number,vertexIndex:number):Fold{
     fold.edges_vertices.push({vertex1:vertexIndex,vertex2:oldVertex2Index})
     fold.edges_assignment.push(fold.edges_assignment[edgeIndex])
     fold.edges_foldAngle.push(fold.edges_foldAngle[edgeIndex])
-    return fold
+    return 
 }
 
 function connectVertices(fold:Fold,v1index:number,v2index:number,foldAngle:number,assignment:string,coincidentEdges:number[]):void{
@@ -219,27 +219,27 @@ function connectVertices(fold:Fold,v1index:number,v2index:number,foldAngle:numbe
         const coincidentv1 = fold.vertices_coords[fold.edges_vertices[coincident].vertex1]
         const coincidentv2 = fold.vertices_coords[fold.edges_vertices[coincident].vertex2]
         if(vertexOnEdge(v1,{v1:coincidentv1,v2:coincidentv2}) && vertexOnEdge(v2,{v1:coincidentv1,v2:coincidentv2})){
-        //Do not create a new edge, merge the fold angles. If the coincident crease was non MV (B, J, U, etc) this will overwrite it
-        fold.edges_foldAngle[coincident] += foldAngle
-        //[TODO] see if this is the best clipping behavior
-        if(fold.edges_foldAngle[coincident]>Math.PI){
-            fold.edges_foldAngle[coincident] -= 2*Math.PI
+            //Do not create a new edge, merge the fold angles. If the coincident crease was non MV (B, J, U, etc) this will overwrite it
+            fold.edges_foldAngle[coincident] += foldAngle
+            //[TODO] see if this is the best clipping behavior
+            if(fold.edges_foldAngle[coincident]>Math.PI){
+                fold.edges_foldAngle[coincident] -= 2*Math.PI
+            }
+            else if(fold.edges_foldAngle[coincident]<-Math.PI){
+                fold.edges_foldAngle[coincident] += 2*Math.PI
+            }
+            //make sure assignment is correct
+            if(fold.edges_foldAngle[coincident]<0){
+                fold.edges_assignment[coincident] = "M"
+            }
+            else if(fold.edges_foldAngle[coincident]>0){
+                fold.edges_assignment[coincident] = "V"
+            }
+            return
         }
-        else if(fold.edges_foldAngle[coincident]<-Math.PI){
-            fold.edges_foldAngle[coincident] += 2*Math.PI
-        }
-        //make sure assignment is correct
-        if(fold.edges_foldAngle[coincident]<0){
-            fold.edges_assignment[coincident] = "M"
-        }
-        else if(fold.edges_foldAngle[coincident]>0){
-            fold.edges_assignment[coincident] = "V"
-        }
-        return
-    }
-    fold.edges_vertices.push({vertex1:v1index,vertex2:v2index})
-    fold.edges_assignment.push(assignment)
-    fold.edges_foldAngle.push(foldAngle)
+        fold.edges_vertices.push({vertex1:v1index,vertex2:v2index})
+        fold.edges_assignment.push(assignment)
+        fold.edges_foldAngle.push(foldAngle)
     }
 }
 
