@@ -83,7 +83,7 @@ export function makeKawasakiFoldable(fold:Fold, vertexIndex:number):Array<{theta
     //for each copy, multiply the matrices to get a net rotation
     const netMatrices = rotationMatricesCopies.map(rotationMatrices => matrices.multiplyMatricesList(rotationMatrices.map(({matrix}) => matrix)));
 
-    var candidateCreases :Array<{theta:number;rho:number}> = [];
+    const candidateCreases :Array<{theta:number;rho:number}> = [];
     //For each matrix in netMatrices, check if matrix[1][0] == matrix[0][1]. This means the rotation matrix has no z component, and can be expressed as a single crease
     for (const matrix of netMatrices) {
         if (float.eq(matrix[1][0], matrix[0][1])) {
@@ -96,7 +96,7 @@ export function makeKawasakiFoldable(fold:Fold, vertexIndex:number):Array<{theta
     }
 
     //For each candidate crease, check if it actually makes the vertex foldable.
-    var verifiedCreases :Array<{theta:number;rho:number}> = [];
+    let verifiedCreases :Array<{theta:number;rho:number}> = [];
     //Zip the candidate creases with their matrix forms
     const candidateCreaseMatrices = candidateCreases.map(({theta,rho}) => ({theta:theta,rho:rho,matrix:matrices.rotationMatrix(theta, rho)}));
     //Also zip the original rotation matrices with their thetas
