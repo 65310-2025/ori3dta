@@ -61,7 +61,6 @@ Long shot goals: combine other specialty softwares to make a megaprogram
 
 */
 
-import { connect } from 'mongoose';
 import { Fold } from '../../server/types/fold';
 import * as float from './float';
 
