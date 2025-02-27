@@ -51,7 +51,11 @@ const Editor: React.FC = () => {
         // (parent of the parent because FabricJS adds a wrapper div around the canvas)
         const parent = canvasRef.current?.parentElement?.parentElement;
         if (parent) {
-          console.log("Resizing canvas to parent dimensions:", parent.clientWidth, parent.clientHeight);
+          console.log(
+            "Resizing canvas to parent dimensions:",
+            parent.clientWidth,
+            parent.clientHeight,
+          );
           fabricCanvas.setDimensions({
             width: parent.clientWidth,
             height: parent.clientHeight,
@@ -73,7 +77,7 @@ const Editor: React.FC = () => {
     }
   }, [isLoading, userId]);
 
-    const handleLogoutAndNavigate = () => {
+  const handleLogoutAndNavigate = () => {
     googleLogout();
     handleLogout();
     if (fabricCanvasRef.current) {
@@ -90,11 +94,7 @@ const Editor: React.FC = () => {
     },
     {
       key: "logout",
-      icon: (
-        <Button onClick={handleLogoutAndNavigate}>
-          Logout
-        </Button>
-      ),
+      icon: <Button onClick={handleLogoutAndNavigate}>Logout</Button>,
     },
   ];
 

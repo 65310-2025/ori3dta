@@ -51,16 +51,18 @@ const Library: React.FC = () => {
     },
     {
       key: "new",
-      icon: <Button onClick={() => setIsModalOpen(true)}>New Crease Pattern</Button>,
+      icon: (
+        <Button onClick={() => setIsModalOpen(true)}>New Crease Pattern</Button>
+      ),
     },
     {
       key: "logout",
       icon: (
         <Button
           onClick={() => {
-                googleLogout();
-                handleLogout();
-              }}
+            googleLogout();
+            handleLogout();
+          }}
         >
           Logout
         </Button>
@@ -113,7 +115,9 @@ const Library: React.FC = () => {
           <Form.Item
             name="description"
             label="Description"
-            rules={[{ required: true, message: "Please enter the description" }]}
+            rules={[
+              { required: true, message: "Please enter the description" },
+            ]}
           >
             <Input.TextArea />
           </Form.Item>
@@ -125,10 +129,12 @@ const Library: React.FC = () => {
             <Card title={design.name} variant="borderless">
               <p>{design.description}</p>
               <p>Creator: {design.creatorName}</p>
-              <Button type="default"
-                      onClick={() => {
-                        navigate(`/editor/${design.cpID}`);
-                      }}>
+              <Button
+                type="default"
+                onClick={() => {
+                  navigate(`/editor/${design.cpID}`);
+                }}
+              >
                 Edit
               </Button>
             </Card>

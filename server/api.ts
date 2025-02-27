@@ -46,7 +46,9 @@ router.get("/designs", async (req: Request, res: Response) => {
   }
 
   try {
-    const designs = await DesignMetadata.find({ creatorID: req.user._id }).lean();
+    const designs = await DesignMetadata.find({
+      creatorID: req.user._id,
+    }).lean();
     const creator = await User.findById(req.user._id).lean(); // Get creator's name
 
     if (!creator) {
@@ -55,13 +57,12 @@ router.get("/designs", async (req: Request, res: Response) => {
     }
 
     // Combine design data with the creator's name
-    const designsWithName: Array<DesignMetadataDto> = designs.map(design => ({
+    const designsWithName: Array<DesignMetadataDto> = designs.map((design) => ({
       ...design,
       creatorName: creator.name,
     }));
 
     res.send(designsWithName);
-
   } catch (error) {
     console.error("Failed to fetch designs:", error);
     res.status(500).send({ msg: "Failed to fetch designs" });
@@ -98,7 +99,6 @@ router.post("/designs", async (req: Request, res: Response) => {
 
     await newDesign.save();
     res.status(201).send(newDesign);
-
   } catch (error) {
     console.error("Failed to create new design:", error);
     res.status(500).send({ msg: "Failed to create new design" });

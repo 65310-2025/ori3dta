@@ -11,15 +11,7 @@ const Landing: React.FC = () => {
   }
 
   const { userId, handleLogin, handleLogout } = context;
-  return (
-    <>
-      {userId ? (
-        <Library />
-      ) : (
-        <Login />
-      )}
-    </>
-  );
+  return <>{userId ? <Library /> : <Login />}</>;
 };
 
 export default Landing;

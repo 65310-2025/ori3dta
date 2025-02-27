@@ -18,6 +18,9 @@ const DesignMetadataSchema = new Schema<IDbDesignMetadata>({
   cpID: { type: String, required: true },
 });
 
-const DesignMetadata = model<IDbDesignMetadata>("DesignMetadata", DesignMetadataSchema);
+const DesignMetadata = model<IDbDesignMetadata>(
+  "DesignMetadata",
+  DesignMetadataSchema,
+);
 
 export default DesignMetadata;

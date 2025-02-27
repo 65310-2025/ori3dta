@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint --ext .js,.ts . && prettier --ignore-path .gitignore --check .",
-    "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
+    "format": "prettier --ignore-path .gitignore --write .",
     "start": "nodemon --exec ts-node server/server.ts"
   },
   "repository": {
