@@ -126,32 +126,3 @@ export function makeKawasakiFoldable(fold:Fold, vertexIndex:number):Array<{theta
     );
     return verifiedCreases;
 }
-
-//=========================================================
-//2d functions
-
-// function checkKawasakiVertex2d(fold:Fold, vertexIndex:number):boolean{
-//     /*
-//     Check if a particular vertex is foldable by Kawasaki's theorem. This is a necessary condition, not sufficient. Returns true if foldable and false if not
-//     Should run in O(n) time where n is the number of connected vertices. In practice, n rarely exceeds 8 or so
-//     */
-// }
-
-// function makeKawasakiFoldable2d(fold:Fold, vertexIndex:number):boolean{
-
-// }
-
-// export function checkKawasakiVertex(fold:Fold, vertexIndex:number):boolean{
-//     //Check if the vertex has any non-flat fold angles. If it does, 
-// }
-
-// export function findKawasakiErrors(fold:Fold):number[]{
-//     /*
-//     Find all vertices that are not foldable by Kawasaki's theorem
-
-//     Returns a list of 0s and 1s. 0 means the vertex at that index is foldable, 1 means it is not foldable
-
-//     Runtime of this function is important. In Oriedita, there is an option to have this function be called every time you make a change. For large crease patterns, this becomes significantly slow. A solution might be to cache the results of this function in the fold object and only recalculate for vertices affected by the user's change.
-//     */
-//     return fold.vertices_coords.map((_, index) => checkKawasakiVertex(fold, index) ? 0 : 1);
-// }

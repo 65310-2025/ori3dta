@@ -58,6 +58,7 @@ export type Fold = {
     }>;
 
     //The above are fields defined by the official FOLD format: https://github.com/edemaine/fold/blob/main/doc/spec.md
+
     //===========
     //The below are fields that we are introducing. 
     // When exporting, these fields should be prefixed with "ori3dita:" to avoid conflicts with other software
@@ -78,6 +79,15 @@ export type Fold = {
 
     symmetry_type?: string | null; //bp, hp, 22.5, 15, or n/a. For displaying grids
     grid_size?: number | null; //size of the grid, or n/a
+
+    //for auxiliary annotation of circle packings. Like Oriedita's .ori file type. Can also store software specific data, like current view parameters
+    arcs?: Array<{
+        x:number;
+        y:number;
+        r:number;
+        startAngle:number; //radians
+        endAngle:number;
+    }>;
 };
 
 
