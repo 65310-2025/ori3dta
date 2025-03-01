@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 import { Socket as SocketIO } from "socket.io";
 
-// Import the CP model and interface
 import { DesignMetadataDto } from "../dto/dto";
 import { login, logout } from "./auth";
 import CP, { ICP } from "./models/cp";
@@ -9,20 +8,18 @@ import DesignMetadata from "./models/designMetadata";
 import User from "./models/user";
 import socketManager from "./server-socket";
 
-// Import the DTO type
-
 // api endpoints: all these paths will be prefixed with "/api/"
 const router = express.Router();
 
 router.post("/login", login);
+
 router.post("/logout", logout);
+
 router.get("/whoami", (req: Request, res: Response) => {
   if (!req.user) {
-    // not logged in
     res.send({});
     return;
   }
-
   res.send(req.user);
 });
 

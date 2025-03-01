@@ -6,8 +6,6 @@ import net from "net";
  * Provides some basic checks to make sure you've
  * correctly set up your repository.
  *
- * You normally shouldn't need to modify this file.
- *
  * Current checks:
  * - node_modules exists
  * - warns if visiting port 3000 while running hot reloader
@@ -54,7 +52,6 @@ export const checkRoutes = (
         );
       }
     });
-
     routeChecked = true; // only runs once to avoid spam/overhead
   }
   next();

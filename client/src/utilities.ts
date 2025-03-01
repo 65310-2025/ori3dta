@@ -1,18 +1,9 @@
 /**
  * Utility functions to make API requests.
- * By importing this file, you can use the provided get and post functions.
- * You shouldn't need to modify this file, but if you want to learn more
- * about how these functions work, google search "Fetch API"
- *
- * These functions return promises, which means you should use ".then" on them.
- * e.g. get('/api/foo', { bar: 0 }).then(res => console.log(res))
  */
 
 // ex: formatParams({ some_key: "some_value", a: "b"}) => "some_key=some_value&a=b"
 function formatParams(params: Record<string, any>): string {
-  // iterate of all the keys of params as an array,
-  // map it to a new array of URL string encoded key,value pairs
-  // join all the url params using an ampersand (&).
   return Object.keys(params)
     .map((key) => key + "=" + encodeURIComponent(params[key]))
     .join("&");
@@ -25,8 +16,8 @@ function convertToJSON(res: Response): Promise<any> {
   }
 
   return res
-    .clone() // clone so that the original is still readable for debugging
-    .json() // start converting to JSON object
+    .clone()
+    .json()
     .catch((error) => {
       // throw an error containing the text that couldn't be converted to JSON
       return res.text().then((text) => {
@@ -45,7 +36,6 @@ export function get(
   return fetch(fullPath)
     .then(convertToJSON)
     .catch((error) => {
-      // give a useful error message
       throw `GET request to ${fullPath} failed with error:\n${error}`;
     });
 }
@@ -61,9 +51,8 @@ export function post(
     headers: { "Content-type": "application/json" },
     body: JSON.stringify(params),
   })
-    .then(convertToJSON) // convert result to JSON object
+    .then(convertToJSON)
     .catch((error) => {
-      // give a useful error message
       throw `POST request to ${endpoint} failed with error:\n${error}`;
     });
 }

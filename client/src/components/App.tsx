@@ -10,9 +10,6 @@ import { get, post } from "../utilities";
 
 export const UserContext = createContext<AuthContextValue | null>(null);
 
-/**
- * Define the "App" component
- */
 const App: React.FC = () => {
   const [userId, setUserId] = useState<string | undefined>(undefined);
 

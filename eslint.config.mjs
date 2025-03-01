@@ -12,7 +12,10 @@ export default [
   pluginReact.configs.flat.recommended,
   {
     rules: {
-      "no-explicit-any": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "warn", // Change to error once project is stable
+      "@typescript-eslint/no-empty-object-type": "warn",
+      "react/no-unescaped-entities": "warn",
     },
   },
 ];

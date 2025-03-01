@@ -46,7 +46,7 @@ function login(req: Request, res: Response) {
     })
     .then((user) => {
       // persist user in the session
-      (req.session as ISession).user = user; // Store IUser in session
+      (req.session as ISession).user = user;
       res.send(user);
     })
     .catch((err) => {
@@ -70,7 +70,6 @@ function ensureLoggedIn(req: Request, res: Response, next: NextFunction) {
   if (!req.user) {
     return res.status(401).send({ err: "not logged in" });
   }
-
   next();
 }
 
