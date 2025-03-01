@@ -1,6 +1,6 @@
+import { NextFunction, Request, Response } from "express";
 import fs from "fs";
 import net from "net";
-import { Request, Response, NextFunction } from "express";
 
 /**
  * Provides some basic checks to make sure you've

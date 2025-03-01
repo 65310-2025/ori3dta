@@ -1,7 +1,8 @@
 import React, { useContext } from "react";
-import Login from "./Login";
-import Library from "./Library";
+
 import { UserContext } from "../App";
+import Library from "./Library";
+import Login from "./Login";
 
 const Landing: React.FC = () => {
   const context = useContext(UserContext);

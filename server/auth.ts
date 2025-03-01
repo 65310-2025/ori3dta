@@ -1,8 +1,9 @@
+import { NextFunction, Request, Response } from "express";
 import { OAuth2Client, TokenPayload } from "google-auth-library";
-import { Request, Response, NextFunction } from "express";
+
 import User from "./models/user";
 import socketManager from "./server-socket";
-import { IUser, ISession, IGoogleUser } from "./types/types";
+import { IGoogleUser, ISession, IUser } from "./types/types";
 
 // create a new OAuth client used to verify google sign-in
 const CLIENT_ID =

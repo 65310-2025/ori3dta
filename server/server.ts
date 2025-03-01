@@ -12,27 +12,30 @@
 | - Sets up error handling in case something goes wrong when handling a request
 | - Actually starts the webserver
 */
-
 // validator runs some basic checks to make sure you've set everything up correctly
 // this is a tool provided by staff, so you don't need to worry about it
-import { checkSetup, checkRoutes } from "./validator";
-checkSetup();
-
 //allow us to use process.ENV
 import dotenv from "dotenv";
-dotenv.config();
-
+import express, { NextFunction, Request, Response } from "express";
+// backend framework for our node server.
+import session from "express-session";
 //import libraries needed for the webserver to work!
 import http from "http";
-import express, { Request, Response, NextFunction } from "express"; // backend framework for our node server.
-import session from "express-session"; // library that stores info about each connected user
-import mongoose from "mongoose"; // library to connect to MongoDB
-import path from "path"; // provide utilities for working with file and directory paths
+// library that stores info about each connected user
+import mongoose from "mongoose";
+// library to connect to MongoDB
+import path from "path";
+
+// provide utilities for working with file and directory paths
 import api from "./api";
 import { populateCurrentUser } from "./auth";
-
 // socket stuff
 import socketManager from "./server-socket";
+import { checkRoutes, checkSetup } from "./validator";
+
+checkSetup();
+
+dotenv.config();
 
 // Server configuration below
 // TODO change connection URL after setting up your team database

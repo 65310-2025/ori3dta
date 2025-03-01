@@ -1,11 +1,15 @@
 import express, { Request, Response } from "express";
 import { Socket as SocketIO } from "socket.io";
+
+// Import the CP model and interface
+import { DesignMetadataDto } from "../dto/dto";
 import { login, logout } from "./auth";
-import socketManager from "./server-socket";
+import CP, { ICP } from "./models/cp";
 import DesignMetadata from "./models/designMetadata";
 import User from "./models/user";
-import CP, { ICP } from "./models/cp"; // Import the CP model and interface
-import { DesignMetadataDto } from "../dto/dto"; // Import the DTO type
+import socketManager from "./server-socket";
+
+// Import the DTO type
 
 // api endpoints: all these paths will be prefixed with "/api/"
 const router = express.Router();

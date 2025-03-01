@@ -1,10 +1,12 @@
-import React, { useState, useEffect, createContext } from "react";
-import { Outlet } from "react-router-dom";
+import React, { createContext, useEffect, useState } from "react";
+
 import jwt_decode from "jwt-decode";
-import { socket } from "../client-socket";
-import { get, post } from "../utilities";
-import { AuthContextValue } from "../types/types";
+import { Outlet } from "react-router-dom";
+
 import { UserDto } from "../../../dto/dto";
+import { socket } from "../client-socket";
+import { AuthContextValue } from "../types/types";
+import { get, post } from "../utilities";
 
 export const UserContext = createContext<AuthContextValue | null>(null);
 

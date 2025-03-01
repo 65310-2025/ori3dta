@@ -1,18 +1,18 @@
 import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./components/App";
-import Landing from "./components/pages/Landing";
-import Editor from "./components/pages/Editor";
-import NotFound from "./components/pages/NotFound";
-
-import {
-  createBrowserRouter,
-  createRoutesFromElements,
-  Route,
-  RouterProvider,
-} from "react-router-dom";
 
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import ReactDOM from "react-dom/client";
+import {
+  Route,
+  RouterProvider,
+  createBrowserRouter,
+  createRoutesFromElements,
+} from "react-router-dom";
+
+import App from "./components/App";
+import Editor from "./components/pages/Editor";
+import Landing from "./components/pages/Landing";
+import NotFound from "./components/pages/NotFound";
 
 const GOOGLE_CLIENT_ID =
   "1077700528117-f59tr015sdectfbjnd9b6hqguqfmb5bi.apps.googleusercontent.com";
