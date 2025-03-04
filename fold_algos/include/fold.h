@@ -1,5 +1,15 @@
+#pragma once
+#ifndef FOLD_H
+#define FOLD_H
+
+#include <iostream>
 #include <optional>
-#include "simdjson.h"
+#include <string>
+#include <vector>
+
+#include <simdjson.h>
+
+namespace ori3dta {
 
 using coord_t = double;
 using angle_t = double;
@@ -16,7 +26,7 @@ enum class edge_assign_t : char {
   unassigned = 'U',
   cut = 'C',
   join = 'J',
-}
+};
 
 struct FOLD {
   std::string file_spec;
@@ -30,9 +40,9 @@ struct FOLD {
   std::string frame_author;
   std::string frame_title;
   std::string frame_description;
-  std::string frame_classes;
-  std::string frame_attributes;
-  std::string frame_units;
+  std::vector<std::string> frame_classes;
+  std::vector<std::string> frame_attributes;
+  std::vector<std::string> frame_units;
 
   std::vector<std::vector<coord_t>> vertices_coords;
   std::vector<std::vector<vert_id_t>> vertices_vertices;
@@ -51,4 +61,12 @@ struct FOLD {
 
   std::vector<std::tuple<face_id_t, face_id_t, int>> faceOrders;
   std::vector<std::tuple<edge_id_t, edge_id_t, int>> edgeOrders;
-}
+
+  std::vector<coord_t> compute_normal(int face_id);
+};
+
+coord_t vec_len(const std::vector<coord_t>& v);
+
+} // namespace ori3dta
+
+#endif // FOLD_H

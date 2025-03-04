@@ -1,6 +1,10 @@
-#include "simdjson.h"
 #include <iostream>
 #include <vector>
+
+#include <simdjson.h>
+
+#include <fold.h>
+#include <plane_group.h>
 
 using namespace simdjson;
 

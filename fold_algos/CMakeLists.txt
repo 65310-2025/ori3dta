@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
+project(Ori3dta)
 
 include(FetchContent)
 
@@ -10,5 +11,10 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(simdjson)
 
-add_executable(test test.cpp)
+add_executable(test
+  src/test.cpp
+  src/fold.cpp
+  src/plane_group.cpp
+  )
+target_include_directories(test PUBLIC include)
 target_link_libraries(test simdjson)
