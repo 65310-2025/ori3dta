@@ -1,6 +1,7 @@
 import { Server } from "http";
-import { Server as SocketIOServer, Socket as SocketIO } from "socket.io";
-import { IUser, ISocket } from "./types/types";
+import { Socket as SocketIO, Server as SocketIOServer } from "socket.io";
+
+import { ISocket, IUser } from "./types/types";
 
 let io: SocketIOServer;
 

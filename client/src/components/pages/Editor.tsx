@@ -1,10 +1,12 @@
-import React, { useContext, useRef, useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useContext, useEffect, useRef, useState } from "react";
+
 import { googleLogout } from "@react-oauth/google";
-import { UserContext } from "../App";
-import { Canvas, Rect } from "fabric";
 import { Button, Menu, Spin } from "antd";
 import type { MenuProps } from "antd";
+import { Canvas, Rect } from "fabric";
+import { useNavigate, useParams } from "react-router-dom";
+
+import { UserContext } from "../App";
 
 const Editor: React.FC = () => {
   const navigate = useNavigate();
