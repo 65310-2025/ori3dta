@@ -16,9 +16,12 @@ const App: React.FC = () => {
 
   useEffect(() => {
     get("/api/whoami").then((user: UserDto) => {
-      if (user._id) {
-        // they are registered in the database, and currently logged in.
+      console.log(user);
+      if (user._id) { // logged in
         setUserId(user._id);
+      }
+      else { // not logged in
+        setUserId(null);
       }
     });
   }, []);

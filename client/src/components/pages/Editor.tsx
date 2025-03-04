@@ -17,6 +17,7 @@ const Editor: React.FC = () => {
     return <p>Error: User context is not available.</p>;
   }
 
+  // TODO: the context destructuring happened here before
   const { userId, handleLogin, handleLogout } = context;
 
   const { cpID } = useParams<{ cpID: string }>();
