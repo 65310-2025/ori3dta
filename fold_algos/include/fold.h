@@ -18,6 +18,8 @@ using vert_id_t = uint32_t;
 using edge_id_t = uint32_t;
 using face_id_t = uint32_t;
 
+constexpr coord_t EPS = 1e-6;
+
 enum class edge_assign_t : char {
   boundary = 'B',
   mountain = 'M',

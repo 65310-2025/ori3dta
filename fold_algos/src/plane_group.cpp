@@ -1,15 +1,50 @@
+#include <dsu.h>
 #include <fold.h>
 #include <plane_group.h>
+#include <vec_math.h>
 
 using namespace ori3dta;
 
-FOLD_PlaneGroup::FOLD_PlaneGroup(const FOLD& f) : FOLD(f) {
+PlaneGroup::PlaneGroup(const FOLD& f) : FOLD(f) {
   compute_planegroups();
 }
 
-void FOLD_PlaneGroup::compute_planegroups() {
+void PlaneGroup::compute_planegroups() {
   int n_faces = faces_vertices.size();
+
+  std::vector<std::vector<coord_t>> faces_plane_vals;
+  faces_plane_vals.reserve(n_faces);
   for (int face_id = 0; face_id < n_faces; face_id++) {
-    compute_normal(face_id);
+    const auto& face_vertices = faces_vertices[face_id];
+    auto norm = compute_normal(face_id);
+    auto some_face_vert = vertices_coords[face_vertices[0]];
+
+    auto proj_len = dot_prod(norm, some_face_vert);
+
+    auto plane_val = norm;
+    plane_val.push_back(proj_len);
+
+    if (proj_len < 0) {
+      for (auto& x : plane_val) {
+        x *= -1;
+      }
+    }
+
+    faces_plane_vals.push_back(plane_val);
+  }
+
+  DSU plane_group(n_faces);
+  for (int face1_id = 0; face1_id < n_faces; face1_id++) {
+    for (int face2_id = 0; face2_id < n_faces; face2_id++) {
+      const auto& plane_val1 = faces_plane_vals[face1_id];
+      const auto& plane_val2 = faces_plane_vals[face2_id];
+      if (vec_diff_L1(plane_val1, plane_val2) < EPS) {
+        plane_group.join(face1_id, face2_id);
+      }
+    }
+  }
+
+  for (int i = 0; i < n_faces; i++) {
+    std::clog << "face " << i << ": plane group " << plane_group.find(i) << std::endl;
   }
 }

@@ -9,7 +9,8 @@ std::vector<coord_t> FOLD::compute_normal(int face_id) {
   const auto& face_vertices = faces_vertices[face_id];
   // TODO: add assert for 3d
   std::vector<coord_t> res(3);
-  int n_vert = vertices_coords[face_id].size();
+
+  int n_vert = face_vertices.size();
   for (int vert_idx = 0; vert_idx < n_vert; vert_idx++) {
     int next_vert_idx = vert_idx ? vert_idx - 1 : n_vert - 1;
 

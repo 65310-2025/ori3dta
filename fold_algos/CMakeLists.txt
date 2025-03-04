@@ -13,6 +13,7 @@ FetchContent_MakeAvailable(simdjson)
 
 add_executable(test
   src/test.cpp
+  src/dsu.cpp
   src/fold.cpp
   src/plane_group.cpp
   )

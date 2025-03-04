@@ -7,15 +7,15 @@
 
 namespace ori3dta {
 
-struct FOLD_PlaneGroup : public FOLD {
+struct PlaneGroup : public FOLD {
   std::vector<int> faces_planegroup;
   std::vector<std::vector<int>> planegroups_faces;
 
-  FOLD_PlaneGroup(const FOLD& f);
+  PlaneGroup(const FOLD& f);
 
   void compute_planegroups();
 
-  friend std::ostream& operator<<(std::ostream& os, const FOLD_PlaneGroup& f);
+  friend std::ostream& operator<<(std::ostream& os, const PlaneGroup& f);
 };
 
 } // namespace ori3dta
