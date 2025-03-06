@@ -24,12 +24,6 @@ void PlaneGroup::compute_planegroups() {
     auto plane_val = norm;
     plane_val.push_back(proj_len);
 
-    if (proj_len < 0) {
-      for (auto& x : plane_val) {
-        x *= -1;
-      }
-    }
-
     faces_plane_vals.push_back(plane_val);
   }
 
@@ -37,8 +31,18 @@ void PlaneGroup::compute_planegroups() {
   for (int face1_id = 0; face1_id < n_faces; face1_id++) {
     for (int face2_id = 0; face2_id < n_faces; face2_id++) {
       const auto& plane_val1 = faces_plane_vals[face1_id];
-      const auto& plane_val2 = faces_plane_vals[face2_id];
-      if (vec_diff_L1(plane_val1, plane_val2) < EPS) {
+      auto plane_val2 = faces_plane_vals[face2_id];
+
+      auto vec_diff = vec_diff_L1(plane_val1, plane_val2);
+      for (auto& x : plane_val2) x *= -1;
+      vec_diff = std::min(vec_diff, vec_diff_L1(plane_val1, plane_val2));
+
+      std::clog << face1_id << ", " << face2_id << std::endl;
+      for (auto& x : plane_val1) std::cout << x << ' '; std::cout << std::endl;
+      for (auto& x : plane_val2) std::cout << x << ' '; std::cout << std::endl;
+      std::clog << vec_diff << std::endl;
+
+      if (vec_diff < EPS) {
         plane_group.join(face1_id, face2_id);
       }
     }

@@ -44,7 +44,7 @@ struct FOLD {
   std::string frame_description;
   std::vector<std::string> frame_classes;
   std::vector<std::string> frame_attributes;
-  std::vector<std::string> frame_units;
+  std::string frame_unit;
 
   std::vector<std::vector<coord_t>> vertices_coords;
   std::vector<std::vector<vert_id_t>> vertices_vertices;
@@ -53,7 +53,7 @@ struct FOLD {
 
   std::vector<std::vector<vert_id_t>> edges_vertices;
   std::vector<std::vector<std::optional<face_id_t>>> edges_faces;
-  std::vector<edge_assign_t> edges_assignement;
+  std::vector<edge_assign_t> edges_assignment;
   std::vector<std::optional<angle_t>> edges_foldAngle;
   std::vector<dist_t> edges_length;
 
