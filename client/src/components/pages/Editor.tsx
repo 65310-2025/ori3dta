@@ -1,27 +1,25 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
-
+import React, { useContext, useEffect, useRef, useState, useCallback } from "react";
 import { googleLogout } from "@react-oauth/google";
 import { Button, Menu, Spin } from "antd";
 import type { MenuProps } from "antd";
-import { Canvas, Rect } from "fabric";
+import { Canvas } from "fabric";
 import { useNavigate, useParams } from "react-router-dom";
-
 import { UserContext } from "../App";
+import { Mode, addListenersForMode, removeListenersForMode } from "../../draw";
 
 const Editor: React.FC = () => {
   const navigate = useNavigate();
   const context = useContext(UserContext);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [mode, setMode] = useState(Mode.ADD_LINE);
 
   if (!context) {
     // should not be executed unless I goofed up the context provider
     return <p>Error: User context is not available.</p>;
   }
 
-  // TODO: the context destructuring happened here before
   const { userId, handleLogin, handleLogout } = context;
-
   const { cpID } = useParams<{ cpID: string }>();
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -36,9 +34,29 @@ const Editor: React.FC = () => {
         navigate("/");
       }
     }
-  }, [userId]);
+  }, [userId, navigate]);
 
-  // Initialize FabricJS canvas
+  // Resize canvas function
+  const resizeCanvas = useCallback((canvasObj: Canvas) => {
+    // Set the FabricJS canvas dimensions to match the parent container
+    // (parent of the parent because FabricJS adds a wrapper div around the canvas)
+    const parent = canvasRef.current?.parentElement?.parentElement;
+    if (parent) {
+      canvasObj.setDimensions({
+        width: parent.clientWidth,
+        height: parent.clientHeight,
+      });
+    }
+  }, []);
+
+  const initListeners = (canvasObj: Canvas) => {
+    // starting mode is ADD_LINE
+    addListenersForMode(canvasObj, Mode.ADD_LINE);
+  }
+
+  // TODO: logic to change mode
+
+  // Initialize Fabric canvas
   useEffect(() => {
     if (!isLoading && userId && canvasRef.current) {
       const fabricCanvas = new Canvas(canvasRef.current, {
@@ -49,36 +67,23 @@ const Editor: React.FC = () => {
       });
       fabricCanvasRef.current = fabricCanvas;
 
-      const resizeCanvas = () => {
-        // Set the FabricJS canvas dimensions to match the parent container
-        // (parent of the parent because FabricJS adds a wrapper div around the canvas)
-        const parent = canvasRef.current?.parentElement?.parentElement;
-        if (parent) {
-          console.log(
-            "Resizing canvas to parent dimensions:",
-            parent.clientWidth,
-            parent.clientHeight,
-          );
-          fabricCanvas.setDimensions({
-            width: parent.clientWidth,
-            height: parent.clientHeight,
-          });
-        }
-      };
+      // Add event listeners to Canvas
+      initListeners(fabricCanvas);
 
       // Initial resize
-      resizeCanvas();
+      resizeCanvas(fabricCanvas);
 
-      // Resize on window resize
-      window.addEventListener("resize", resizeCanvas);
+      // Resize canvas on window resize
+      const handleResize = () => resizeCanvas(fabricCanvas);
+      window.addEventListener("resize", handleResize);
 
       // Cleanup
       return () => {
         fabricCanvas.dispose();
-        window.removeEventListener("resize", resizeCanvas);
+        window.removeEventListener("resize", handleResize);
       };
     }
-  }, [isLoading, userId]);
+  }, [isLoading, userId, resizeCanvas]);
 
   const handleLogoutAndNavigate = () => {
     googleLogout();
