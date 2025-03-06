@@ -57,6 +57,9 @@ Long shot goals: combine other specialty softwares to make a megaprogram
  - reference finding
  - pythagorean stretch generator
  - parametric design / feature tree
+
+[TODO]: make sure that redundant fields (vertices_vertices, vertices_edges, etc) are being updated
+
 =========
 
 */
@@ -266,7 +269,6 @@ function vertexOnEdge(v:({x:number,y:number}),l:({v1:({x:number,y:number}),v2:({
     /*
     Check if a vertex is on an edge
     */
-    const tolerance = 0.0001;
     const d1 = Math.sqrt((v.x - l.v1.x) ** 2 + (v.y - l.v1.y) ** 2);
     const d2 = Math.sqrt((v.x - l.v2.x) ** 2 + (v.y - l.v2.y) ** 2);
     const d3 = Math.sqrt((l.v1.x - l.v2.x) ** 2 + (l.v1.y - l.v2.y) ** 2);
