@@ -21,49 +21,82 @@ export function getFaces(oldfold:Fold):Fold{
     fold.faces_vertices = []
     fold.faces_edges = []
     fold.faces_faces = []
-    fold.edges_faces = []
+    fold.edges_faces = Array.from({ length: fold.edges_vertices.length }, () => ({left:null,right:null}));
     // fold.vertices_faces = [] //Don't think this one is necessary
 
 
     const N = fold.edges_vertices.length;
-    const halfEdges:{vertex1:number,vertex2:number,fullEdge:number}[] = structuredClone(fold.edges_vertices).map( ({vertex1,vertex2},index) => ({vertex1:vertex1,vertex2:vertex2,fullEdge:index}));
+    let halfEdges:{vertex1:number,vertex2:number,fullEdge:number,index:number}[] = structuredClone(fold.edges_vertices).map( ({vertex1,vertex2},index) => ({vertex1:vertex1,vertex2:vertex2,fullEdge:index,index:index}));
     
-    halfEdges.concat( halfEdges.map( ({vertex1,vertex2,fullEdge}) => ({vertex1:vertex2,vertex2:vertex1,fullEdge:fullEdge}) ) ) //should be 2N long
+    halfEdges = halfEdges.concat( halfEdges.map( ({vertex1,vertex2,fullEdge}) => ({vertex1:vertex2,vertex2:vertex1,fullEdge:fullEdge,index:fullEdge+N}) ) ) //should be 2N long
 
-    //if the vertex is not vertex1 of its edge, the twin half-edge should be at edgeIndex + N
-    let vertices_outgoingEdges: number[][] = fold.vertices_edges.map( (edges:number[]) => edges.map( (edgeIndex:number,index:number) => fold.edges_vertices[edgeIndex].vertex1 == index? edgeIndex : edgeIndex + N ) )
+    //outgoing half edges from each vertex
+    let vertices_outgoingEdges: {vertex1:number,vertex2:number,fullEdge:number,index:number}[][] = Array.from({length:fold.vertices_coords.length}, () => [])
+    for (const halfEdge of halfEdges){
+        vertices_outgoingEdges[halfEdge.vertex1].push(halfEdge)
+    }
+    // sort vertices_outgoingEdges by angle
+    vertices_outgoingEdges = vertices_outgoingEdges.map( (edges,vindex) => edges.sort((halfEdgeA,halfEdgeB) => angle(vindex,halfEdgeA.vertex2,fold)-angle(vindex,halfEdgeB.vertex2,fold)) )
 
-    vertices_outgoingEdges = vertices_outgoingEdges.map( (edges,index) => edges.sort((vertexA,vertexB) => angle(index,vertexA,fold)-angle(index,vertexB,fold)) )
 
-    while (halfEdges.length > 0){
-        const face_vertices:number[] = []
-        const face_edges:number[] = []
+    const mutableHalfEdges = structuredClone(halfEdges)
+    while (mutableHalfEdges.length > 0) {
+        const face_vertices: number[] = [];
+        const face_edges: number[] = [];
 
-        const startingHalfEdge = halfEdges[0]
-        delete(halfEdges[0])
-        face_vertices.push(startingHalfEdge.vertex1)
-        face_edges.push(startingHalfEdge.fullEdge)
+        let currentHalfEdge = mutableHalfEdges[0];
+        mutableHalfEdges.shift()
 
-        //Fill out edges_faces. "left" and "right" are arbitrary, but we say that "left" is the face made from the cloned half-edge and "right" is the face made from the flipped half-edge.
-        //the right-left distinction is necessary for calculating the x-ray because it will give the crease a "direction"
-        if(startingHalfEdge.vertex1 == fold.edges_vertices[startingHalfEdge.fullEdge].vertex1){
-            fold.edges_faces[startingHalfEdge.fullEdge].left = fold.faces_edges.length
-        } else {
-            fold.edges_faces[startingHalfEdge.fullEdge].right = fold.faces_edges.length
+        face_vertices.push(currentHalfEdge.vertex1);
+        face_edges.push(currentHalfEdge.fullEdge);
+
+        while (true) {
+            const nextVertex:number = currentHalfEdge.vertex2;
+            const outgoingEdges:{vertex1:number,vertex2:number,fullEdge:number,index:number}[] = vertices_outgoingEdges[nextVertex];
+
+            //index in the list of outgoingEdges
+            const currentOutgoingIndex = outgoingEdges.findIndex(halfEdge => halfEdge.vertex2 == currentHalfEdge.vertex1);
+
+            currentHalfEdge= outgoingEdges[ currentOutgoingIndex < outgoingEdges.length-1? currentOutgoingIndex+1: 0 ]
+
+            face_vertices.push(currentHalfEdge.vertex1);
+            face_edges.push(currentHalfEdge.fullEdge);
+            const indexToRemove = mutableHalfEdges.findIndex(halfEdge => halfEdge.vertex1 === currentHalfEdge.vertex1 && halfEdge.vertex2 === currentHalfEdge.vertex2);
+            if (indexToRemove !== -1) {
+                mutableHalfEdges.splice(indexToRemove, 1);
+            }
+
+            if (currentHalfEdge.vertex2 === face_vertices[0]) {
+                break;
+            }
         }
-
-        //[TODO] figure out the index of the next half edge, turning right at vertex2
-
-        //continue adding until you reach startingHalfEdge
-        
-        //[TODO] this will also pick up a face that traces the outside of the cp. We want to remove this face somehow, making sure it doesn't mess up the indexing of the rest of the faces, and also remove it from edges_faces.
-
-        fold.faces_vertices.push(face_vertices)
-        fold.faces_edges.push(face_edges)
+        //One of the faces will be tracing the outside of the cp. We can find it and avoid adding it because its orientation will be different.
+        if(!isFaceClockwise(face_vertices,fold)){ 
+            fold.faces_vertices.push(face_vertices);
+            fold.faces_edges.push(face_edges);
+        }
     }
 
-    //Fill out faces_faces. initialize as a list of N empty lists, where N is the number of faces.
-    //for each edge, push left to right's list, and right to left's list.
+    //Fill out edges_faces
+    fold.faces_edges.forEach((edges, faceIndex) => {
+        edges.forEach(edgeIndex => {
+            const edgeFaces = fold.edges_faces[edgeIndex];
+            if(edgeFaces.left === null){
+                edgeFaces.left = faceIndex;
+            } else {
+                edgeFaces.right = faceIndex;
+            }
+        });
+    });
+    //Fill out faces_faces
+    const faceCount = fold.faces_vertices.length;
+    fold.faces_faces = Array.from({ length: faceCount }, () => []);
+    fold.edges_faces.forEach(({left,right},edgeIndex) => {
+        if(left !== null && right !== null){
+            fold.faces_faces[left].push(right);
+            fold.faces_faces[right].push(left);
+        }
+    });
 
     return fold
 }
@@ -84,4 +117,14 @@ function angle(vertex1:number,vertex2:number,fold:Fold):number{
     Takes two vertex indices. Computes the angle of the vector v1 -> v2 with respect to the x axis.
     */
     return Math.atan2(fold.vertices_coords[vertex2].y - fold.vertices_coords[vertex1].y, fold.vertices_coords[vertex2].x - fold.vertices_coords[vertex1].x)
+}
+
+function isFaceClockwise(vertices: number[], fold: Fold): boolean {
+    let sum = 0;
+    for (let i = 0; i < vertices.length; i++) {
+        const {x:x1,y:y1} = fold.vertices_coords[vertices[i]];
+        const {x:x2,y:y2} = fold.vertices_coords[vertices[(i + 1) % vertices.length]];
+        sum += (x2 - x1) * (y2 + y1);
+    }
+    return sum < 0;
 }

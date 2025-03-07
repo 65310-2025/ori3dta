@@ -30,7 +30,7 @@ export type Fold = {
         vertex2: number;
     }>;
 
-    edges_faces?:Array<{
+    edges_faces:Array<{
         left: number | null; //index of the face on the left side of the edge
         right: number | null; //index of the face on the right side of the edge
     }>;
@@ -46,9 +46,9 @@ export type Fold = {
     edges_length?: Array<number>; //length of the edge. Should match with edges_vertices
 
     //added when x ray is computed
-    faces_vertices?: Array<Array<number>>;
-    faces_edges?: Array<Array<number>>;
-    faces_faces?: Array<Array<number>>; //list of faces connected to each face
+    faces_vertices: Array<Array<number>>;
+    faces_edges: Array<Array<number>>;
+    faces_faces: Array<Array<number>>; //list of faces connected to each face
 
     //added when layer ordering is computed. This structure works for 2d, but may look different for 3d
     faceOrders?: Array<{
@@ -56,6 +56,8 @@ export type Fold = {
         face2: number;
         order: boolean; //in other softwares, this is 1 and -1
     }>;
+
+    [key: string]: any; //to deal with extra fields from other softwares
 
     //The above are fields defined by the official FOLD format: https://github.com/edemaine/fold/blob/main/doc/spec.md
 

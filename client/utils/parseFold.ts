@@ -63,6 +63,13 @@ export function importFold(file: string): Fold {
     }
 
     //Ignore faces_fields. Will be filled out when the user calls xray, layer ordering, or other functions that require faces
+
+    //Remove fields that are specific to other softwares
+    for (const key in fold) {
+        if (fold.hasOwnProperty(key) && key.includes(':') && !key.startsWith('Ori3dita:')) {
+            delete fold[key];
+        }
+    }
     
     return fold;
 }
@@ -88,5 +95,6 @@ export function exportFold(fold: Fold): string {
     output.vertices_coords = output.vertices_coords.map((vertex: { x: number, y: number }) => [vertex.x, vertex.y]);
     output.edges_vertices = output.edges_vertices.map((edge: { vertex1: number, vertex2: number }) => [edge.vertex1, edge.vertex2]);
 
+    //[TODO] add "Ori3dita:" to custom fields
     return JSON.stringify(output);
 }
