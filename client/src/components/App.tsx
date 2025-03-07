@@ -15,11 +15,11 @@ const App: React.FC = () => {
 
   useEffect(() => {
     get("/api/whoami").then((user: UserDto) => {
-      console.log(user);
-      if (user._id) { // logged in
+      if (user._id) {
+        // logged in
         setUserId(user._id);
-      }
-      else { // not logged in
+      } else {
+        // not logged in
         setUserId(null);
       }
     });
