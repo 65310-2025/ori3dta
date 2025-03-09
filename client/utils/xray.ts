@@ -91,7 +91,7 @@ export function getFaces(oldfold:Fold):Fold{
     //Fill out faces_faces
     const faceCount = fold.faces_vertices.length;
     fold.faces_faces = Array.from({ length: faceCount }, () => []);
-    fold.edges_faces.forEach(({left,right},edgeIndex) => {
+    fold.edges_faces.forEach(({left,right}) => {
         if(left !== null && right !== null){
             fold.faces_faces[left].push(right);
             fold.faces_faces[right].push(left);
@@ -101,13 +101,12 @@ export function getFaces(oldfold:Fold):Fold{
     return fold
 }
 
-export function xray(cp:Fold,root_index:number = 0){
-    /*
-    - Create spanning tree, starting from the root_index face. store tree data externally?
-    - for each face, vertices will start at cp position, reflect over edges until reach the root face, and then store as folded coords. will be redundant but polynomial time
-    */
-    return cp.file_creator
-}
+// export function xray(cp:Fold,root_index:number = 0){
+//     /*
+//     - Create spanning tree, starting from the root_index face. store tree data externally?
+//     - for each face, vertices will start at cp position, reflect over edges until reach the root face, and then store as folded coords. will be redundant but polynomial time
+//     */
+// }
 
 //===== 
 //math helper functions

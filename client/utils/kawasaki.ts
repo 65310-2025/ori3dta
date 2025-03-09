@@ -59,7 +59,6 @@ export function checkKawasakiVertex(fold:Fold, vertexIndex:number):boolean{
     const finalMatrix = matrices.multiplyMatricesList(rotationMatrices.map(({matrix}) => matrix));
 
     // Check if the final matrix is an identity matrix. Equivalent to checking if rotation vector is 0
-    const rotationVector = matrices.rotationMatrixToVector(finalMatrix);
     return matrices.isIdentity(finalMatrix);
 }
 

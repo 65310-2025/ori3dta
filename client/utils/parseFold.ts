@@ -11,7 +11,7 @@ export function importFold(file: string): Fold {
     /*
     Parse a Fold file and return a Fold object for internal use. Fill out redundant fields like vertices_vertices, and change angles to radians. Make sure edges_foldAngle is filled out--if not, put +-pi based on the MV. Fill out redundant faces_ fields only if face data is present
     */
-    var fold = JSON.parse(file) as Fold;
+    const fold = JSON.parse(file) as Fold;
 
     fold.file_creator="Ori3dita";
 
@@ -66,7 +66,7 @@ export function importFold(file: string): Fold {
 
     //Remove fields that are specific to other softwares
     for (const key in fold) {
-        if (fold.hasOwnProperty(key) && key.includes(':') && !key.startsWith('Ori3dita:')) {
+        if (Object.prototype.hasOwnProperty.call(fold, key) && key.includes(':') && !key.startsWith('Ori3dita:')) {
             delete fold[key];
         }
     }
@@ -80,7 +80,7 @@ export function exportFold(fold: Fold): string {
     */
     
     //make a clone of the fold object
-    var output = JSON.parse(JSON.stringify(fold));
+    const output = JSON.parse(JSON.stringify(fold));
     //remove redundant fields: vertices_vertices, vertices_edges, vertices_faces, edges_faces, faces_edges, faces_faces
     delete output.vertices_vertices;
     delete output.vertices_edges;
