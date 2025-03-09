@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES6", // Specifies the target JavaScript version (ES6 in this case)
-    "module": "commonjs", // Specifies the module system (CommonJS for Node.js)
+    "module": "es2022", // Specifies the module system (CommonJS for Node.js)
+    "moduleResolution": "node", // Specifies module resolution strategy (Node.js)
     "outDir": "./dist", // Specifies the output directory for compiled files
     "rootDir": "./", // Specifies the root directory of input files
     "strict": true, // Enables all strict type-checking options
@@ -9,9 +10,8 @@
     "skipLibCheck": true, // Skips type checking of declaration files
     "forceConsistentCasingInFileNames": true, // Ensures consistent casing in file names
     "jsx": "react", // Specifies JSX code generation for React
-    "resolveJsonModule": true, // Allows importing JSON modules
     "allowSyntheticDefaultImports": true // Allows default imports from modules with no default export
   },
-  "include": ["client/utils/*.ts", "client/**/*.tsx"],
+  "include": ["client/**/*.ts", "client/**/*.tsx", "vite-env.d.ts"],
   "exclude": ["node_modules"]
 }
