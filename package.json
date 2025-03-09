@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "tsc --noEmit && eslint . && prettier --ignore-path .gitignore --check .",
+    "lint": "tsc --noEmit client/**/*.ts client/**/*.tsx && tsc --noEmit server/**/*.ts && eslint . && prettier --ignore-path .gitignore --check .",
     "format": "prettier --ignore-path .gitignore --write .",
     "start": "nodemon --exec ts-node server/server.ts"
   },
@@ -46,6 +46,7 @@
     "url-loader": "^4.1.1"
   },
   "devDependencies": {
+    "@eslint/compat": "^1.2.7",
     "@eslint/js": "^9.21.0",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/express": "^5.0.0",
