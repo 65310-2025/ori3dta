@@ -1,24 +1,25 @@
 import express, { Request, Response } from "express";
 import { Socket as SocketIO } from "socket.io";
+
+import { DesignMetadataDto } from "../dto/dto";
 import { login, logout } from "./auth";
-import socketManager from "./server-socket";
+import CP, { ICP } from "./models/cp";
 import DesignMetadata from "./models/designMetadata";
 import User from "./models/user";
-import CP, { ICP } from "./models/cp"; // Import the CP model and interface
-import { DesignMetadataDto } from "../dto/dto"; // Import the DTO type
+import socketManager from "./server-socket";
 
 // api endpoints: all these paths will be prefixed with "/api/"
 const router = express.Router();
 
 router.post("/login", login);
+
 router.post("/logout", logout);
+
 router.get("/whoami", (req: Request, res: Response) => {
   if (!req.user) {
-    // not logged in
     res.send({});
     return;
   }
-
   res.send(req.user);
 });
 
@@ -46,8 +47,9 @@ router.get("/designs", async (req: Request, res: Response) => {
   }
 
   try {
-    const designs = await DesignMetadata.find({ creatorID: req.user._id }).lean();
-    console.log(designs);
+    const designs = await DesignMetadata.find({
+      creatorID: req.user._id,
+    }).lean();
     const creator = await User.findById(req.user._id).lean(); // Get creator's name
 
     if (!creator) {
@@ -56,13 +58,12 @@ router.get("/designs", async (req: Request, res: Response) => {
     }
 
     // Combine design data with the creator's name
-    const designsWithName: Array<DesignMetadataDto> = designs.map(design => ({
+    const designsWithName: Array<DesignMetadataDto> = designs.map((design) => ({
       ...design,
       creatorName: creator.name,
     }));
 
     res.send(designsWithName);
-
   } catch (error) {
     console.error("Failed to fetch designs:", error);
     res.status(500).send({ msg: "Failed to fetch designs" });
@@ -99,7 +100,6 @@ router.post("/designs", async (req: Request, res: Response) => {
 
     await newDesign.save();
     res.status(201).send(newDesign);
-
   } catch (error) {
     console.error("Failed to create new design:", error);
     res.status(500).send({ msg: "Failed to create new design" });

@@ -1,20 +1,20 @@
+import dotenv from "dotenv";
+import { NextFunction, Request, Response } from "express";
 import { OAuth2Client, TokenPayload } from "google-auth-library";
-import { Request, Response, NextFunction } from "express";
+
 import User from "./models/user";
 import socketManager from "./server-socket";
-import { IUser, ISession, IGoogleUser } from "./types/types";
+import { IGoogleUser, ISession, IUser } from "./types/types";
 
 // create a new OAuth client used to verify google sign-in
-const CLIENT_ID =
-  "1077700528117-f59tr015sdectfbjnd9b6hqguqfmb5bi.apps.googleusercontent.com";
-const client = new OAuth2Client(CLIENT_ID);
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // accepts a login token from the frontend, and verifies that it's legit
 function verify(token: string): Promise<TokenPayload | undefined> {
   return client
     .verifyIdToken({
       idToken: token,
-      audience: CLIENT_ID,
+      audience: process.env.GOOGLE_CLIENT_ID,
     })
     .then((ticket) => ticket.getPayload());
 }
@@ -45,7 +45,7 @@ function login(req: Request, res: Response) {
     })
     .then((user) => {
       // persist user in the session
-      (req.session as ISession).user = user; // Store IUser in session
+      (req.session as ISession).user = user;
       res.send(user);
     })
     .catch((err) => {
@@ -69,7 +69,6 @@ function ensureLoggedIn(req: Request, res: Response, next: NextFunction) {
   if (!req.user) {
     return res.status(401).send({ err: "not logged in" });
   }
-
   next();
 }
 

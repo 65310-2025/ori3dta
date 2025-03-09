@@ -1,4 +1,4 @@
-import { Schema, model, Document } from "mongoose";
+import { Document, Schema, model } from "mongoose";
 
 export interface IDbDesignMetadata extends Document {
   name: string;
@@ -18,6 +18,9 @@ const DesignMetadataSchema = new Schema<IDbDesignMetadata>({
   cpID: { type: String, required: true },
 });
 
-const DesignMetadata = model<IDbDesignMetadata>("DesignMetadata", DesignMetadataSchema);
+const DesignMetadata = model<IDbDesignMetadata>(
+  "DesignMetadata",
+  DesignMetadataSchema,
+);
 
 export default DesignMetadata;

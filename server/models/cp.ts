@@ -1,10 +1,9 @@
-import { Schema, model, Document } from "mongoose";
+import { Document, Schema, model } from "mongoose";
 
-export interface ICP extends Document {
-}
+// TODO: Add fields
+export interface ICP extends Document {}
 
-const CPSchema = new Schema<ICP>({
-});
+const CPSchema = new Schema<ICP>({});
 
 const CP = model<ICP>("CP", CPSchema);
 

@@ -1,12 +1,10 @@
+import { NextFunction, Request, Response } from "express";
 import fs from "fs";
 import net from "net";
-import { Request, Response, NextFunction } from "express";
 
 /**
  * Provides some basic checks to make sure you've
  * correctly set up your repository.
- *
- * You normally shouldn't need to modify this file.
  *
  * Current checks:
  * - node_modules exists
@@ -54,7 +52,6 @@ export const checkRoutes = (
         );
       }
     });
-
     routeChecked = true; // only runs once to avoid spam/overhead
   }
   next();

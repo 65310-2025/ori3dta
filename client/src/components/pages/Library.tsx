@@ -1,13 +1,13 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 import { googleLogout } from "@react-oauth/google";
-import { UserContext } from "../App";
-import { Button, Menu, Modal, Form, Input, Flex, Card } from "antd";
+import { Button, Card, Flex, Form, Input, Menu, Modal } from "antd";
 import type { MenuProps } from "antd";
+import { useNavigate } from "react-router-dom";
+
 import { DesignMetadataDto, NewDesignDto } from "../../../../dto/dto";
 import { get, post } from "../../utilities";
-
-type MenuItem = Required<MenuProps>["items"][number];
+import { UserContext } from "../App";
 
 const Library: React.FC = () => {
   const context = useContext(UserContext);
@@ -30,8 +30,6 @@ const Library: React.FC = () => {
   // Get metadata for all designs from server
   // TODO: later on, implement pagination in the /designs endpoint in case we have some
   // extremely prolific CP creators
-  // TODO: later on, implement pagination in the /designs endpoint in case we have some
-  // extremely prolific CP creators
   useEffect(() => {
     const getDesigns = async () => {
       try {
@@ -46,23 +44,25 @@ const Library: React.FC = () => {
     getDesigns();
   }, []);
 
-  const items: MenuItem[] = [
+  const items: MenuProps["items"] = [
     {
       label: "Some other pages that don't exist yet",
       key: "app",
     },
-{
+    {
       key: "new",
-      icon: <Button onClick={() => setIsModalOpen(true)}>New Crease Pattern</Button>,
+      icon: (
+        <Button onClick={() => setIsModalOpen(true)}>New Crease Pattern</Button>
+      ),
     },
     {
       key: "logout",
       icon: (
         <Button
           onClick={() => {
-                googleLogout();
-                handleLogout();
-              }}
+            googleLogout();
+            handleLogout();
+          }}
         >
           Logout
         </Button>
@@ -115,7 +115,9 @@ const Library: React.FC = () => {
           <Form.Item
             name="description"
             label="Description"
-            rules={[{ required: true, message: "Please enter the description" }]}
+            rules={[
+              { required: true, message: "Please enter the description" },
+            ]}
           >
             <Input.TextArea />
           </Form.Item>
@@ -123,14 +125,16 @@ const Library: React.FC = () => {
       </Modal>
       <Flex wrap>
         {designs.map((design: DesignMetadataDto) => (
-          <div className="m-2">
-            <Card title={design.name} variant="borderless" key={design._id}>
+          <div className="m-2" key={design._id}>
+            <Card title={design.name} variant="borderless">
               <p>{design.description}</p>
               <p>Creator: {design.creatorName}</p>
-              <Button type="default"
-                      onClick={() => {
-                        navigate(`/editor/${design.cpID}`);
-                      }}>
+              <Button
+                type="default"
+                onClick={() => {
+                  navigate(`/editor/${design.cpID}`);
+                }}
+              >
                 Edit
               </Button>
             </Card>
