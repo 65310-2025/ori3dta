@@ -2,6 +2,7 @@
 #define PLANE_GROUP_H
 
 #include <iostream>
+#include <vector>
 
 #include <fold.h>
 

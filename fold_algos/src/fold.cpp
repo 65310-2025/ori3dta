@@ -6,8 +6,8 @@
 using namespace ori3dta;
 
 std::vector<coord_t> FOLD::compute_normal(int face_id) {
-  const auto& face_vertices = faces_vertices[face_id];
-  // TODO: add assert for 3d
+  auto face_vertices = faces_vertices[face_id];
+  face_vertices.resize(3);
   std::vector<coord_t> res(3);
 
   int n_vert = face_vertices.size();

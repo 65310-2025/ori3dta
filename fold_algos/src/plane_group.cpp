@@ -1,3 +1,7 @@
+#include <iostream>
+#include <unordered_map>
+#include <vector>
+
 #include <dsu.h>
 #include <fold.h>
 #include <plane_group.h>
@@ -27,7 +31,7 @@ void PlaneGroup::compute_planegroups() {
     faces_plane_vals.push_back(plane_val);
   }
 
-  DSU plane_group(n_faces);
+  DSU plane_group_dsu(n_faces);
   for (int face1_id = 0; face1_id < n_faces; face1_id++) {
     for (int face2_id = 0; face2_id < n_faces; face2_id++) {
       const auto& plane_val1 = faces_plane_vals[face1_id];
@@ -37,18 +41,43 @@ void PlaneGroup::compute_planegroups() {
       for (auto& x : plane_val2) x *= -1;
       vec_diff = std::min(vec_diff, vec_diff_L1(plane_val1, plane_val2));
 
-      std::clog << face1_id << ", " << face2_id << std::endl;
-      for (auto& x : plane_val1) std::cout << x << ' '; std::cout << std::endl;
-      for (auto& x : plane_val2) std::cout << x << ' '; std::cout << std::endl;
-      std::clog << vec_diff << std::endl;
+//      std::clog << face1_id << ", " << face2_id << std::endl;
+//      for (auto& x : plane_val1) std::clog << x << ' '; std::clog << std::endl;
+//      for (auto& x : plane_val2) std::clog << x << ' '; std::clog << std::endl;
+//      std::clog << vec_diff << std::endl;
 
       if (vec_diff < EPS) {
-        plane_group.join(face1_id, face2_id);
+        plane_group_dsu.join(face1_id, face2_id);
       }
     }
   }
 
+  faces_planegroup.assign(n_faces, {});
+  planegroups_faces.clear();
+
+  std::unordered_map<int, int> plane_group_ids;
   for (int i = 0; i < n_faces; i++) {
-    std::clog << "face " << i << ": plane group " << plane_group.find(i) << std::endl;
+    auto dsu_id = plane_group_dsu.find(i);
+    auto it = plane_group_ids.find(dsu_id);
+    int id;
+    if (it == plane_group_ids.end()) {
+      id = plane_group_ids.size();
+      plane_group_ids[dsu_id] = id;
+      planegroups_faces.emplace_back();
+    } else {
+      id = it->second;
+    }
+    faces_planegroup[i] = id;
+    planegroups_faces[id].push_back(i);
+  }
+
+  for (int i = 0; i < n_faces; i++) {
+    std::clog << "face " << i << ": plane group " << faces_planegroup[i] << std::endl;
+  }
+  for (int i = 0; i < planegroups_faces.size(); i++) {
+    std::clog << "plane group " << i << ": faces";
+    for (auto& x : planegroups_faces[i])
+      std::clog << " " << x;
+    std::clog << std::endl;
   }
 }
