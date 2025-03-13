@@ -66,6 +66,7 @@ Long shot goals: combine other specialty softwares to make a megaprogram
 import { Fold } from "../../server/types/fold";
 import * as float from "./float";
 
+//hi
 const TOLERANCE = 0.001; //tolerance to snap to vertices
 
 export function createEdge(

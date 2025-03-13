@@ -6,7 +6,7 @@ import type { MenuProps } from "antd";
 import { useNavigate } from "react-router-dom";
 
 import { DesignMetadataDto, NewDesignDto } from "../../../../dto/dto";
-import { get, post } from "../../utilities";
+import { get, post } from "../../utils/requests";
 import { UserContext } from "../App";
 
 const Library: React.FC = () => {

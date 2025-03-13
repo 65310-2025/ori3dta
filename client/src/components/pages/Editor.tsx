@@ -1,3 +1,19 @@
+/*
+1. Plotting an fold object
+- upload an object (user import). button -> file nav
+- run parseFold to convert .fold to ts object
+- plot the object on the canvas
+
+2. Editing a fold object
+- use fabric.js to register when and where clicks happen
+  - show action in progress (preview line)
+- run cpEdit with click locations as inputs
+- clear canvas
+- plot new object
+
+*/
+
+
 import React, { useContext, useEffect, useRef, useState } from "react";
 
 import { googleLogout } from "@react-oauth/google";
@@ -56,7 +72,7 @@ const Editor: React.FC = () => {
         if (parent) {
           console.log(
             "Resizing canvas to parent dimensions:",
-            parent.clientWidth,
+            parent.clientWidth ,
             parent.clientHeight,
           );
           fabricCanvas.setDimensions({
@@ -114,7 +130,12 @@ const Editor: React.FC = () => {
     <div className="flex flex-col h-screen">
       <Menu mode="horizontal" items={items} />
       <div className="flex-1 flex">
+        <div className="w-2/3 h-full">
         <canvas ref={canvasRef} className="w-full h-full"></canvas>
+        </div>
+        <div className="w-1//3 h-full">
+          <p>Inspector</p>
+        </div>
       </div>
     </div>
   );
