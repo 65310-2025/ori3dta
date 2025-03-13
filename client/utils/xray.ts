@@ -148,12 +148,44 @@ export function getFaces(oldfold: Fold): Fold {
   return fold;
 }
 
-// export function xray(cp:Fold,root_index:number = 0){
-//     /*
-//     - Create spanning tree, starting from the root_index face. store tree data externally?
-//     - for each face, vertices will start at cp position, reflect over edges until reach the root face, and then store as folded coords. will be redundant but polynomial time
-//     */
-// }
+export function xray(oldfold:Fold,root_index:number = 0):Fold{
+    /*
+    - Create spanning tree, starting from the root_index face. store tree data externally?
+    - for each face, vertices will start at cp position, reflect over edges until reach the root face, and then store as folded coords. will be redundant but polynomial time
+    */
+  const fold = structuredClone(oldfold)
+  //For each face, get a path of edges (represented by their indices) to cross to reach the root face
+  const edgeRoutes:number[][] = Array.from({length:fold.faces_vertices.length},(_,index) => {return []})
+
+  //Using fold.faces_faces, fold.faces_edges, and fold.edges_faces, create a spanning tree that starts at the root face and maps a route to the root face for each face
+  const visited = new Array(fold.faces_vertices.length).fill(false);
+  const queue = [root_index];
+  visited[root_index] = true;
+
+  while (queue.length > 0) {
+    const currentFace = queue[0];
+    queue.shift();
+    const currentRoute = edgeRoutes[currentFace];
+
+    for (const neighbor of fold.faces_faces[currentFace]) {
+      if (!visited[neighbor]) {
+        visited[neighbor] = true;
+        queue.push(neighbor);
+
+        const edgeBetween = fold.faces_edges[currentFace].find(edge =>
+          fold.faces_edges[neighbor].includes(edge)
+        );
+
+        if (edgeBetween !== undefined) {
+          edgeRoutes[neighbor] = [...currentRoute, edgeBetween];
+        }
+      }
+    }
+  }
+
+  console.log(edgeRoutes)
+  return fold
+}
 
 //=====
 //math helper functions
@@ -178,3 +210,16 @@ function isFaceClockwise(vertices: number[], fold: Fold): boolean {
   }
   return sum < 0;
 }
+
+// function rotateAroundEdge(fold:Fold,edgeIndex:number,vertexCoord:{x:number,y:number,z:number}):{x:number,y:number,z:number}{
+//   const edge = fold.edges_vertices[edgeIndex]
+//   const vertex1 = fold.vertices_coords[edge[0]]
+//   const vertex2 = fold.vertices_coords[edge[1]]
+//   const edgeVector = {x:vertex2.x-vertex1.x,y:vertex2.y-vertex1.y,z:vertex2.z-vertex1.z}
+//   const vertexVector = {x:vertexCoord.x-vertex1.x,y:vertexCoord.y-vertex1.y,z:vertexCoord.z-vertex1.z}
+//   const edgeLength = Math.sqrt(edgeVector.x**2+edgeVector.y**2+edgeVector.z**2)
+//   const dotProduct = edgeVector.x*vertexVector.x+edgeVector.y*vertexVector.y+edgeVector.z*vertexVector.z
+//   const projection = {x:dotProduct/edgeLength*edgeVector.x,y:dotProduct/edgeLength*edgeVector.y,z:dotProduct/edgeLength*edgeVector.z}
+//   const perpendicular = {x:vertexVector.x-projection.x,y:vertexVector.y-projection.y,z:vertexVector.z-projection.z}
+//   return {x:vertex1.x+projection.x-perpendicular.x,y:vertex1.y+projection.y-perpendicular.y,z:vertex1.z+projection.z-perpendicular.z}
+// }

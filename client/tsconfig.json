@@ -5,6 +5,7 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "jsx": "react",
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "outDir": "./dist/client"
   }
 }
