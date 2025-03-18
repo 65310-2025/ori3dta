@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import { Socket as SocketIO } from "socket.io";
 
-import { DesignMetadataDto } from "../dto/dto";
+import { CPDto, DesignMetadataDto } from "../dto/dto";
 import { login, logout } from "./auth";
 import CP, { ICP } from "./models/cp";
 import DesignMetadata from "./models/designMetadata";
@@ -86,7 +86,12 @@ router.post("/designs", async (req: Request, res: Response) => {
     }
 
     // Create new document for the CP itself
-    const newCP = new CP({});
+    const newCP = new CP({
+      vertices_coords: [{x: 0, y: 0},{x: 1, y: 0},{x: 1, y: 1},{x: 0, y: 1}],
+      edges_vertices: [{vertex1: 0, vertex2: 1},{vertex1: 1, vertex2: 2},{vertex1: 2, vertex2: 3},{vertex1: 3, vertex2: 0}],
+      edges_assignment: ["B","B","B","B"],
+      edges_foldAngle: [0,0,0,0],
+    });
     const cpDocument: ICP = await newCP.save();
     const cpID = cpDocument._id;
 
@@ -104,6 +109,20 @@ router.post("/designs", async (req: Request, res: Response) => {
     console.error("Failed to create new design:", error);
     res.status(500).send({ msg: "Failed to create new design" });
   }
+});
+
+router.get("/designs/:id", async (req: Request, res: Response) => {
+  if (!req.user) {
+    // not logged in
+    res.status(401).send({ msg: "Unauthorized" });
+    return;
+  }
+  const design = await CP.find({
+    _id: req.params.id,
+  }).lean();
+
+  const designDtoObj = design[0] as CPDto;
+  res.send(designDtoObj);
 });
 
 // anything else falls to this "not found" case

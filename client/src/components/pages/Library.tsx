@@ -6,6 +6,8 @@ import type { MenuProps } from "antd";
 import { useNavigate } from "react-router-dom";
 
 import { DesignMetadataDto, NewDesignDto } from "../../../../dto/dto";
+import LogoutIcon from "../../assets/icons/logout.svg";
+import NewIcon from "../../assets/icons/new.svg";
 import { get, post } from "../../utils/requests";
 import { UserContext } from "../App";
 
@@ -22,6 +24,7 @@ const Library: React.FC = () => {
     return <p>Error: You must be logged in to view this page.</p>;
   }
 
+  //setDesigns will update/rerender the page
   const [designs, setDesigns] = useState<DesignMetadataDto[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
@@ -52,20 +55,26 @@ const Library: React.FC = () => {
     {
       key: "new",
       icon: (
-        <Button onClick={() => setIsModalOpen(true)}>New Crease Pattern</Button>
+        <img
+          src={NewIcon}
+          alt="New crease pattern"
+          style={{ width: "50px" }}
+          onClick={() => setIsModalOpen(true)}
+        />
       ),
     },
     {
       key: "logout",
       icon: (
-        <Button
+        <img
+          src={LogoutIcon}
+          alt="Logout"
+          style={{ width: "50px" }}
           onClick={() => {
             googleLogout();
             handleLogout();
           }}
-        >
-          Logout
-        </Button>
+        />
       ),
     },
   ];
@@ -86,6 +95,7 @@ const Library: React.FC = () => {
       setIsModalOpen(false);
       form.resetFields();
       // Refresh designs
+      //get designs from current user
       const designs: Array<DesignMetadataDto> = await get("/api/designs");
       setDesigns(designs);
     } catch (error) {

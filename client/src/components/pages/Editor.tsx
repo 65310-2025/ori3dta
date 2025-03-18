@@ -4,16 +4,18 @@
 - run parseFold to convert .fold to ts object
 - plot the object on the canvas
 
-2. Editing a fold object
+2. draw and delete creases
 - use fabric.js to register when and where clicks happen
   - show action in progress (preview line)
 - run cpEdit with click locations as inputs
 - clear canvas
 - plot new object
 
+3. build inspector for editing creases (esp. fold angle)
+
+4. import three.js view window for rendering x ray
+
 */
-
-
 import React, { useContext, useEffect, useRef, useState } from "react";
 
 import { googleLogout } from "@react-oauth/google";
@@ -22,13 +24,24 @@ import type { MenuProps } from "antd";
 import { Canvas, Rect } from "fabric";
 import { useNavigate, useParams } from "react-router-dom";
 
+import LibraryIcon from "../../assets/icons/library.svg";
 import { UserContext } from "../App";
+import { CPDto } from "../../../../dto/dto";
+import { get } from "../../utils/requests";
+
+interface FileData {
+  _id: string;
+  title: string;
+  description: string;
+  content?: string; // maybe easiest will be to save it as fold file, which is a string that can be parsed as json
+}
 
 const Editor: React.FC = () => {
   const navigate = useNavigate();
   const context = useContext(UserContext);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [cp, setCP] = useState<CPDto | null>(null);
 
   if (!context) {
     // should not be executed unless I goofed up the context provider
@@ -54,6 +67,15 @@ const Editor: React.FC = () => {
     }
   }, [userId]);
 
+  useEffect(() => {
+    if (!isLoading && userId && cpID) {
+      // Fetch the CP data
+      get(`/api/designs/${cpID}`).then((cp: CPDto) => {
+        setCP(cp);
+      });
+    }
+  }, [cp]);
+
   // Initialize FabricJS canvas
   useEffect(() => {
     if (!isLoading && userId && canvasRef.current) {
@@ -72,7 +94,7 @@ const Editor: React.FC = () => {
         if (parent) {
           console.log(
             "Resizing canvas to parent dimensions:",
-            parent.clientWidth ,
+            parent.clientWidth,
             parent.clientHeight,
           );
           fabricCanvas.setDimensions({
@@ -109,7 +131,14 @@ const Editor: React.FC = () => {
   const items: MenuProps["items"] = [
     {
       key: "library",
-      icon: <Button onClick={() => navigate("/")}>Library</Button>,
+      icon: (
+        <img
+          src={LibraryIcon}
+          alt="Library"
+          style={{ width: "0px" }}
+          onClick={() => navigate("/")}
+        />
+      ),
     },
     {
       key: "logout",
@@ -131,10 +160,10 @@ const Editor: React.FC = () => {
       <Menu mode="horizontal" items={items} />
       <div className="flex-1 flex">
         <div className="w-2/3 h-full">
-        <canvas ref={canvasRef} className="w-full h-full"></canvas>
+          <canvas ref={canvasRef} className="w-full h-full"></canvas>
         </div>
         <div className="w-1//3 h-full">
-          <p>Inspector</p>
+          <p>{cp?._id}</p>
         </div>
       </div>
     </div>
