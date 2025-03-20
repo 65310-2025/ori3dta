@@ -2,6 +2,7 @@
 #include <vector>
 
 #include <simdjson.h>
+#include <simp/SimpSolver.h>
 
 #include <fold.h>
 #include <plane_group.h>
@@ -254,6 +255,17 @@ int main(void) {
   }
 
   ori3dta::PlaneGroup plane_groups(fold);
+
+  Glucose::SimpSolver solver;
+  solver.verbosity = -1;
+  auto a = solver.newVar();
+  auto b = solver.newVar();
+  auto c = solver.newVar();
+  solver.addClause(Glucose::mkLit(a), Glucose::mkLit(b));
+  solver.addClause(Glucose::mkLit(a), ~Glucose::mkLit(b));
+  solver.addClause(~Glucose::mkLit(a), Glucose::mkLit(b));
+  solver.addClause(~Glucose::mkLit(a), ~Glucose::mkLit(b));
+  std::cout << solver.solve() << std::endl;
 
   return EXIT_SUCCESS;
 }

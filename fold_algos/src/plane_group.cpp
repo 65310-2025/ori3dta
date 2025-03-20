@@ -71,8 +71,19 @@ void PlaneGroup::compute_planegroups() {
     planegroups_faces[id].push_back(i);
   }
 
+  faces_dir.assign(n_faces, false);
+
+  for (const auto& faces : planegroups_faces) {
+    int face0 = faces[0];
+    for (const auto& face : faces) {
+      if (vec_diff_L2(faces_plane_vals[face0], faces_plane_vals[face]) < 1) {
+        faces_dir[face] = true;
+      }
+    }
+  }
+
   for (int i = 0; i < n_faces; i++) {
-    std::clog << "face " << i << ": plane group " << faces_planegroup[i] << std::endl;
+    std::clog << "face " << i << ": plane group " << faces_planegroup[i] << ", dir: " << faces_dir[i] << std::endl;
   }
   for (int i = 0; i < planegroups_faces.size(); i++) {
     std::clog << "plane group " << i << ": faces";

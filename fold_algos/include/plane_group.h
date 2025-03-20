@@ -10,6 +10,7 @@ namespace ori3dta {
 
 struct PlaneGroup : public FOLD {
   std::vector<int> faces_planegroup;
+  std::vector<bool> faces_dir;
   std::vector<std::vector<int>> planegroups_faces;
 
   PlaneGroup(const FOLD& f);
