@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import { Socket as SocketIO } from "socket.io";
 
-import { CPDto, DesignMetadataDto } from "../dto/dto";
+import { ServerCPDto, DesignMetadataDto } from "../dto/dto";
 import { login, logout } from "./auth";
 import CP, { ICP } from "./models/cp";
 import DesignMetadata from "./models/designMetadata";
@@ -87,10 +87,10 @@ router.post("/designs", async (req: Request, res: Response) => {
 
     // Create new document for the CP itself
     const newCP = new CP({
-      vertices_coords: [{x: 0, y: 0},{x: 1, y: 0},{x: 1, y: 1},{x: 0, y: 1}],
-      edges_vertices: [{vertex1: 0, vertex2: 1},{vertex1: 1, vertex2: 2},{vertex1: 2, vertex2: 3},{vertex1: 3, vertex2: 0}],
-      edges_assignment: ["B","B","B","B"],
-      edges_foldAngle: [0,0,0,0],
+      vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
+      edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0]],
+      edges_assignment: ["B", "B", "B", "B"],
+      edges_foldAngle: [0, 0, 0, 0],
     });
     const cpDocument: ICP = await newCP.save();
     const cpID = cpDocument._id;
@@ -121,7 +121,7 @@ router.get("/designs/:id", async (req: Request, res: Response) => {
     _id: req.params.id,
   }).lean();
 
-  const designDtoObj = design[0] as CPDto;
+  const designDtoObj = design[0] as ServerCPDto;
   res.send(designDtoObj);
 });
 

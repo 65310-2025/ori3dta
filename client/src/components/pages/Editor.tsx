@@ -26,7 +26,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import LibraryIcon from "../../assets/icons/library.svg";
 import { UserContext } from "../App";
-import { CPDto } from "../../../../dto/dto";
+import { ServerCPDto } from "../../../../dto/dto";
 import { get } from "../../utils/requests";
 
 interface FileData {
@@ -41,7 +41,7 @@ const Editor: React.FC = () => {
   const context = useContext(UserContext);
 
   const [isLoading, setIsLoading] = useState(true);
-  const [cp, setCP] = useState<CPDto | null>(null);
+  const [cp, setCP] = useState<ServerCPDto | null>(null);
 
   if (!context) {
     // should not be executed unless I goofed up the context provider
@@ -70,11 +70,11 @@ const Editor: React.FC = () => {
   useEffect(() => {
     if (!isLoading && userId && cpID) {
       // Fetch the CP data
-      get(`/api/designs/${cpID}`).then((cp: CPDto) => {
+      get(`/api/designs/${cpID}`).then((cp: ServerCPDto) => {
         setCP(cp);
       });
     }
-  }, [cp]);
+  }, [isLoading, userId, cpID]); //before: dependency [cp]
 
   // Initialize FabricJS canvas
   useEffect(() => {
@@ -164,6 +164,11 @@ const Editor: React.FC = () => {
         </div>
         <div className="w-1//3 h-full">
           <p>{cp?._id}</p>
+          <div>
+            <h2>CP Details</h2>
+            
+            <pre>{JSON.stringify(cp, null, 2)}</pre>
+          </div>
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@ import { Button, Card, Flex, Form, Input, Menu, Modal } from "antd";
 import type { MenuProps } from "antd";
 import { useNavigate } from "react-router-dom";
 
-import { DesignMetadataDto, NewDesignDto } from "../../../../dto/dto";
+import { DesignMetadataDto, ServerCPDto, NewDesignDto, ClientCPDto } from "../../../../dto/dto";
 import LogoutIcon from "../../assets/icons/logout.svg";
 import NewIcon from "../../assets/icons/new.svg";
 import { get, post } from "../../utils/requests";
@@ -84,12 +84,36 @@ const Library: React.FC = () => {
     form.resetFields();
   };
 
+  // const templateStarterFile = JSON.stringify({
+  //   vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
+  //   edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0]],
+  //   edges_assignment: ["B", "B", "B", "B"],
+  //   edges_foldAngle: [0, 0, 0, 0],
+  // });
+  const templateStarterFile: ClientCPDto = {
+    vertices_coords: [
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [0, 1],
+    ],
+    edges_vertices: [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+      [3, 0],
+    ],
+    edges_assignment: ["B", "B", "B", "B"],
+    edges_foldAngle: [0, 0, 0, 0],
+  };
+
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
       const newDesign: NewDesignDto = {
         name: values.name,
         description: values.description,
+        content: templateStarterFile,
       };
       await post("/api/designs", newDesign);
       setIsModalOpen(false);

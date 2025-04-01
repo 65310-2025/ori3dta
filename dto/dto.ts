@@ -19,16 +19,17 @@ export interface DesignMetadataDto {
   cpID: string;
 }
 
-export interface CPDto {
+export interface ServerCPDto {
   _id: string;
-  vertices_coords: Array<{
-    x: number;
-    y: number;
-  }>;
-  edges_vertices: Array<{
-    vertex1: number;
-    vertex2: number;
-  }>;
+  vertices_coords: Array<[number, number]>;
+  edges_vertices: Array<[number, number]>;
+  edges_assignment: Array<string>;
+  edges_foldAngle: Array<number>;
+}
+
+export interface ClientCPDto {
+  vertices_coords: Array<[number, number]>;
+  edges_vertices: Array<[number, number]>;
   edges_assignment: Array<string>;
   edges_foldAngle: Array<number>;
 }
@@ -37,4 +38,5 @@ export interface CPDto {
 export interface NewDesignDto {
   name: string;
   description: string;
+  content: ClientCPDto;
 }
