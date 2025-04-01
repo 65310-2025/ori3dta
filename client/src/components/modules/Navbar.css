@@ -1,0 +1,91 @@
+.Navbar {
+  height: var(--header-height);
+  background-color: var(--background-dark);
+  display: flex;
+  color: var(--text-color);
+  font-size: 1.2rem;
+}
+
+.Navbar-items {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 80%;
+}
+
+.Navbar-login {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 20%;
+  height: var(--header-height);
+}
+
+.Navbar-logo {
+  margin: 10px 20px;
+  height: calc(var(--header-height) - 10px);
+}
+
+.Navbar-link {
+  margin: 10px 20px;
+}
+
+.Navbar-links {
+  flex-direction: column;
+}
+
+.Navbar-link:hover {
+  color: var(--text-color);
+  cursor: pointer;
+  border-style: none none solid none;
+  border-width: 2px;
+  border-color: var(--text-color);
+}
+
+.Navbar-dropdown {
+  margin: 0px 10px;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+}
+
+.Navbar-dropdown-username-wrap {
+  display: flex;
+  height: var(--header-height);
+  margin: 0px 20px;
+  align-items: center;
+  flex-direction: row;
+}
+
+.Navbar-dropdown-username {
+  font-weight: bold;
+  align-self: center;
+}
+
+.Navbar-button {
+  margin: 7px;
+  padding: 3px 7px;
+  border: 1px solid var(--text-color);
+  border-radius: 5px;
+}
+
+.Navbar-button:hover {
+  background-color: var(--text-color);
+  color: var(--background-dark);
+  cursor: pointer;
+}
+
+.Navbar-dropdown-link {
+  background-color: var(--foreground-color);
+  color: var(--text-color-dark);
+  border-width: 2px;
+  border-style: none none solid none;
+  border-color: var(--text-color-dark);
+  height: var(--dropdown-height);
+}
+
+.Navbar-dropdown-link:hover {
+  color: var(--foreground-color);
+  background-color: var(--text-color-dark);
+  border-color: var(--foreground-color);
+}
