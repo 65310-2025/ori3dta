@@ -88,9 +88,9 @@ router.post("/designs", async (req: Request, res: Response) => {
     // Create new document for the CP itself
     const newCP = new CP({
       vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
-      edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0]],
-      edges_assignment: ["B", "B", "B", "B"],
-      edges_foldAngle: [0, 0, 0, 0],
+      edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0], [0, 2]],
+      edges_assignment: ["B", "B", "B", "B","M"],
+      edges_foldAngle: [0, 0, 0, 0,180],
     });
     const cpDocument: ICP = await newCP.save();
     const cpID = cpDocument._id;

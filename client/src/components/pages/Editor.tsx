@@ -16,12 +16,13 @@
 4. import three.js view window for rendering x ray
 
 */
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { RefObject, useContext, useEffect, useRef, useState } from "react";
 
 import { googleLogout } from "@react-oauth/google";
 import { Button, Menu, Spin } from "antd";
 import type { MenuProps } from "antd";
-import { Canvas, Rect } from "fabric";
+import {Line} from "fabric";
+import { Canvas } from "fabric";
 import { useNavigate, useParams } from "react-router-dom";
 
 import LibraryIcon from "../../assets/icons/library.svg";
@@ -34,6 +35,43 @@ interface FileData {
   title: string;
   description: string;
   content?: string; // maybe easiest will be to save it as fold file, which is a string that can be parsed as json
+}
+
+const scale = (cpcoords: [number,number]) => {
+  const canvas = document.querySelector("canvas");
+  if (!canvas) {
+    throw new Error("Canvas element not found");
+  }
+  const rect = canvas.getBoundingClientRect();
+  const { width, height } = rect;
+
+  return [cpcoords[0] * width, cpcoords[1] * height];
+}
+
+const renderCP = (cp: ServerCPDto,fabricCanvasRef:RefObject<Canvas | null>) => {
+  if (!fabricCanvasRef.current) {
+    return;
+  }
+  if (fabricCanvasRef.current) {
+    const { vertices_coords, edges_vertices, edges_assignment } = cp;
+
+    edges_vertices.forEach((edge, index) => {
+      const [startIndex, endIndex] = edge;
+      const start = scale(vertices_coords[startIndex]);
+      const end = scale(vertices_coords[endIndex]);
+
+      if (start && end) {
+        const line = new Line([start[0], start[1], end[0], end[1]], {
+          stroke: edges_assignment[index] === "M" ? "red" : edges_assignment[index] === "V" ? "blue" : 
+          edges_assignment[index] === "B"? "black" : "green",
+          strokeWidth: 2,
+        });
+        if (fabricCanvasRef.current) {
+          fabricCanvasRef.current.add(line);
+        }
+      }
+    });
+  }
 }
 
 const Editor: React.FC = () => {
@@ -118,6 +156,18 @@ const Editor: React.FC = () => {
     }
   }, [isLoading, userId]);
 
+  // Render cp on the canvas
+  useEffect(() => {
+    if (fabricCanvasRef.current && cp) {
+      fabricCanvasRef.current.clear();
+      if (fabricCanvasRef.current) {
+        renderCP(cp, fabricCanvasRef);
+      }
+      // fabricCanvasRef.current.add(rect);
+      fabricCanvasRef.current.renderAll();
+    }
+  }, [cp]);
+
   const handleLogoutAndNavigate = () => {
     googleLogout();
     handleLogout();
@@ -154,7 +204,7 @@ const Editor: React.FC = () => {
       </div>
     );
   }
-
+  console.log("CP data:", cp);
   return (
     <div className="flex flex-col h-screen">
       <Menu mode="horizontal" items={items} />
@@ -166,7 +216,7 @@ const Editor: React.FC = () => {
           <p>{cp?._id}</p>
           <div>
             <h2>CP Details</h2>
-            
+            {/* <p>{cp?.vertices_coords}</p> */}
             <pre>{JSON.stringify(cp, null, 2)}</pre>
           </div>
         </div>

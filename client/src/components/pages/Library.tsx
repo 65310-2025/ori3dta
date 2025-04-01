@@ -102,9 +102,10 @@ const Library: React.FC = () => {
       [1, 2],
       [2, 3],
       [3, 0],
+      [0,2],
     ],
-    edges_assignment: ["B", "B", "B", "B"],
-    edges_foldAngle: [0, 0, 0, 0],
+    edges_assignment: ["B", "B", "B", "B","M"],
+    edges_foldAngle: [0, 0, 0, 0,180],
   };
 
   const handleSubmit = async () => {
