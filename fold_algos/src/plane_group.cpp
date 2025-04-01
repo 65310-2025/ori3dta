@@ -6,6 +6,8 @@
 #include <fold.h>
 #include <plane_group.h>
 #include <vec_math.h>
+#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Boolean_set_operations_2.h>
 
 using namespace ori3dta;
 
@@ -72,16 +74,21 @@ void PlaneGroup::compute_planegroups() {
   }
 
   faces_dir.assign(n_faces, false);
+  planegroups_normal.clear();
 
-  for (const auto& faces : planegroups_faces) {
-    int face0 = faces[0];
+  for (int i = 0; i < planegroups_faces.size(); i++) {
+    const auto& faces = planegroups_faces[i];
+    const auto& ref_plane_val = faces_plane_vals[faces[0]];
+    auto& planegroup_normal = planegroups_normal.emplace_back();
+    planegroup_normal.assign(ref_plane_val.begin(), std::prev(ref_plane_val.end()));
     for (const auto& face : faces) {
-      if (vec_diff_L2(faces_plane_vals[face0], faces_plane_vals[face]) < 1) {
+      if (vec_diff_L2(ref_plane_val, faces_plane_vals[face]) < 1) {
         faces_dir[face] = true;
       }
     }
   }
 
+#if 0
   for (int i = 0; i < n_faces; i++) {
     std::clog << "face " << i << ": plane group " << faces_planegroup[i] << ", dir: " << faces_dir[i] << std::endl;
   }
@@ -91,4 +98,5 @@ void PlaneGroup::compute_planegroups() {
       std::clog << " " << x;
     std::clog << std::endl;
   }
+#endif
 }

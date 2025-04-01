@@ -12,6 +12,7 @@ struct PlaneGroup : public FOLD {
   std::vector<int> faces_planegroup;
   std::vector<bool> faces_dir;
   std::vector<std::vector<int>> planegroups_faces;
+  std::vector<std::vector<coord_t>> planegroups_normal;
 
   PlaneGroup(const FOLD& f);
 
