@@ -16,28 +16,32 @@
 4. import three.js view window for rendering x ray
 
 */
-import React, { RefObject, useContext, useEffect, useRef, useState } from "react";
+import React, {
+  RefObject,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { googleLogout } from "@react-oauth/google";
 import { Button, Menu, Spin } from "antd";
 import type { MenuProps } from "antd";
-import {Line} from "fabric";
+import { Line } from "fabric";
 import { Canvas } from "fabric";
 import { useNavigate, useParams } from "react-router-dom";
 
-import LibraryIcon from "../../assets/icons/library.svg";
-import { UserContext } from "../App";
 import { ServerCPDto } from "../../../../dto/dto";
+import LibraryIcon from "../../assets/icons/library.svg";
 import { get } from "../../utils/requests";
+import { UserContext } from "../App";
 
-interface FileData {
-  _id: string;
-  title: string;
-  description: string;
-  content?: string; // maybe easiest will be to save it as fold file, which is a string that can be parsed as json
-}
-
-const scale = (cpcoords: [number,number]) => {
+const scale = (
+  cpcoords: [number, number],
+  scaleFactor: number,
+  panOffset: [number, number],
+) => {
+  //Convert cp coordinates to pixel coordinates
   const canvas = document.querySelector("canvas");
   if (!canvas) {
     throw new Error("Canvas element not found");
@@ -45,10 +49,85 @@ const scale = (cpcoords: [number,number]) => {
   const rect = canvas.getBoundingClientRect();
   const { width, height } = rect;
 
-  return [cpcoords[0] * width, cpcoords[1] * height];
-}
+  return [
+    cpcoords[0] * width * scaleFactor + panOffset[0],
+    cpcoords[1] * height * scaleFactor + panOffset[1],
+  ];
+};
 
-const renderCP = (cp: ServerCPDto,fabricCanvasRef:RefObject<Canvas | null>) => {
+//for handling scroll wheel
+const useScaleFactor = () => {
+  const [scaleFactor, setScaleFactor] = useState(1);
+
+  useEffect(() => {
+    const handleScroll = (event: WheelEvent) => {
+      event.preventDefault();
+      const delta = event.deltaY > 0 ? -0.1 : 0.1;
+      setScaleFactor((prev) => Math.max(0.1, prev + delta));
+    };
+
+    window.addEventListener("wheel", handleScroll, { passive: false });
+
+    return () => {
+      window.removeEventListener("wheel", handleScroll);
+    };
+  }, []);
+
+  return scaleFactor;
+};
+
+//For handling panning
+const usePanOffset = () => {
+  const [panOffset, setPanOffset] = useState<[number, number]>([0, 0]);
+
+  useEffect(() => {
+    let isPanning = false;
+    let startX = 0;
+    let startY = 0;
+
+    const handleMouseDown = (event: MouseEvent) => {
+      if (event.button === 2) {
+        // Right-click
+        isPanning = true;
+        startX = event.clientX;
+        startY = event.clientY;
+      }
+    };
+
+    const handleMouseMove = (event: MouseEvent) => {
+      if (isPanning) {
+        const deltaX = event.clientX - startX;
+        const deltaY = event.clientY - startY;
+        setPanOffset((prev) => [prev[0] + deltaX, prev[1] + deltaY]);
+        startX = event.clientX;
+        startY = event.clientY;
+      }
+    };
+
+    const handleMouseUp = () => {
+      isPanning = false;
+    };
+
+    window.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
+
+  return panOffset;
+};
+
+const renderCP = (
+  cp: ServerCPDto,
+  fabricCanvasRef: RefObject<Canvas | null>,
+  scaleFactor: number,
+  panOffset: [number, number],
+) => {
   if (!fabricCanvasRef.current) {
     return;
   }
@@ -57,14 +136,22 @@ const renderCP = (cp: ServerCPDto,fabricCanvasRef:RefObject<Canvas | null>) => {
 
     edges_vertices.forEach((edge, index) => {
       const [startIndex, endIndex] = edge;
-      const start = scale(vertices_coords[startIndex]);
-      const end = scale(vertices_coords[endIndex]);
+      const start = scale(vertices_coords[startIndex], scaleFactor, panOffset);
+      const end = scale(vertices_coords[endIndex], scaleFactor, panOffset);
 
       if (start && end) {
         const line = new Line([start[0], start[1], end[0], end[1]], {
-          stroke: edges_assignment[index] === "M" ? "red" : edges_assignment[index] === "V" ? "blue" : 
-          edges_assignment[index] === "B"? "black" : "green",
+          stroke:
+            edges_assignment[index] === "M"
+              ? "red"
+              : edges_assignment[index] === "V"
+                ? "blue"
+                : edges_assignment[index] === "B"
+                  ? "black"
+                  : "green",
           strokeWidth: 2,
+          selectable: false,
+          evented: false,
         });
         if (fabricCanvasRef.current) {
           fabricCanvasRef.current.add(line);
@@ -72,7 +159,7 @@ const renderCP = (cp: ServerCPDto,fabricCanvasRef:RefObject<Canvas | null>) => {
       }
     });
   }
-}
+};
 
 const Editor: React.FC = () => {
   const navigate = useNavigate();
@@ -156,17 +243,71 @@ const Editor: React.FC = () => {
     }
   }, [isLoading, userId]);
 
+  // Handle zooming with the mouse wheel
+  const scaleFactor = useScaleFactor();
+  const panOffset = usePanOffset();
+
   // Render cp on the canvas
   useEffect(() => {
     if (fabricCanvasRef.current && cp) {
       fabricCanvasRef.current.clear();
       if (fabricCanvasRef.current) {
-        renderCP(cp, fabricCanvasRef);
+        renderCP(cp, fabricCanvasRef, scaleFactor, panOffset);
       }
       // fabricCanvasRef.current.add(rect);
       fabricCanvasRef.current.renderAll();
     }
-  }, [cp]);
+  }, [cp, scaleFactor]);
+
+  // //prevent the default right-click menu from showing up
+  // useEffect(() => {
+  //   if (canvasRef.current) {
+  //     const canvas = canvasRef.current;
+
+  //     const handleContextMenu = (event: MouseEvent) => {
+  //       event.preventDefault(); // Prevent the default right-click menu
+  //     };
+
+  //     canvas.addEventListener("contextmenu", handleContextMenu);
+
+  //     return () => {
+  //       canvas.removeEventListener("contextmenu", handleContextMenu);
+  //     };
+  //   }
+  // }, [canvasRef]);
+  // Handle mouse events
+  useEffect(() => {
+    if (canvasRef.current) {
+      const canvas = canvasRef.current;
+
+      const handleMouseDown = (event: MouseEvent) => {
+        const rect = canvas.getBoundingClientRect();
+        const pointer = {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        };
+        console.log("Mouse down at:", pointer);
+      };
+
+      const handleMouseUp = (event: MouseEvent) => {
+        const rect = canvas.getBoundingClientRect();
+        const pointer = {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        };
+        console.log("Mouse up at:", pointer);
+      };
+
+      canvas.addEventListener("mousedown", handleMouseDown);
+      canvas.addEventListener("mouseup", handleMouseUp);
+
+      // Cleanup
+      return () => {
+        canvas.removeEventListener("mousedown", handleMouseDown);
+        canvas.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
+  }, [canvasRef]);
 
   const handleLogoutAndNavigate = () => {
     googleLogout();

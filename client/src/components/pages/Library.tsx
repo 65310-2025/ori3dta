@@ -5,7 +5,12 @@ import { Button, Card, Flex, Form, Input, Menu, Modal } from "antd";
 import type { MenuProps } from "antd";
 import { useNavigate } from "react-router-dom";
 
-import { DesignMetadataDto, ServerCPDto, NewDesignDto, ClientCPDto } from "../../../../dto/dto";
+import {
+  ClientCPDto,
+  DesignMetadataDto,
+  NewDesignDto,
+  ServerCPDto,
+} from "../../../../dto/dto";
 import LogoutIcon from "../../assets/icons/logout.svg";
 import NewIcon from "../../assets/icons/new.svg";
 import { get, post } from "../../utils/requests";
@@ -102,10 +107,10 @@ const Library: React.FC = () => {
       [1, 2],
       [2, 3],
       [3, 0],
-      [0,2],
+      [0, 2],
     ],
-    edges_assignment: ["B", "B", "B", "B","M"],
-    edges_foldAngle: [0, 0, 0, 0,180],
+    edges_assignment: ["B", "B", "B", "B", "M"],
+    edges_foldAngle: [0, 0, 0, 0, 180],
   };
 
   const handleSubmit = async () => {
@@ -181,3 +186,5 @@ const Library: React.FC = () => {
 };
 
 export default Library;
+
+//TODO: add functionality for deleting files
