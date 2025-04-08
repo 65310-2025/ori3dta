@@ -331,6 +331,7 @@ const Editor: React.FC = () => {
   //handle right click
   useEffect(() => {
     let clickStart: { x: number; y: number } | null = null;
+    let panning = false;
 
     const handleMouseDown = (event: MouseEvent) => {
       if (event.button === 2) { // Right-click
@@ -340,38 +341,47 @@ const Editor: React.FC = () => {
             x: event.clientX - rect.left,
             y: event.clientY - rect.top,
           };
+          panning = true;
           console.log("right click down at:", clickStart);
         }
       }
     };
 
-    const handleMouseUp = (event: MouseEvent) => {
-      if (event.button === 2) { // Right-click
+    const handleMouseMove = (event: MouseEvent) => {
+      if (panning) { // Right-click
         const rect = fabricCanvasRef.current?.getElement().getBoundingClientRect();
         if (rect) {
-          const clickEnd = {
+          const clickEnd = { 
             x: event.clientX - rect.left,
             y: event.clientY - rect.top,
           };
-          console.log("right click up at:", clickEnd);
-            if (clickStart) {
-              const deltaX = clickEnd.x - clickStart.x;
-              const deltaY = clickEnd.y - clickStart.y;
-              setPanOffset((prev) => [
-                prev[0] + deltaX,
-                prev[1] + deltaY,
-              ]);
-              console.log("Panned by:", { deltaX, deltaY });
-            }
+          console.log("right click move at:", clickEnd);
+          if (clickStart) {
+            const deltaX = clickEnd.x - clickStart.x;
+            const deltaY = clickEnd.y - clickStart.y;
+            clickStart = clickEnd; // Update clickStart to the new position
+            // Update the pan offset
+            setPanOffset((prev) => [
+              prev[0] + deltaX,
+              prev[1] + deltaY,
+            ]);
+            console.log("Panned by:", { deltaX, deltaY });
+          }
         }
       }
     };
 
+    const handleMouseUp = (event: MouseEvent) => {
+      panning = false;
+    };
+
     window.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
 
     return () => {
       window.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
   }, []);
