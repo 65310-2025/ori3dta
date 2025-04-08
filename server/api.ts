@@ -136,6 +136,26 @@ router.get("/designs/:id", async (req: Request, res: Response) => {
   res.send(designDtoObj);
 });
 
+router.post("/designs/:id", async (req: Request, res: Response) => {
+  if (!req.user) {
+    // not logged in
+    res.status(401).send({ msg: "Unauthorized" });
+    return;
+  }
+  const design = await CP.findById(req.params.id);
+  if (!design) {
+    res.status(404).send({ msg: "Design not found" });
+    return;
+  }
+  // Update the design with the new data
+  design.vertices_coords = req.body.vertices_coords;
+  design.edges_vertices = req.body.edges_vertices;
+  design.edges_assignment = req.body.edges_assignment;
+  design.edges_foldAngle = req.body.edges_foldAngle;
+  await design.save();
+  res.send(design);
+});
+
 // anything else falls to this "not found" case
 router.all("*", (req: Request, res: Response) => {
   console.log(`API route not found: ${req.method} ${req.url}`);
