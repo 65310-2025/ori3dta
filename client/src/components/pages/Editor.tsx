@@ -33,8 +33,22 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { ServerCPDto } from "../../../../dto/dto";
 import LibraryIcon from "../../assets/icons/library.svg";
-import { get } from "../../utils/requests";
+import { get, post } from "../../utils/requests";
 import { UserContext } from "../App";
+
+enum Mode {
+  Default,
+  Drawing, //simple line draw
+  Selecting, //select, open inspector window
+  Deleting, //box delete
+  ChangeMV, //box change mv
+}
+enum MvMode{
+  Mountain,
+  Valley,
+  Border,
+  Aux
+}
 
 const scale = (
   cpcoords: [number, number],
@@ -74,52 +88,6 @@ const useScaleFactor = () => {
   }, []);
 
   return scaleFactor;
-};
-
-//For handling panning
-const usePanOffset = () => {
-  const [panOffset, setPanOffset] = useState<[number, number]>([0, 0]);
-
-  useEffect(() => {
-    let isPanning = false;
-    let startX = 0;
-    let startY = 0;
-
-    const handleMouseDown = (event: MouseEvent) => {
-      if (event.button === 2) {
-        // Right-click
-        isPanning = true;
-        startX = event.clientX;
-        startY = event.clientY;
-      }
-    };
-
-    const handleMouseMove = (event: MouseEvent) => {
-      if (isPanning) {
-        const deltaX = event.clientX - startX;
-        const deltaY = event.clientY - startY;
-        setPanOffset((prev) => [prev[0] + deltaX, prev[1] + deltaY]);
-        startX = event.clientX;
-        startY = event.clientY;
-      }
-    };
-
-    const handleMouseUp = () => {
-      isPanning = false;
-    };
-
-    window.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      window.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, []);
-
-  return panOffset;
 };
 
 const renderCP = (
@@ -181,6 +149,7 @@ const Editor: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fabricCanvasRef = useRef<Canvas | null>(null);
 
+
   // Check authentication status
   useEffect(() => {
     if (userId !== undefined) {
@@ -192,6 +161,7 @@ const Editor: React.FC = () => {
     }
   }, [userId]);
 
+  //fetch
   useEffect(() => {
     if (!isLoading && userId && cpID) {
       // Fetch the CP data
@@ -200,6 +170,28 @@ const Editor: React.FC = () => {
       });
     }
   }, [isLoading, userId, cpID]); //before: dependency [cp]
+
+  //post
+  useEffect(() => {
+    if (cp) {
+      const postCP = async () => {
+        try {
+          const response = await post(`/api/designs/${cpID}`, cp);
+
+          if (!response) {
+            console.error("Failed to post CP data");
+          } else {
+            console.log("CP data successfully posted");
+          }
+        } catch (error) {
+          console.error("Error posting CP data:", error);
+        }
+      };
+
+      postCP();
+    }
+  }, [cp, cpID]);
+
 
   // Initialize FabricJS canvas
   useEffect(() => {
@@ -243,71 +235,174 @@ const Editor: React.FC = () => {
     }
   }, [isLoading, userId]);
 
+  // Handle keyboard shortcuts for changing tool
+  const [mode, setMode] = useState(Mode.Default);
+  const [mvmode, setMvMode] = useState(MvMode.Mountain);
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      switch(event.key){
+        case "a":
+          setMvMode(MvMode.Mountain);
+          break;
+        case "s":
+          setMvMode(MvMode.Valley);
+          break;
+        case "d":
+          setMvMode(MvMode.Border);
+          break;
+        case "f":
+          setMvMode(MvMode.Aux);
+          break;
+
+        case " ":
+          event.preventDefault();//prevent scrolling
+          setMode(Mode.Drawing);
+          break;
+        case "q":
+          setMode(Mode.Selecting);
+          break;
+        case "w":
+          setMode(Mode.Deleting);
+          break;
+        case "e":
+          setMode(Mode.ChangeMV);
+          break;
+        default:
+          setMode(Mode.Default);
+          break;
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+  useEffect(() => {
+    console.log("Current mode:", Mode[mode], "Current MV mode:", MvMode[mvmode]);
+  }, [mode,mvmode]);
+
+  //handle left click
+  useEffect(() => {
+    let clickStart: { x: number; y: number } | null = null;
+
+    const handleMouseDown = (event: MouseEvent) => {
+      if (event.button !== 0) return; // Only handle left-click
+      const rect = fabricCanvasRef.current?.getElement().getBoundingClientRect();
+      if (rect) {
+        clickStart = {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        };
+        console.log("left click down at:", clickStart);
+      }
+    };
+
+    const handleMouseUp = (event: MouseEvent) => {
+      if (event.button !== 0) return; // Only handle left-click
+      const rect = fabricCanvasRef.current?.getElement().getBoundingClientRect();
+      if (rect) {
+        const clickEnd = {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        };
+        console.log("left click up at:", clickEnd);
+
+        // Add logic for handling click and release based on the current mode
+        if (mode === Mode.Drawing) {
+          console.log("Drawing mode active");
+          // Add drawing logic here
+        } else if (mode === Mode.Selecting) {
+          console.log("Selecting mode active");
+          // Add selecting logic here
+        }
+      }
+    };
+
+    window.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
+
+  const [panOffset, setPanOffset] = useState<[number, number]>([0, 0]);
+  //handle right click
+  useEffect(() => {
+    let clickStart: { x: number; y: number } | null = null;
+
+    const handleMouseDown = (event: MouseEvent) => {
+      if (event.button === 2) { // Right-click
+        const rect = fabricCanvasRef.current?.getElement().getBoundingClientRect();
+        if (rect) {
+          clickStart = {
+            x: event.clientX - rect.left,
+            y: event.clientY - rect.top,
+          };
+          console.log("right click down at:", clickStart);
+        }
+      }
+    };
+
+    const handleMouseUp = (event: MouseEvent) => {
+      if (event.button === 2) { // Right-click
+        const rect = fabricCanvasRef.current?.getElement().getBoundingClientRect();
+        if (rect) {
+          const clickEnd = {
+            x: event.clientX - rect.left,
+            y: event.clientY - rect.top,
+          };
+          console.log("right click up at:", clickEnd);
+            if (clickStart) {
+              const deltaX = clickEnd.x - clickStart.x;
+              const deltaY = clickEnd.y - clickStart.y;
+              setPanOffset((prev) => [
+                prev[0] + deltaX,
+                prev[1] + deltaY,
+              ]);
+              console.log("Panned by:", { deltaX, deltaY });
+            }
+        }
+      }
+    };
+
+    window.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
+
+  //prevent context window from popping up when right clicking
+  useEffect(() => {
+    const handleContextMenu = (event: MouseEvent) => {
+      event.preventDefault(); // Prevent the default right-click menu
+    };
+    window.addEventListener("contextmenu", handleContextMenu);
+    return () => {
+      window.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, []);
+
   // Handle zooming with the mouse wheel
   const scaleFactor = useScaleFactor();
-  const panOffset = usePanOffset();
+  // const panOffset = usePanOffset();
 
   // Render cp on the canvas
   useEffect(() => {
     if (fabricCanvasRef.current && cp) {
       fabricCanvasRef.current.clear();
+      cp.edges_assignment[4]="V";
       if (fabricCanvasRef.current) {
         renderCP(cp, fabricCanvasRef, scaleFactor, panOffset);
       }
       // fabricCanvasRef.current.add(rect);
       fabricCanvasRef.current.renderAll();
     }
-  }, [cp, scaleFactor]);
-
-  // //prevent the default right-click menu from showing up
-  // useEffect(() => {
-  //   if (canvasRef.current) {
-  //     const canvas = canvasRef.current;
-
-  //     const handleContextMenu = (event: MouseEvent) => {
-  //       event.preventDefault(); // Prevent the default right-click menu
-  //     };
-
-  //     canvas.addEventListener("contextmenu", handleContextMenu);
-
-  //     return () => {
-  //       canvas.removeEventListener("contextmenu", handleContextMenu);
-  //     };
-  //   }
-  // }, [canvasRef]);
-  // Handle mouse events
-  useEffect(() => {
-    if (canvasRef.current) {
-      const canvas = canvasRef.current;
-
-      const handleMouseDown = (event: MouseEvent) => {
-        const rect = canvas.getBoundingClientRect();
-        const pointer = {
-          x: event.clientX - rect.left,
-          y: event.clientY - rect.top,
-        };
-        console.log("Mouse down at:", pointer);
-      };
-
-      const handleMouseUp = (event: MouseEvent) => {
-        const rect = canvas.getBoundingClientRect();
-        const pointer = {
-          x: event.clientX - rect.left,
-          y: event.clientY - rect.top,
-        };
-        console.log("Mouse up at:", pointer);
-      };
-
-      canvas.addEventListener("mousedown", handleMouseDown);
-      canvas.addEventListener("mouseup", handleMouseUp);
-
-      // Cleanup
-      return () => {
-        canvas.removeEventListener("mousedown", handleMouseDown);
-        canvas.removeEventListener("mouseup", handleMouseUp);
-      };
-    }
-  }, [canvasRef]);
+  }, [cp, scaleFactor,panOffset]);
 
   const handleLogoutAndNavigate = () => {
     googleLogout();
@@ -345,7 +440,7 @@ const Editor: React.FC = () => {
       </div>
     );
   }
-  console.log("CP data:", cp);
+  // console.log("CP data:", cp);
   return (
     <div className="flex flex-col h-screen">
       <Menu mode="horizontal" items={items} />
