@@ -1,21 +1,3 @@
-/*
-1. Plotting an fold object
-- upload an object (user import). button -> file nav
-- run parseFold to convert .fold to ts object
-- plot the object on the canvas
-
-2. draw and delete creases
-- use fabric.js to register when and where clicks happen
-  - show action in progress (preview line)
-- run cpEdit with click locations as inputs
-- clear canvas
-- plot new object
-
-3. build inspector for editing creases (esp. fold angle)
-
-4. import three.js view window for rendering x ray
-
-*/
 import React, {
   RefObject,
   useContext,
@@ -41,29 +23,21 @@ const scale = (
   scaleFactor: number,
   panOffset: [number, number],
 ) => {
-  //Convert cp coordinates to pixel coordinates
-  const canvas = document.querySelector("canvas");
-  if (!canvas) {
-    throw new Error("Canvas element not found");
-  }
-  const rect = canvas.getBoundingClientRect();
-  const { width, height } = rect;
-
+  // Convert cp coordinates to pixel coordinates
   return [
-    cpcoords[0] * width * scaleFactor + panOffset[0],
-    cpcoords[1] * height * scaleFactor + panOffset[1],
+    cpcoords[0] * scaleFactor + panOffset[0],
+    cpcoords[1] * scaleFactor + panOffset[1],
   ];
 };
 
-//for handling scroll wheel
 const useScaleFactor = () => {
-  const [scaleFactor, setScaleFactor] = useState(1);
+  const [scaleFactor, setScaleFactor] = useState(300);
 
   useEffect(() => {
     const handleScroll = (event: WheelEvent) => {
       event.preventDefault();
-      const delta = event.deltaY > 0 ? -0.1 : 0.1;
-      setScaleFactor((prev) => Math.max(0.1, prev + delta));
+      const delta = event.deltaY > 0 ? 0.99 : 1.01;
+      setScaleFactor((prev) => Math.min(Math.max(10, prev * delta), 10000));
     };
 
     window.addEventListener("wheel", handleScroll, { passive: false });
@@ -76,7 +50,6 @@ const useScaleFactor = () => {
   return scaleFactor;
 };
 
-//For handling panning
 const usePanOffset = () => {
   const [panOffset, setPanOffset] = useState<[number, number]>([0, 0]);
 
@@ -131,34 +104,29 @@ const renderCP = (
   if (!fabricCanvasRef.current) {
     return;
   }
-  if (fabricCanvasRef.current) {
-    const { vertices_coords, edges_vertices, edges_assignment } = cp;
 
-    edges_vertices.forEach((edge, index) => {
-      const [startIndex, endIndex] = edge;
-      const start = scale(vertices_coords[startIndex], scaleFactor, panOffset);
-      const end = scale(vertices_coords[endIndex], scaleFactor, panOffset);
+  const { vertices_coords, edges_vertices, edges_assignment } = cp;
+  const edge_colors = {
+    M: "red",
+    V: "blue",
+    B: "black",
+  };
 
-      if (start && end) {
-        const line = new Line([start[0], start[1], end[0], end[1]], {
-          stroke:
-            edges_assignment[index] === "M"
-              ? "red"
-              : edges_assignment[index] === "V"
-                ? "blue"
-                : edges_assignment[index] === "B"
-                  ? "black"
-                  : "green",
-          strokeWidth: 2,
-          selectable: false,
-          evented: false,
-        });
-        if (fabricCanvasRef.current) {
-          fabricCanvasRef.current.add(line);
-        }
-      }
-    });
-  }
+  edges_vertices.forEach((edge, index) => {
+    const [startIndex, endIndex] = edge;
+    const start = scale(vertices_coords[startIndex], scaleFactor, panOffset);
+    const end = scale(vertices_coords[endIndex], scaleFactor, panOffset);
+
+    if (start && end) {
+      const line = new Line([start[0], start[1], end[0], end[1]], {
+        stroke: edge_colors[edges_assignment[index]] ?? "green",
+        strokeWidth: 2,
+        selectable: false,
+        evented: false,
+      });
+      fabricCanvasRef.current.add(line);
+    }
+  });
 };
 
 const Editor: React.FC = () => {
@@ -173,7 +141,6 @@ const Editor: React.FC = () => {
     return <p>Error: User context is not available.</p>;
   }
 
-  // TODO: the context destructuring happened here before
   const { userId, handleLogin, handleLogout } = context;
 
   const { cpID } = useParams<{ cpID: string }>();
@@ -199,7 +166,7 @@ const Editor: React.FC = () => {
         setCP(cp);
       });
     }
-  }, [isLoading, userId, cpID]); //before: dependency [cp]
+  }, [isLoading, userId, cpID]);
 
   // Initialize FabricJS canvas
   useEffect(() => {
@@ -353,7 +320,7 @@ const Editor: React.FC = () => {
         <div className="w-2/3 h-full">
           <canvas ref={canvasRef} className="w-full h-full"></canvas>
         </div>
-        <div className="w-1//3 h-full">
+        <div className="w-1/3 h-full">
           <p>{cp?._id}</p>
           <div>
             <h2>CP Details</h2>
