@@ -177,6 +177,57 @@ export function createEdge(
     // return fold;
 }
 
+export function deleteBox(
+    oldfold: Fold,
+    box: { min: [number, number]; max: [number, number] },
+): Fold {
+    const newFold = structuredClone(oldfold);
+    const verticesToDelete: number[] = [];
+    const edgesToDelete: number[] = [];
+
+    for (let i = 0; i < newFold.vertices_coords.length; i++) {
+        if (vertexInBox(newFold.vertices_coords[i], box)) {
+            verticesToDelete.push(i);
+        }
+    }
+
+    for (let i = 0; i < newFold.edges_vertices.length; i++) {
+        if (
+            lineThroughBox(
+                newFold.vertices_coords[newFold.edges_vertices[i][0]],
+                newFold.vertices_coords[newFold.edges_vertices[i][1]],
+                box,
+            )
+        ) {
+            edgesToDelete.push(i);
+        }
+    }
+
+    // Mark vertices and edges for deletion by setting them to null
+    for (const vertexIndex of verticesToDelete) {
+        newFold.vertices_coords[vertexIndex] = [NaN,NaN];
+        newFold.vertices_vertices[vertexIndex] = [];
+        newFold.vertices_edges[vertexIndex] = [];
+    }
+
+    for (const edgeIndex of edgesToDelete) {
+        newFold.edges_vertices[edgeIndex] = [NaN, NaN];
+        newFold.edges_assignment[edgeIndex] = "";
+        newFold.edges_foldAngle[edgeIndex] = NaN;
+    }
+
+    // Remove all null entries from the arrays
+    newFold.vertices_coords = newFold.vertices_coords.filter((v) => !isNaN(v[0]));
+    newFold.vertices_vertices = newFold.vertices_vertices.filter((v) => v.length > 0);
+    newFold.vertices_edges = newFold.vertices_edges.filter((v) => v.length > 0);
+    newFold.edges_vertices = newFold.edges_vertices.filter((v) => !isNaN(v[0]));
+    newFold.edges_assignment = newFold.edges_assignment.filter((v) => v !== "");
+    newFold.edges_foldAngle = newFold.edges_foldAngle.filter((v) => !isNaN(v));
+
+
+    return newFold;
+}
+
 function splitEdge(fold: Fold, edgeIndex: number, vertexIndex: number): void {
     const oldVertex1Index = fold.edges_vertices[edgeIndex][0];
     const oldVertex2Index = fold.edges_vertices[edgeIndex][1];
@@ -288,4 +339,38 @@ function coincidentVertices(
 
 function distance(v1: [number, number], v2: [number, number]): number {
     return Math.sqrt((v1[0] - v2[0]) ** 2 + (v1[1] - v2[1]) ** 2);
+}
+
+function vertexInBox(
+    v: [number, number],
+    box: { min: [number, number]; max: [number, number] },
+): boolean {
+    return (
+        v[0] >= box.min[0] &&
+        v[0] <= box.max[0] &&
+        v[1] >= box.min[1] &&
+        v[1] <= box.max[1]
+    );
+}
+function lineThroughBox(
+    v1: [number, number],
+    v2: [number, number],
+    box: { min: [number, number]; max: [number, number] },
+): boolean {
+    v1 = [v1[0], v1[1]]; // Ensure v1 is explicitly a tuple
+    v2 = [v2[0], v2[1]]; // Ensure v2 is explicitly a tuple
+    const boxLines = [
+        { v1: box.min, v2: [box.max[0], box.min[1]] }, // Bottom edge
+        { v1: [box.max[0], box.min[1]], v2: box.max }, // Right edge
+        { v1: box.max, v2: [box.min[0], box.max[1]] }, // Top edge
+        { v1: [box.min[0], box.max[1]], v2: box.min }, // Left edge
+    ];
+
+    for (const line of boxLines) {
+        if (findIntersection({ v1, v2 }, { v1: line.v1 as [number, number], v2: line.v2 as [number, number] })) {
+            return true;
+        }
+    }
+
+    return false;
 }

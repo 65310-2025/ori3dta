@@ -19,10 +19,10 @@ import LibraryIcon from "../../assets/icons/library.svg";
 import { get, post } from "../../utils/requests";
 import { UserContext } from "../App";
 
-import { createEdge } from "../../utils/cpEdit"
+import { createEdge, deleteBox } from "../../utils/cpEdit"
 import { checkKawasakiVertex } from "../../utils/kawasaki";
 
-const SNAP_TOLERANCE = 10; // pixels
+const SNAP_TOLERANCE = 30; // pixels
 const SCROLL_RATE = 0.05;
 const ERROR_CIRCLE_RADIUS = 10; //pixels
 
@@ -437,8 +437,26 @@ const Editor: React.FC = () => {
           }
           // Add drawing logic here
         } else if (modeRef.current === Mode.Deleting) {
-          console.log("Selecting mode active");
-          // Add selecting logic here
+          if (clickStart && clickEnd && cpRef.current) {
+            const vertex1 = unscale(clickStart, scaleFactorRef.current, panOffsetRef.current);
+            const vertex2 = unscale(clickEnd, scaleFactorRef.current, panOffsetRef.current);
+            setCP(deleteBox(cpRef.current, {min:vertex1, max: vertex2}));
+            if (showKawasakiRef.current){
+              const errors = cpRef.current.vertices_coords.map((_, index) =>
+                checkKawasakiVertex(cpRef.current!, index)
+              );
+              setErrorVertices(
+                new Set(
+                  errors
+                    .map((isValid, index) => (isValid ? null : index))
+                    .filter((index) => index !== null) as number[]
+                )
+              );
+            }
+          } else {
+            console.error("clickStart is null, cannot unscale");
+          }
+          // Add deleting logic here
         } else if (modeRef.current === Mode.Selecting) {
 
         }
