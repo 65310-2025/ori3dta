@@ -10,9 +10,11 @@ export function createEdge(
     foldAngle: number,
     assignment: string,
     TOLERANCE:number, //because tolerance is based on pixels 
-): Fold {
+): { fold: Fold; affectedVertices: number[] } {
+    const affectedVertices: number[] = []; //so the kawasaki checker doesn't need to check every vertex every time, only the recently affected ones
+
     if (coincidentVertices(v1, v2, TOLERANCE)) {
-        return oldfold;
+        return {fold:oldfold,affectedVertices};
     }
 
     const fold = structuredClone(oldfold);
@@ -70,7 +72,10 @@ export function createEdge(
 
     const intersections: { index: number; v: [number, number] }[] = [];
     const coincidentEdges: number[] = [];
+    affectedVertices.push(v1index);
+    affectedVertices.push(v2index);
 
+    // look for intersections with other vertices
     for (let i = 0; i < fold.vertices_coords.length; i++) {
         if (i === v1index || i === v2index) {
             continue;
@@ -78,6 +83,7 @@ export function createEdge(
         const vertex = fold.vertices_coords[i];
         if (vertexOnEdge(vertex, { v1: v1, v2: v2 })) {
             intersections.push({ index: i, v: vertex });
+            affectedVertices.push(i);
         }
     }
 
@@ -118,6 +124,7 @@ export function createEdge(
                 v: intersection,
             });
             splitEdge(fold, i, fold.vertices_coords.length - 1);
+            affectedVertices.push(fold.vertices_coords.length - 1);
         }
     }
 
@@ -134,7 +141,7 @@ export function createEdge(
             assignment,
             coincidentEdges,
         );
-        return fold;
+        return {fold, affectedVertices};
     }
 
     connectVertices(
@@ -166,7 +173,8 @@ export function createEdge(
         coincidentEdges,
     );
 
-    return fold;
+    return { fold, affectedVertices };
+    // return fold;
 }
 
 function splitEdge(fold: Fold, edgeIndex: number, vertexIndex: number): void {

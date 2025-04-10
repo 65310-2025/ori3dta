@@ -9,7 +9,7 @@ import React, {
 import { googleLogout } from "@react-oauth/google";
 import { Button, Menu, Spin } from "antd";
 import type { MenuProps } from "antd";
-import { Line } from "fabric";
+import { Circle, Line, Rect } from "fabric";
 import { Canvas } from "fabric";
 import { Fold } from "../../types/fold";
 import { useNavigate, useParams } from "react-router-dom";
@@ -20,9 +20,11 @@ import { get, post } from "../../utils/requests";
 import { UserContext } from "../App";
 
 import { createEdge } from "../../utils/cpEdit"
+import { checkKawasakiVertex } from "../../utils/kawasaki";
 
 const SNAP_TOLERANCE = 10; // pixels
 const SCROLL_RATE = 0.05;
+const ERROR_CIRCLE_RADIUS = 10; //pixels
 
 enum Mode {
   Default,
@@ -77,11 +79,13 @@ const renderCP = (
   fabricCanvasRef: RefObject<Canvas | null>,
   scaleFactor: number,
   panOffset: [number, number],
+  errorVertices: number[],
+  showKawasaki: boolean,
 ) => {
   if (!fabricCanvasRef.current) {
     return;
   }
-  const { vertices_coords, edges_vertices, edges_assignment } = cp;
+  const { vertices_coords, edges_vertices, edges_assignment, edges_foldAngle} = cp;
   edges_vertices.forEach((edge, index) => {
     const [startIndex, endIndex] = edge;
     const start = scale(vertices_coords[startIndex], scaleFactor, panOffset);
@@ -93,10 +97,28 @@ const renderCP = (
         strokeWidth: 2,
         selectable: false,
         evented: false,
+        opacity: edges_assignment[index] === "M"? -edges_foldAngle[index]/Math.PI : edges_assignment[index] === "V"? edges_foldAngle[index]/Math.PI : 1,
       });
       fabricCanvasRef.current.add(line);
     }
   });
+  if (showKawasaki) {
+    errorVertices.forEach((vertexIndex) => {
+      if (fabricCanvasRef.current === null) return;
+      const vertex = vertices_coords[vertexIndex];
+      const scaledVertex = scale(vertex, scaleFactor, panOffset);
+      const circle = new Circle({
+      left: scaledVertex[0] - ERROR_CIRCLE_RADIUS, // Adjust to center the circle
+      top: scaledVertex[1] - ERROR_CIRCLE_RADIUS,  // Adjust to center the circle
+      radius: ERROR_CIRCLE_RADIUS,
+      fill: "red",
+      selectable: false,
+      evented: false,
+      opacity: 0.2,
+      });
+      fabricCanvasRef.current.add(circle);
+    });
+  }
 };
 
 const Editor: React.FC = () => {
@@ -227,6 +249,34 @@ const Editor: React.FC = () => {
     }
   }, [isLoading, userId]);
 
+  // foldability stuff
+  const [errorVertices, setErrorVertices] = useState<Set<number>>(new Set());
+  const errorVerticesRef = useRef<Set<number>>(new Set());
+  useEffect(() => {
+    errorVerticesRef.current = errorVertices;
+  }, [errorVertices]);
+  const [showKawasaki, setShowKawasaki] = useState(false);
+  const showKawasakiRef = useRef<boolean>(false);
+  useEffect(() => {
+    showKawasakiRef.current = showKawasaki;
+    if (showKawasaki) {
+      if (cpRef.current) {
+        const errors = cpRef.current.vertices_coords.map((_, index) =>
+          checkKawasakiVertex(cpRef.current!, index)
+        );
+        setErrorVertices(
+          new Set(
+            errors
+              .map((isValid, index) => (isValid ? null : index))
+              .filter((index) => index !== null) as number[]
+          )
+        );
+      }
+    } else {
+      setErrorVertices(new Set());
+    }
+  }, [showKawasaki]);
+
   // Handle keyboard shortcuts for changing tool
   const [mode, setMode] = useState(Mode.Default);
   const modeRef = useRef<Mode>(Mode.Default);
@@ -241,36 +291,27 @@ const Editor: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      switch(event.key){
-        case "a":
-          setMvMode(MvMode.Mountain);
-          break;
-        case "s":
-          setMvMode(MvMode.Valley);
-          break;
-        case "d":
-          setMvMode(MvMode.Border);
-          break;
-        case "f":
-          setMvMode(MvMode.Aux);
-          break;
-
-        case " ":
-          event.preventDefault();//prevent scrolling
+      const keyToAction: { [key: string]: () => void } = {
+        a: () => setMvMode(MvMode.Mountain),
+        s: () => setMvMode(MvMode.Valley),
+        d: () => setMvMode(MvMode.Border),
+        f: () => setMvMode(MvMode.Aux),
+        " ": () => {
+          event.preventDefault(); // prevent scrolling
           setMode(Mode.Drawing);
-          break;
-        case "q":
-          setMode(Mode.Selecting);
-          break;
-        case "w":
-          setMode(Mode.Deleting);
-          break;
-        case "e":
-          setMode(Mode.ChangeMV);
-          break;
-        default:
-          setMode(Mode.Default);
-          break;
+        },
+        q: () => setMode(Mode.Selecting),
+        w: () => setMode(Mode.Deleting),
+        e: () => setMode(Mode.ChangeMV),
+
+        "/": () => setShowKawasaki((prev) => !prev),
+      };
+
+      const action = keyToAction[event.key];
+      if (action) {
+        action();
+      } else {
+        setMode(Mode.Default);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -305,6 +346,10 @@ const Editor: React.FC = () => {
           event.clientX - rect.left,
           event.clientY - rect.top,
         ];
+        const existingTempLine = fabricCanvasRef.current?.getObjects().find(obj => obj.strokeWidth === 1); //all temp objects will be stroke 1
+        if (existingTempLine) {
+          fabricCanvasRef.current?.remove(existingTempLine); // Remove the existing temporary line or select or delete box
+        }
         if (modeRef.current === Mode.Drawing && clickStart) {
           const tempLine = new Line(
             [clickStart[0], clickStart[1], clickEnd[0], clickEnd[1]],
@@ -317,15 +362,46 @@ const Editor: React.FC = () => {
           );
 
           if (fabricCanvasRef.current) {
-              const existingTempLine = fabricCanvasRef.current?.getObjects().find(obj => obj.type === "line" && obj.strokeWidth === 1);
-              if (existingTempLine) {
-              fabricCanvasRef.current?.remove(existingTempLine); // Remove the existing temporary line
-              }
               fabricCanvasRef.current?.add(tempLine); // Add the new temporary line
               fabricCanvasRef.current?.renderAll(); // Render the canvas
           }
         }
-        
+        else if (modeRef.current === Mode.Deleting &&clickStart) {
+            const tempBox = new Rect({
+            left: Math.min(clickStart[0], clickEnd[0]),
+            top: Math.min(clickStart[1], clickEnd[1]),
+            width: Math.abs(clickEnd[0] - clickStart[0]),
+            height: Math.abs(clickEnd[1] - clickStart[1]),
+            fill: "rgba(255, 192, 203, 0.3)", // Light pink with transparency
+            stroke: "pink",
+            strokeWidth: 1,
+            selectable: false,
+            evented: false,
+            });
+
+          if (fabricCanvasRef.current) {
+              fabricCanvasRef.current?.add(tempBox); // Add the new temporary line
+              fabricCanvasRef.current?.renderAll(); // Render the canvas
+          }
+        }
+        else if (modeRef.current === Mode.Selecting && clickStart) {
+            const tempBox = new Rect({
+            left: Math.min(clickStart[0], clickEnd[0]),
+            top: Math.min(clickStart[1], clickEnd[1]),
+            width: Math.abs(clickEnd[0] - clickStart[0]),
+            height: Math.abs(clickEnd[1] - clickStart[1]),
+            fill: "rgba(144, 238, 144, 0.3)", // Light green with transparency
+            stroke: "green",
+            strokeWidth: 1,
+            selectable: false,
+            evented: false,
+            });
+
+          if (fabricCanvasRef.current) {
+              fabricCanvasRef.current?.add(tempBox); // Add the new temporary line
+              fabricCanvasRef.current?.renderAll(); // Render the canvas
+          }
+        }
       }
     };
     const handleMouseUp = (event: MouseEvent) => {
@@ -345,14 +421,26 @@ const Editor: React.FC = () => {
             console.log(scaleFactorRef.current,panOffsetRef.current)
             console.log("Drawing mode active", unscale(clickStart, scaleFactorRef.current, panOffsetRef.current), unscale(clickEnd,scaleFactorRef.current,panOffsetRef.current));
 
-            setCP(createEdge(cpRef.current,unscale(clickStart, scaleFactorRef.current, panOffsetRef.current),unscale(clickEnd,scaleFactorRef.current,panOffsetRef.current),Math.PI,mvmodeRef.current,SNAP_TOLERANCE/scaleFactorRef.current))
+            const output = createEdge(cpRef.current,unscale(clickStart, scaleFactorRef.current, panOffsetRef.current),unscale(clickEnd,scaleFactorRef.current,panOffsetRef.current),mvmodeRef.current==MvMode.Valley?Math.PI:mvmodeRef.current==MvMode.Mountain?-Math.PI:0,mvmodeRef.current,SNAP_TOLERANCE/scaleFactorRef.current)
+            setCP(output.fold);
+            const updatedErrors = new Set(errorVerticesRef.current);
+            output.affectedVertices.forEach((vertexIndex) => {
+              if (!checkKawasakiVertex(output.fold, vertexIndex)) {
+                updatedErrors.add(vertexIndex);
+              } else {
+                updatedErrors.delete(vertexIndex);
+              }
+            });
+            setErrorVertices(updatedErrors);
           } else {
             console.error("clickStart is null, cannot unscale");
           }
           // Add drawing logic here
-        } else if (modeRef.current === Mode.Selecting) {
+        } else if (modeRef.current === Mode.Deleting) {
           console.log("Selecting mode active");
           // Add selecting logic here
+        } else if (modeRef.current === Mode.Selecting) {
+
         }
       }
       clickStart = null;
@@ -493,12 +581,19 @@ const Editor: React.FC = () => {
       fabricCanvasRef.current.clear();
       if (fabricCanvasRef.current) {
         console.log("rerendering")
-        renderCP(cpRef.current, fabricCanvasRef, scaleFactor, panOffset);
+        renderCP(
+          cpRef.current,
+          fabricCanvasRef,
+          scaleFactor,
+          panOffset,
+          Array.from(errorVerticesRef.current),
+          showKawasakiRef.current
+        );
       }
       // fabricCanvasRef.current.add(rect);
       fabricCanvasRef.current.renderAll();
     }
-  }, [cp, scaleFactor,panOffset]);
+  }, [cp, scaleFactor,panOffset,showKawasaki,errorVertices]);
 
   const handleLogoutAndNavigate = () => {
     googleLogout();
