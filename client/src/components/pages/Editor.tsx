@@ -21,6 +21,9 @@ import { UserContext } from "../App";
 
 import { createEdge } from "../../utils/cpEdit"
 
+const SNAP_TOLERANCE = 10; // pixels
+const SCROLL_RATE = 0.05;
+
 enum Mode {
   Default,
   Drawing, //simple line draw
@@ -59,6 +62,16 @@ const unscale = (
   ];
 };
 
+const edge_colors: {
+  [key: string]: string;
+} = {
+  M: "red",
+  V: "blue",
+  B: "black",
+  A: "green",
+};
+
+
 const renderCP = (
   cp: Fold,
   fabricCanvasRef: RefObject<Canvas | null>,
@@ -68,15 +81,7 @@ const renderCP = (
   if (!fabricCanvasRef.current) {
     return;
   }
-
   const { vertices_coords, edges_vertices, edges_assignment } = cp;
-  const edge_colors: Record<"M" | "V" | "B", string> = {
-      M: "red",
-      V: "blue",
-      B: "black",
-  };
-
-  console.log(edges_vertices.length," number of edges")
   edges_vertices.forEach((edge, index) => {
     const [startIndex, endIndex] = edge;
     const start = scale(vertices_coords[startIndex], scaleFactor, panOffset);
@@ -292,7 +297,37 @@ const Editor: React.FC = () => {
       // console.log("left click down at:", clickStart);
       }
     };
+    const handleMouseMove = (event: MouseEvent) => {
+      if (event.button !== 0) return; // Only handle left-click
+      const rect = fabricCanvasRef.current?.getElement().getBoundingClientRect();
+      if (rect) {
+        const clickEnd: [number, number] = [
+          event.clientX - rect.left,
+          event.clientY - rect.top,
+        ];
+        if (modeRef.current === Mode.Drawing && clickStart) {
+          const tempLine = new Line(
+            [clickStart[0], clickStart[1], clickEnd[0], clickEnd[1]],
+            {
+            stroke: edge_colors[mvmodeRef.current] ?? "gray",
+            strokeWidth: 1,
+            selectable: false,
+            evented: false,
+            }
+          );
 
+          if (fabricCanvasRef.current) {
+              const existingTempLine = fabricCanvasRef.current?.getObjects().find(obj => obj.type === "line" && obj.strokeWidth === 1);
+              if (existingTempLine) {
+              fabricCanvasRef.current?.remove(existingTempLine); // Remove the existing temporary line
+              }
+              fabricCanvasRef.current?.add(tempLine); // Add the new temporary line
+              fabricCanvasRef.current?.renderAll(); // Render the canvas
+          }
+        }
+        
+      }
+    };
     const handleMouseUp = (event: MouseEvent) => {
       if (event.button !== 0) return; // Only handle left-click
       const rect = fabricCanvasRef.current?.getElement().getBoundingClientRect();
@@ -310,7 +345,7 @@ const Editor: React.FC = () => {
             console.log(scaleFactorRef.current,panOffsetRef.current)
             console.log("Drawing mode active", unscale(clickStart, scaleFactorRef.current, panOffsetRef.current), unscale(clickEnd,scaleFactorRef.current,panOffsetRef.current));
 
-            setCP(createEdge(cpRef.current,unscale(clickStart, scaleFactorRef.current, panOffsetRef.current),unscale(clickEnd,scaleFactorRef.current,panOffsetRef.current),Math.PI,mvmodeRef.current,1/scaleFactorRef.current))
+            setCP(createEdge(cpRef.current,unscale(clickStart, scaleFactorRef.current, panOffsetRef.current),unscale(clickEnd,scaleFactorRef.current,panOffsetRef.current),Math.PI,mvmodeRef.current,SNAP_TOLERANCE/scaleFactorRef.current))
           } else {
             console.error("clickStart is null, cannot unscale");
           }
@@ -320,19 +355,65 @@ const Editor: React.FC = () => {
           // Add selecting logic here
         }
       }
+      clickStart = null;
     };
 
     window.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
 
     return () => {
       window.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
   }, []);
 
+
+  // Handle zooming with the mouse wheel
+  const [scaleFactor, setScaleFactor] = useState(500);
+  const scaleFactorRef = useRef<number>(scaleFactor);
+  useEffect(() => {
+    scaleFactorRef.current = scaleFactor;
+  }, [scaleFactor]);
+
+  useEffect(() => {
+    const handleScroll = (event: WheelEvent) => {
+      event.preventDefault();
+      if (!fabricCanvasRef.current) return;
+
+      const rect = fabricCanvasRef.current.getElement().getBoundingClientRect();
+      const mouseX = event.clientX - rect.left;
+      const mouseY = event.clientY - rect.top;
+
+      const delta = event.deltaY > 0 ? 1-SCROLL_RATE : 1+SCROLL_RATE;
+      const newScaleFactor = Math.min(Math.max(10, scaleFactorRef.current * delta), 10000);
+
+      const [unscaledX, unscaledY] = unscale(
+        [mouseX, mouseY],
+        scaleFactorRef.current,
+        panOffsetRef.current
+      );
+
+      const newPanOffset: [number, number] = [
+        mouseX - unscaledX * newScaleFactor,
+        mouseY - unscaledY * newScaleFactor,
+      ];
+
+      setScaleFactor(newScaleFactor);
+      setPanOffset(newPanOffset);
+    };
+
+    window.addEventListener("wheel", handleScroll, { passive: false });
+
+    return () => {
+      window.removeEventListener("wheel", handleScroll);
+    };
+  }, []);
+
   // handle panning with right click
-  const [panOffset, setPanOffset] = useState<[number, number]>([0, 0]);
+  const [panOffset, setPanOffset] = useState<[number, number]>([
+    (window.innerWidth - scaleFactor) / 2,(window.innerHeight - scaleFactor) / 2  ]);
   const panOffsetRef = useRef<[number, number]>([0, 0]);
   useEffect(() => {
     panOffsetRef.current = panOffset;
@@ -405,26 +486,6 @@ const Editor: React.FC = () => {
     };
   }, []);
 
-  // Handle zooming with the mouse wheel
-  const [scaleFactor, setScaleFactor] = useState(500);
-  const scaleFactorRef = useRef<number>(scaleFactor);
-  useEffect(() => {
-    scaleFactorRef.current = scaleFactor;
-  }, [scaleFactor]);
-  useEffect(() => {
-    const handleScroll = (event: WheelEvent) => {
-      event.preventDefault();
-      const delta = event.deltaY > 0 ? 0.99 : 1.01;
-      setScaleFactor((prev) => Math.min(Math.max(10, prev * delta), 10000));
-    };
-
-    window.addEventListener("wheel", handleScroll, { passive: false });
-
-    return () => {
-      window.removeEventListener("wheel", handleScroll);
-    };
-  }, []);
-
   // Render cp on the canvas
   useEffect(() => {
     if (fabricCanvasRef.current && cpRef.current) {
@@ -480,17 +541,17 @@ const Editor: React.FC = () => {
     <div className="flex flex-col h-screen">
       <Menu mode="horizontal" items={items} />
       <div className="flex-1 flex">
-        <div className="w-2/3 h-full">
+        <div className="w-full h-full">
           <canvas ref={canvasRef} className="w-full h-full"></canvas>
         </div>
-        <div className="w-1/3 h-full">
+        {/* <div className="w-1/3 h-full">
           <p>{cp?._id}</p>
           <div>
             <h2>CP Details</h2>
-            {/* <p>{cp?.vertices_coords}</p> */}
+            <p>{cp?.vertices_coords}</p>
             <pre>{JSON.stringify(cp, null, 2)}</pre>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

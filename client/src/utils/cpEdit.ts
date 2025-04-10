@@ -21,9 +21,12 @@ export function createEdge(
     let v2index = -1;
 
     for (let i = 0; i < fold.vertices_coords.length; i++) {
-        if (coincidentVertices(fold.vertices_coords[i], v1, TOLERANCE)) {
+        const distanceToV1 = distance(fold.vertices_coords[i], v1);
+        if (distanceToV1 <= TOLERANCE && (v1index === -1 || distanceToV1 < distance(fold.vertices_coords[v1index], v1))) {
             v1index = i;
-        } else if (coincidentVertices(fold.vertices_coords[i], v2, TOLERANCE)) {
+        }
+        const distanceToV2 = distance(fold.vertices_coords[i], v2);
+        if (distanceToV2 <= TOLERANCE && (v2index === -1 || distanceToV2 < distance(fold.vertices_coords[v2index], v2))) {
             v2index = i;
         }
     }

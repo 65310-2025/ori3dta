@@ -38,6 +38,8 @@ const Library: React.FC = () => {
   // Get metadata for all designs from server
   // TODO: later on, implement pagination in the /designs endpoint in case we have some
   // extremely prolific CP creators
+  
+  //fetch designs
   useEffect(() => {
     const getDesigns = async () => {
       try {
@@ -107,10 +109,9 @@ const Library: React.FC = () => {
       [1, 2],
       [2, 3],
       [3, 0],
-      [0, 2],
     ],
-    edges_assignment: ["B", "B", "B", "B", "M"],
-    edges_foldAngle: [0, 0, 0, 0, 180],
+    edges_assignment: ["B", "B", "B", "B",],
+    edges_foldAngle: [0, 0, 0, 0,],
   };
 
   const handleSubmit = async () => {
