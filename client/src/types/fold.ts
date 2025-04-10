@@ -1,10 +1,7 @@
-/*
-
-*/
-
 export interface Fold {
   //=======
   // Metadata
+
   file_spec?: number; //1.1
   file_creator?: string; //name of the software that created the file
   file_author?: string; //name of the author (username)
@@ -13,22 +10,13 @@ export interface Fold {
 
   //=======
 
-  vertices_coords: Array<{
-    //Vertex index is implied by the order in the array
-    //coordinates on the crease pattern. The default square varies from 0 to 1, although the user may use the file as a "notebook" with multiple crease patterns located around the plane. Note that older softwares define the default square from -200 to 200
-    x: number;
-    y: number;
-  }>;
+  vertices_coords: Array<[number, number]>; // coordinates on the crease pattern
 
   vertices_vertices: Array<Array<number>>; //list of vertices connected to each vertex
   vertices_edges: Array<Array<number>>; //list of edges connected to each vertex
   vertices_faces?: Array<Array<number>>; //list of faces connected to each vertex
 
-  edges_vertices: Array<{
-    //Edge index is implied by the order in the array
-    vertex1: number;
-    vertex2: number;
-  }>;
+  edges_vertices: Array<[number, number]>; // Edge index is implied by the order in the array
 
   edges_faces: Array<{
     left: number | null; //index of the face on the left side of the edge
@@ -65,27 +53,18 @@ export interface Fold {
   //The below are fields that we are introducing.
   // When exporting, these fields should be prefixed with "ori3dita:" to avoid conflicts with other software
   planeGroups?: Array<{
-    normal_vector: Array<{
-      x: number;
-      y: number;
-      z: number;
-    }>; //normal vector of the plane
+    normal_vector: Array<[number, number, number]>; //normal vector of the plane
     faces: Array<number>;
   }>; //list of faces that lie on the same planes
 
-  vertices_coords_folded?: Array<{
-    x: number;
-    y: number;
-    z: number;
-  }>; //coordinates of the vertices after folding
+  vertices_coords_folded?: Array<[number, number, number]>; //coordinates of the vertices after folding
 
   symmetry_type?: string | null; //bp, hp, 22.5, 15, or n/a. For displaying grids
   grid_size?: number | null; //size of the grid, or n/a
 
   //for auxiliary annotation of circle packings. Like Oriedita's .ori file type. Can also store software specific data, like current view parameters
   arcs?: Array<{
-    x: number;
-    y: number;
+    center: [number, number]; // center of the arc
     r: number;
     startAngle: number; //radians
     endAngle: number;

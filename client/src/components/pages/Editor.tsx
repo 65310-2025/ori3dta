@@ -11,12 +11,15 @@ import { Button, Menu, Spin } from "antd";
 import type { MenuProps } from "antd";
 import { Line } from "fabric";
 import { Canvas } from "fabric";
+import { Fold } from "../../types/fold";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { ServerCPDto } from "../../../../dto/dto";
+import { ServerCPDto, ClientCPDto } from "../../../../dto/dto";
 import LibraryIcon from "../../assets/icons/library.svg";
 import { get, post } from "../../utils/requests";
 import { UserContext } from "../App";
+
+import { createEdge } from "../../utils/cpEdit"
 
 enum Mode {
   Default,
@@ -26,11 +29,11 @@ enum Mode {
   ChangeMV, //box change mv
 }
 enum MvMode{
-  Mountain,
-  Valley,
-  Border,
-  Aux
-}
+  Mountain = "M",
+  Valley = "V",
+  Border = "B",
+  Aux = "A",
+} 
 
 const scale = (
   cpcoords: [number, number],
@@ -44,28 +47,20 @@ const scale = (
   ];
 };
 
-const useScaleFactor = () => {
-  const [scaleFactor, setScaleFactor] = useState(300);
-
-  useEffect(() => {
-    const handleScroll = (event: WheelEvent) => {
-      event.preventDefault();
-      const delta = event.deltaY > 0 ? 0.99 : 1.01;
-      setScaleFactor((prev) => Math.min(Math.max(10, prev * delta), 10000));
-    };
-
-    window.addEventListener("wheel", handleScroll, { passive: false });
-
-    return () => {
-      window.removeEventListener("wheel", handleScroll);
-    };
-  }, []);
-
-  return scaleFactor;
+const unscale = (
+  pixelCoords: [number, number],
+  scaleFactor: number,
+  panOffset: [number, number],
+): [number, number] => {
+  // Convert pixel coordinates to cp coordinates
+  return [
+    (pixelCoords[0] - panOffset[0]) / scaleFactor,
+    (pixelCoords[1] - panOffset[1]) / scaleFactor,
+  ];
 };
 
 const renderCP = (
-  cp: ServerCPDto,
+  cp: Fold,
   fabricCanvasRef: RefObject<Canvas | null>,
   scaleFactor: number,
   panOffset: [number, number],
@@ -81,12 +76,13 @@ const renderCP = (
       B: "black",
   };
 
+  console.log(edges_vertices.length," number of edges")
   edges_vertices.forEach((edge, index) => {
     const [startIndex, endIndex] = edge;
     const start = scale(vertices_coords[startIndex], scaleFactor, panOffset);
     const end = scale(vertices_coords[endIndex], scaleFactor, panOffset);
 
-    if (start && end) {
+    if (start && end && fabricCanvasRef.current) {
       const line = new Line([start[0], start[1], end[0], end[1]], {
         stroke: edge_colors[edges_assignment[index] as "M" | "V" | "B"] ?? "green",
         strokeWidth: 2,
@@ -103,7 +99,11 @@ const Editor: React.FC = () => {
   const context = useContext(UserContext);
 
   const [isLoading, setIsLoading] = useState(true);
-  const [cp, setCP] = useState<ServerCPDto | null>(null);
+  const [cp, setCP] = useState<Fold | null>(null);
+  const cpRef = useRef<Fold | null>(null);
+  useEffect(() => {
+    cpRef.current = cp;
+  }, [cp]);
 
   if (!context) {
     // should not be executed unless I goofed up the context provider
@@ -133,7 +133,18 @@ const Editor: React.FC = () => {
   useEffect(() => {
     if (!isLoading && userId && cpID) {
       // Fetch the CP data
-      get(`/api/designs/${cpID}`).then((cp: ServerCPDto) => {
+      get(`/api/designs/${cpID}`).then((cp: Fold) => {
+        // Expand the CP by filling out redundant fields
+        cp.vertices_edges = Array(cp.vertices_coords.length).fill(null).map(() => []);
+        cp.vertices_vertices = Array(cp.vertices_coords.length).fill(null).map(() => []);
+
+        cp.edges_vertices.forEach(([start, end], index) => {
+          cp.vertices_edges[start].push(index);
+          cp.vertices_edges[end].push(index);
+
+          cp.vertices_vertices[start].push(end);
+          cp.vertices_vertices[end].push(start);
+        });
         setCP(cp);
       });
     }
@@ -144,7 +155,14 @@ const Editor: React.FC = () => {
     if (cp) {
       const postCP = async () => {
         try {
-          const response = await post(`/api/designs/${cpID}`, cp);
+          // convert cp to interface ClientCPDto
+          const cpData: ClientCPDto = {
+            vertices_coords: cp.vertices_coords,
+            edges_vertices: cp.edges_vertices,
+            edges_assignment: cp.edges_assignment,
+            edges_foldAngle: cp.edges_foldAngle, //TODO: convert to degrees?
+          };
+          const response = await post(`/api/designs/${cpID}`, cpData);
 
           if (!response) {
             console.error("Failed to post CP data");
@@ -169,6 +187,7 @@ const Editor: React.FC = () => {
         // TODO: maybe add altActionKey or altSelectionKey, go through the options again to make
         // sure my settings are optimal
         backgroundColor: "gray", // TODO: match this with my actual color scheme
+        selection:false,
       });
       fabricCanvasRef.current = fabricCanvas;
 
@@ -205,7 +224,16 @@ const Editor: React.FC = () => {
 
   // Handle keyboard shortcuts for changing tool
   const [mode, setMode] = useState(Mode.Default);
+  const modeRef = useRef<Mode>(Mode.Default);
+  useEffect(() => {
+    modeRef.current = mode;
+  },[mode]);
   const [mvmode, setMvMode] = useState(MvMode.Mountain);
+  const mvmodeRef = useRef<MvMode>(MvMode.Mountain);
+  useEffect(() => {
+    mvmodeRef.current = mvmode;
+  },[mvmode])
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       switch(event.key){
@@ -246,22 +274,22 @@ const Editor: React.FC = () => {
     };
   }, []);
   useEffect(() => {
-    console.log("Current mode:", Mode[mode], "Current MV mode:", MvMode[mvmode]);
+    console.log("Current mode:", Mode[mode], "Current MV mode:", mvmode);
   }, [mode,mvmode]);
 
-  //handle left click
+  // handle left click
   useEffect(() => {
-    let clickStart: { x: number; y: number } | null = null;
-
+    let clickStart: [number, number] | null = null;
+    
     const handleMouseDown = (event: MouseEvent) => {
       if (event.button !== 0) return; // Only handle left-click
       const rect = fabricCanvasRef.current?.getElement().getBoundingClientRect();
       if (rect) {
-        clickStart = {
-          x: event.clientX - rect.left,
-          y: event.clientY - rect.top,
-        };
-        console.log("left click down at:", clickStart);
+      clickStart = [
+        event.clientX - rect.left,
+        event.clientY - rect.top,
+      ];
+      // console.log("left click down at:", clickStart);
       }
     };
 
@@ -269,17 +297,25 @@ const Editor: React.FC = () => {
       if (event.button !== 0) return; // Only handle left-click
       const rect = fabricCanvasRef.current?.getElement().getBoundingClientRect();
       if (rect) {
-        const clickEnd = {
-          x: event.clientX - rect.left,
-          y: event.clientY - rect.top,
-        };
-        console.log("left click up at:", clickEnd);
+      const clickEnd: [number, number] = [
+        event.clientX - rect.left,
+        event.clientY - rect.top,
+      ];
+        // console.log("left click up at:", clickEnd);
 
         // Add logic for handling click and release based on the current mode
-        if (mode === Mode.Drawing) {
-          console.log("Drawing mode active");
+        if (modeRef.current === Mode.Drawing) {
+          // console.log(clickStart,clickEnd,cpRef.current)
+          if (clickStart && clickEnd && cpRef.current) {
+            console.log(scaleFactorRef.current,panOffsetRef.current)
+            console.log("Drawing mode active", unscale(clickStart, scaleFactorRef.current, panOffsetRef.current), unscale(clickEnd,scaleFactorRef.current,panOffsetRef.current));
+
+            setCP(createEdge(cpRef.current,unscale(clickStart, scaleFactorRef.current, panOffsetRef.current),unscale(clickEnd,scaleFactorRef.current,panOffsetRef.current),Math.PI,mvmodeRef.current,1/scaleFactorRef.current))
+          } else {
+            console.error("clickStart is null, cannot unscale");
+          }
           // Add drawing logic here
-        } else if (mode === Mode.Selecting) {
+        } else if (modeRef.current === Mode.Selecting) {
           console.log("Selecting mode active");
           // Add selecting logic here
         }
@@ -295,8 +331,12 @@ const Editor: React.FC = () => {
     };
   }, []);
 
+  // handle panning with right click
   const [panOffset, setPanOffset] = useState<[number, number]>([0, 0]);
-  //handle right click
+  const panOffsetRef = useRef<[number, number]>([0, 0]);
+  useEffect(() => {
+    panOffsetRef.current = panOffset;
+  }, [panOffset]);
   useEffect(() => {
     let clickStart: { x: number; y: number } | null = null;
     let panning = false;
@@ -310,7 +350,7 @@ const Editor: React.FC = () => {
             y: event.clientY - rect.top,
           };
           panning = true;
-          console.log("right click down at:", clickStart);
+          // console.log("right click down at:", clickStart);
         }
       }
     };
@@ -323,7 +363,7 @@ const Editor: React.FC = () => {
             x: event.clientX - rect.left,
             y: event.clientY - rect.top,
           };
-          console.log("right click move at:", clickEnd);
+          // console.log("right click move at:", clickEnd);
           if (clickStart) {
             const deltaX = clickEnd.x - clickStart.x;
             const deltaY = clickEnd.y - clickStart.y;
@@ -333,7 +373,7 @@ const Editor: React.FC = () => {
               prev[0] + deltaX,
               prev[1] + deltaY,
             ]);
-            console.log("Panned by:", { deltaX, deltaY });
+            // console.log("Panned by:", { deltaX, deltaY });
           }
         }
       }
@@ -366,16 +406,33 @@ const Editor: React.FC = () => {
   }, []);
 
   // Handle zooming with the mouse wheel
-  const scaleFactor = useScaleFactor();
-  // const panOffset = usePanOffset();
+  const [scaleFactor, setScaleFactor] = useState(500);
+  const scaleFactorRef = useRef<number>(scaleFactor);
+  useEffect(() => {
+    scaleFactorRef.current = scaleFactor;
+  }, [scaleFactor]);
+  useEffect(() => {
+    const handleScroll = (event: WheelEvent) => {
+      event.preventDefault();
+      const delta = event.deltaY > 0 ? 0.99 : 1.01;
+      setScaleFactor((prev) => Math.min(Math.max(10, prev * delta), 10000));
+    };
+
+    window.addEventListener("wheel", handleScroll, { passive: false });
+
+    return () => {
+      window.removeEventListener("wheel", handleScroll);
+    };
+  }, []);
 
   // Render cp on the canvas
   useEffect(() => {
-    if (fabricCanvasRef.current && cp) {
+    if (fabricCanvasRef.current && cpRef.current) {
+
       fabricCanvasRef.current.clear();
-      cp.edges_assignment[4]="V";
       if (fabricCanvasRef.current) {
-        renderCP(cp, fabricCanvasRef, scaleFactor, panOffset);
+        console.log("rerendering")
+        renderCP(cpRef.current, fabricCanvasRef, scaleFactor, panOffset);
       }
       // fabricCanvasRef.current.add(rect);
       fabricCanvasRef.current.renderAll();
