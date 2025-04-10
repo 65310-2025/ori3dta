@@ -17,8 +17,8 @@ std::vector<coord_t> FOLD::compute_normal(int face_id) {
     int vert_id = face_vertices[vert_idx];
     int next_vert_id = face_vertices[next_vert_idx];
 
-    const auto& u = vertices_coords[vert_id];
-    const auto& v = vertices_coords[next_vert_id];
+    const auto& u = vertices_coords_folded[vert_id];
+    const auto& v = vertices_coords_folded[next_vert_id];
 
     res[0] += (u[1] - v[1]) * (u[2] + v[2]);
     res[1] += (u[2] - v[2]) * (u[0] + v[0]);

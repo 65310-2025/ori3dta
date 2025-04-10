@@ -50,6 +50,7 @@ struct FOLD {
   std::vector<std::vector<vert_id_t>> vertices_vertices;
   std::vector<std::vector<edge_id_t>> vertices_edges;
   std::vector<std::vector<std::optional<face_id_t>>> vertices_faces;
+  std::vector<std::vector<coord_t>> vertices_coords_folded;
 
   std::vector<std::vector<vert_id_t>> edges_vertices;
   std::vector<std::vector<std::optional<face_id_t>>> edges_faces;
@@ -131,6 +132,7 @@ auto tag_invoke(deserialize_tag, simdjson_value &val, ori3dta::FOLD& fold) {
   obj["vertices_vertices"].get<>(fold.vertices_vertices);
   obj["vertices_edges"].get<>(fold.vertices_edges);
   obj["vertices_faces"].get<>(fold.vertices_faces);
+  obj["vertices_coords_folded"].get<>(fold.vertices_coords_folded);
 
   obj["edges_vertices"].get<>(fold.edges_vertices);
   obj["edges_faces"].get<>(fold.edges_faces);

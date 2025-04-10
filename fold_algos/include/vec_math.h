@@ -47,6 +47,15 @@ auto vec_diff_L2(V v1, V v2) {
       [](const auto& a, const auto& b){ return std::pow(a - b, 2); }));
 }
 
+template<typename V>
+V cross_prod(V v1, V v2) {
+  return {
+    v1[1] * v2[2] - v1[2] * v2[1],
+    v1[2] * v2[0] - v1[0] * v2[2],
+    v1[0] * v2[1] - v1[1] * v2[0],
+  };
+}
+
 } // namespace ori3dta
 
 #endif // VEC_MATH_H

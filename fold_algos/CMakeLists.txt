@@ -72,6 +72,7 @@ add_executable(test_plane_group
   src/dsu.cpp
   src/fold.cpp
   src/plane_group.cpp
+  src/layer_solver.cpp
   )
 
 target_include_directories(test
@@ -84,8 +85,20 @@ target_link_libraries(test
   glucose
   CGAL::CGAL)
 
-target_include_directories(test_plane_group PUBLIC include)
+target_include_directories(test_plane_group
+  PUBLIC include
+  PRIVATE "${FETCHCONTENT_BASE_DIR}/glucose-src"
+)
+
 target_link_libraries(test_plane_group
   simdjson
   glucose
   CGAL::CGAL)
+
+target_precompile_headers(test_plane_group
+  PUBLIC
+  <CGAL/Exact_predicates_exact_constructions_kernel.h>
+  <CGAL/Boolean_set_operations_2.h>
+)
+
+target_precompile_headers(test REUSE_FROM test_plane_group)
