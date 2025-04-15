@@ -19,6 +19,21 @@ export interface DesignMetadataDto {
   cpID: string;
 }
 
+export interface ServerCPDto {
+  _id: string;
+  vertices_coords: Array<[number, number]>;
+  edges_vertices: Array<[number, number]>;
+  edges_assignment: Array<string>;
+  edges_foldAngle: Array<number>;
+}
+
+export interface ClientCPDto {
+  vertices_coords: Array<[number, number]>;
+  edges_vertices: Array<[number, number]>;
+  edges_assignment: Array<string>;
+  edges_foldAngle: Array<number>;
+}
+
 // sent from client -> server to create a new design
 export interface NewDesignDto {
   name: string;

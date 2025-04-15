@@ -6,12 +6,12 @@ import { Outlet } from "react-router-dom";
 import { UserDto } from "../../../dto/dto";
 import { socket } from "../client-socket";
 import { AuthContextValue } from "../types/types";
-import { get, post } from "../utilities";
+import { get, post } from "../utils/requests";
 
 export const UserContext = createContext<AuthContextValue | null>(null);
 
 const App: React.FC = () => {
-  const [userId, setUserId] = useState<string | undefined>(undefined);
+  const [userId, setUserId] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
     get("/api/whoami").then((user: UserDto) => {
@@ -36,7 +36,7 @@ const App: React.FC = () => {
   };
 
   const handleLogout = () => {
-    setUserId(undefined);
+    setUserId(null);
     post("/api/logout");
   };
 

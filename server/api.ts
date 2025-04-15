@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import { Socket as SocketIO } from "socket.io";
 
-import { DesignMetadataDto } from "../dto/dto";
+import { DesignMetadataDto, ServerCPDto } from "../dto/dto";
 import { login, logout } from "./auth";
 import CP, { ICP } from "./models/cp";
 import DesignMetadata from "./models/designMetadata";
@@ -86,7 +86,22 @@ router.post("/designs", async (req: Request, res: Response) => {
     }
 
     // Create new document for the CP itself
-    const newCP = new CP({});
+    const newCP = new CP({
+      vertices_coords: [
+        [0, 0],
+        [1, 0],
+        [1, 1],
+        [0, 1],
+      ],
+      edges_vertices: [
+        [0, 1],
+        [1, 2],
+        [2, 3],
+        [3, 0],
+      ],
+      edges_assignment: ["B", "B", "B", "B"],
+      edges_foldAngle: [0, 0, 0, 0],
+    });
     const cpDocument: ICP = await newCP.save();
     const cpID = cpDocument._id;
 
@@ -104,6 +119,40 @@ router.post("/designs", async (req: Request, res: Response) => {
     console.error("Failed to create new design:", error);
     res.status(500).send({ msg: "Failed to create new design" });
   }
+});
+
+router.get("/designs/:id", async (req: Request, res: Response) => {
+  if (!req.user) {
+    // not logged in
+    res.status(401).send({ msg: "Unauthorized" });
+    return;
+  }
+  const design = await CP.find({
+    _id: req.params.id,
+  }).lean();
+
+  const designDtoObj = design[0] as ServerCPDto;
+  res.send(designDtoObj);
+});
+
+router.post("/designs/:id", async (req: Request, res: Response) => {
+  if (!req.user) {
+    // not logged in
+    res.status(401).send({ msg: "Unauthorized" });
+    return;
+  }
+  const design = await CP.findById(req.params.id);
+  if (!design) {
+    res.status(404).send({ msg: "Design not found" });
+    return;
+  }
+  // Update the design with the new data
+  design.vertices_coords = req.body.vertices_coords;
+  design.edges_vertices = req.body.edges_vertices;
+  design.edges_assignment = req.body.edges_assignment;
+  design.edges_foldAngle = req.body.edges_foldAngle;
+  await design.save();
+  res.send(design);
 });
 
 // anything else falls to this "not found" case
