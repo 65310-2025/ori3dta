@@ -6,7 +6,7 @@ import { Outlet } from "react-router-dom";
 import { UserDto } from "../../../dto/dto";
 import { socket } from "../client-socket";
 import { AuthContextValue } from "../types/types";
-import { get, post } from "../utilities";
+import { get, post } from "../utils/requests";
 
 export const UserContext = createContext<AuthContextValue | null>(null);
 
@@ -39,8 +39,8 @@ const App: React.FC = () => {
   };
 
   const handleLogout = () => {
-    setUserId(undefined);
-    setUserName(undefined);
+    setUserId(null);
+    setUserName(null);
     post("/api/logout");
   };
 

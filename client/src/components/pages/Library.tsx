@@ -6,7 +6,9 @@ import type { MenuProps } from "antd";
 import { useNavigate } from "react-router-dom";
 
 import { DesignMetadataDto, NewDesignDto } from "../../../../dto/dto";
-import { get, post } from "../../utilities";
+import LogoutIcon from "../../assets/icons/logout.svg";
+import NewIcon from "../../assets/icons/new.svg";
+import { get, post } from "../../utils/requests";
 import { UserContext } from "../App";
 
 const Library: React.FC = () => {
@@ -16,7 +18,7 @@ const Library: React.FC = () => {
     return <p>Error: User context is not available.</p>;
   }
 
-  const { userId, handleLogin, handleLogout } = context;
+  const { userId, handleLogout } = context;
 
   if (!userId) {
     return <p>Error: You must be logged in to view this page.</p>;
@@ -52,20 +54,27 @@ const Library: React.FC = () => {
     {
       key: "new",
       icon: (
-        <Button onClick={() => setIsModalOpen(true)}>New Crease Pattern</Button>
+        <img
+          src={NewIcon}
+          alt="New crease pattern"
+          style={{ width: "50px" }}
+          onClick={() => setIsModalOpen(true)}
+        />
       ),
     },
     {
       key: "logout",
       icon: (
-        <Button
+        <img
+          src={LogoutIcon}
+          alt="Logout"
+          style={{ width: "50px" }}
           onClick={() => {
             googleLogout();
             handleLogout();
+            navigate("/");
           }}
-        >
-          Logout
-        </Button>
+        />
       ),
     },
   ];
@@ -146,3 +155,5 @@ const Library: React.FC = () => {
 };
 
 export default Library;
+
+// TODO: add functionality for deleting files

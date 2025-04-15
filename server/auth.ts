@@ -1,9 +1,8 @@
-import dotenv from "dotenv";
+import "dotenv/config";
 import { NextFunction, Request, Response } from "express";
 import { OAuth2Client, TokenPayload } from "google-auth-library";
 
 import User from "./models/user";
-import socketManager from "./server-socket";
 import { IGoogleUser, ISession, IUser } from "./types/types";
 
 // create a new OAuth client used to verify google sign-in
