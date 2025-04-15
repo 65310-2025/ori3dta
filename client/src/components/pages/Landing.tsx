@@ -1,10 +1,8 @@
-import React, { useContext } from "react";
+import React from "react";
 
 import logo from "../../../favicon.svg";
 import Navbar from "../modules/Navbar";
 import "./Landing.css";
-import Library from "./Library";
-import Login from "./Login";
 
 const Landing: React.FC = () => {
   return (

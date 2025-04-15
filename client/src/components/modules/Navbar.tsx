@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import { GoogleLogin, googleLogout } from "@react-oauth/google";
+import { googleLogout } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 
 import logo from "../../../favicon.svg";
@@ -18,7 +18,7 @@ const Navbar: React.FC = () => {
     return null;
   }
 
-  const { userId, userName, handleLogin, handleLogout } = context;
+  const { userId, userName, handleLogout } = context;
 
   useEffect(() => {
     if (userId && userName) {
@@ -43,22 +43,25 @@ const Navbar: React.FC = () => {
     setDropdownVisible(!dropdownVisible);
   };
 
-  const dropdownRef = React.useRef(null);
+  const dropdownRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
     // close dropdown if click outside
-    function close(e) {
-      if (!dropdownRef.current.contains(e.target)) {
+    function close(e: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setDropdownVisible(false);
       }
     }
-    if (open) {
+    if (dropdownVisible) {
       window.addEventListener("click", close);
     }
     return function removeListener() {
       window.removeEventListener("click", close);
     };
-  }, [open]);
+  }, [dropdownVisible]);
 
   const loginElement = displayName ? (
     <div className="Navbar-dropdown">

@@ -40,7 +40,7 @@ const App: React.FC = () => {
 
   const handleLogout = () => {
     setUserId(null);
-    setUserName(null);
+    setUserName(undefined);
     post("/api/logout");
   };
 
