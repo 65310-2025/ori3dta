@@ -38,5 +38,4 @@ export interface ClientCPDto {
 export interface NewDesignDto {
   name: string;
   description: string;
-  content: ClientCPDto;
 }
