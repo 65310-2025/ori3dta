@@ -130,14 +130,11 @@ router.get("/designs/:id", async (req: Request, res: Response) => {
     return;
   }
 
+  // TODO: consider outlining into its own function
   const metadata = await DesignMetadata.find({
     cpID: req.params.id,
   });
-  if (!metadata) {
-    res.status(404).send({ msg: "Design not found" });
-    return;
-  }
-  if (!metadata[0].readAccess.includes(req.user._id)) {
+  if (!metadata || !metadata[0].readAccess.includes(req.user._id)) {
     res.status(403).send({ msg: "Forbidden" });
     return;
   }
@@ -162,11 +159,7 @@ router.post("/designs/:id", async (req: Request, res: Response) => {
   const metadata = await DesignMetadata.find({
     cpID: req.params.id,
   });
-  if (!metadata) {
-    res.status(404).send({ msg: "Design not found" });
-    return;
-  }
-  if (!metadata[0].writeAccess.includes(req.user._id)) {
+  if (!metadata || !metadata[0].writeAccess.includes(req.user._id)) {
     res.status(403).send({ msg: "Forbidden" });
     return;
   }
@@ -198,11 +191,7 @@ router.delete("/designs/:id", async (req: Request, res: Response) => {
   }
 
   const design = await DesignMetadata.findById(req.params.id);
-  if (!design) {
-    res.status(404).send({ msg: "Design not found" });
-    return;
-  }
-  if (design.creatorID !== req.user._id) {
+  if (!design || design.creatorID !== req.user._id) {
     res.status(403).send({ msg: "Forbidden" });
     return;
   }
