@@ -6,6 +6,7 @@
 export interface AuthContextValue {
   // undefined means login status still loading, null means not logged in
   userId: string | null | undefined;
+  userName?: string;
   handleLogin: (credentialResponse: any) => void;
   handleLogout: () => void;
 }

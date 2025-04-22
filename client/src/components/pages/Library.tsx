@@ -72,6 +72,7 @@ const Library: React.FC = () => {
           onClick={() => {
             googleLogout();
             handleLogout();
+            navigate("/");
           }}
         />
       ),

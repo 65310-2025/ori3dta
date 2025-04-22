@@ -12,12 +12,16 @@ import {
 import App from "./components/App";
 import Editor from "./components/pages/Editor";
 import Landing from "./components/pages/Landing";
+import Library from "./components/pages/Library";
+import Login from "./components/pages/Login";
 import NotFound from "./components/pages/NotFound";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route errorElement={<NotFound />} element={<App />}>
       <Route path="/" element={<Landing />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/library" element={<Library />} />
       <Route path="/editor/:cpID" element={<Editor />} />
     </Route>,
   ),
