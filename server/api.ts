@@ -110,6 +110,8 @@ router.post("/designs", async (req: Request, res: Response) => {
       creatorID: req.user._id,
       dateCreated: new Date(),
       dateLastModified: new Date(),
+      writeAccess: [req.user._id],
+      readAccess: [req.user._id],
       cpID: cpID,
     });
 
@@ -127,11 +129,26 @@ router.get("/designs/:id", async (req: Request, res: Response) => {
     res.status(401).send({ msg: "Unauthorized" });
     return;
   }
-  const design = await CP.find({
-    _id: req.params.id,
-  }).lean();
 
-  const designDtoObj = design[0] as ServerCPDto;
+  const metadata = await DesignMetadata.find({
+    cpID: req.params.id,
+  });
+  if (!metadata) {
+    res.status(404).send({ msg: "Design not found" });
+    return;
+  }
+  if (!metadata[0].readAccess.includes(req.user._id)) {
+    res.status(403).send({ msg: "Forbidden" });
+    return;
+  }
+
+  const design = await CP.findById(req.params.id);
+  if (!design) {
+    res.status(404).send({ msg: "Design not found" });
+    return;
+  }
+
+  const designDtoObj = design as ServerCPDto;
   res.send(designDtoObj);
 });
 
@@ -141,18 +158,59 @@ router.post("/designs/:id", async (req: Request, res: Response) => {
     res.status(401).send({ msg: "Unauthorized" });
     return;
   }
+
+  const metadata = await DesignMetadata.find({
+    cpID: req.params.id,
+  });
+  if (!metadata) {
+    res.status(404).send({ msg: "Design not found" });
+    return;
+  }
+  if (!metadata[0].writeAccess.includes(req.user._id)) {
+    res.status(403).send({ msg: "Forbidden" });
+    return;
+  }
+
   const design = await CP.findById(req.params.id);
   if (!design) {
     res.status(404).send({ msg: "Design not found" });
     return;
   }
+
   // Update the design with the new data
   design.vertices_coords = req.body.vertices_coords;
   design.edges_vertices = req.body.edges_vertices;
   design.edges_assignment = req.body.edges_assignment;
   design.edges_foldAngle = req.body.edges_foldAngle;
   await design.save();
+  // Update the metadata with the new data
+  metadata[0].dateLastModified = new Date();
+  await metadata[0].save();
+
   res.send(design);
+});
+
+router.delete("/designs/:id", async (req: Request, res: Response) => {
+  if (!req.user) {
+    // not logged in
+    res.status(401).send({ msg: "Unauthorized" });
+    return;
+  }
+
+  const design = await DesignMetadata.findById(req.params.id);
+  if (!design) {
+    res.status(404).send({ msg: "Design not found" });
+    return;
+  }
+  if (design.creatorID !== req.user._id) {
+    res.status(403).send({ msg: "Forbidden" });
+    return;
+  }
+
+  const cp = await CP.findById(design.cpID);
+  await design.deleteOne();
+  await cp?.deleteOne();
+  res.send({ msg: "Design deleted" });
 });
 
 // anything else falls to this "not found" case
