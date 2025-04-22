@@ -14,16 +14,16 @@ PlaneGroup::PlaneGroup(const FOLD& f) : FOLD(f) {
 }
 
 std::ostream& PlaneGroup::print_debug(std::ostream& os) const {
-  for (int i = 0; i < faces_planegroup.size(); i++) {
+  for (planegroup_id_t i = 0; i < faces_planegroup.size(); i++) {
     os << "face " << i << ": plane group " << faces_planegroup[i] << ", dir: " << faces_dir[i] << "\n";
   }
-  for (int i = 0; i < planegroups_faces.size(); i++) {
+  for (planegroup_id_t i = 0; i < planegroups_faces.size(); i++) {
     os << "plane group " << i << ": faces";
     for (auto& x : planegroups_faces[i])
       os << " " << x;
     os << "\n";
   }
-  for (int i = 0; i < planegroups_faces.size(); i++) {
+  for (planegroup_id_t i = 0; i < planegroups_faces.size(); i++) {
     const auto& planegroup_normal = planegroups_normal[i];
     const auto& planegroup_tangent = planegroups_tangent[i];
     const auto& planegroup_bi = planegroups_bi[i];
@@ -49,12 +49,12 @@ std::ostream& ori3dta::operator<<(std::ostream& os, const PlaneGroup& pg) {
 }
 
 void PlaneGroup::compute_planegroups() {
-  int n_faces = faces_vertices.size();
+  face_id_t n_faces = faces_vertices.size();
 
   // Compute face normals and distances
   std::vector<std::vector<coord_t>> faces_plane_vals;
   faces_plane_vals.reserve(n_faces);
-  for (int face_id = 0; face_id < n_faces; face_id++) {
+  for (face_id_t face_id = 0; face_id < n_faces; face_id++) {
     const auto& face_vertices = faces_vertices[face_id];
     auto norm = compute_normal(face_id);
     auto some_face_vert = vertices_coords_folded[face_vertices[0]];
@@ -71,8 +71,8 @@ void PlaneGroup::compute_planegroups() {
   // Since floating point is weird, "lying in the same plane" is not necessarily
   // transitive. Merging essentially computes a transitive closure.
   DSU plane_group_dsu(n_faces);
-  for (int face1_id = 0; face1_id < n_faces; face1_id++) {
-    for (int face2_id = 0; face2_id < n_faces; face2_id++) {
+  for (face_id_t face1_id = 0; face1_id < n_faces; face1_id++) {
+    for (face_id_t face2_id = 0; face2_id < n_faces; face2_id++) {
       const auto& plane_val1 = faces_plane_vals[face1_id];
       auto plane_val2 = faces_plane_vals[face2_id];
 
@@ -90,8 +90,8 @@ void PlaneGroup::compute_planegroups() {
   faces_planegroup.assign(n_faces, {});
   planegroups_faces.clear();
 
-  std::unordered_map<int, int> plane_group_ids;
-  for (int i = 0; i < n_faces; i++) {
+  std::unordered_map<face_id_t, planegroup_id_t> plane_group_ids;
+  for (face_id_t i = 0; i < n_faces; i++) {
     auto dsu_id = plane_group_dsu.find(i);
     auto it = plane_group_ids.find(dsu_id);
     int id;
@@ -109,7 +109,7 @@ void PlaneGroup::compute_planegroups() {
   // Within each plane group, store normal and distance
   planegroups_normal.clear();
   planegroups_distance.clear();
-  for (int i = 0; i < planegroups_faces.size(); i++) {
+  for (planegroup_id_t i = 0; i < planegroups_faces.size(); i++) {
     const auto& planegroup_faces = planegroups_faces[i];
     const auto& ref_plane_val = faces_plane_vals[planegroup_faces[0]];
 
@@ -122,7 +122,7 @@ void PlaneGroup::compute_planegroups() {
   // To compute a tangent vector, use two largest magnitude coordinates
   planegroups_tangent.clear();
   planegroups_bi.clear();
-  for (int i = 0; i < planegroups_faces.size(); i++) {
+  for (planegroup_id_t i = 0; i < planegroups_faces.size(); i++) {
     auto& planegroup_normal = planegroups_normal[i];
     auto& planegroup_tangent = planegroups_tangent.emplace_back(3);
     auto& planegroup_bi = planegroups_bi.emplace_back();
@@ -145,7 +145,7 @@ void PlaneGroup::compute_planegroups() {
   // Within each plane group, compute face directions
   // The first plane in a plane group is considered to be facing dir=false
   faces_dir.assign(n_faces, false);
-  for (int i = 0; i < planegroups_faces.size(); i++) {
+  for (planegroup_id_t i = 0; i < planegroups_faces.size(); i++) {
     const auto& planegroup_faces = planegroups_faces[i];
     const auto& ref_plane_val = faces_plane_vals[planegroup_faces[0]];
     for (const auto& face : planegroup_faces) {

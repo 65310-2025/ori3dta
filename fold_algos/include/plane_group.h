@@ -8,6 +8,8 @@
 
 namespace ori3dta {
 
+using planegroup_id_t = uint32_t;
+
 struct PlaneGroup : public FOLD {
   std::vector<int> faces_planegroup;
   std::vector<bool> faces_dir;

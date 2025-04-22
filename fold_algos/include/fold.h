@@ -73,7 +73,18 @@ coord_t vec_len(const std::vector<coord_t>& v);
 } // namespace ori3dta
 
 namespace simdjson {
-// suppose we want to filter out all Toyotas
+
+template <typename simdjson_value>
+auto tag_invoke(deserialize_tag, simdjson_value &val, ori3dta::edge_assign_t& assign) {
+  std::string s;
+  auto error = val.get_string(s);
+  if (error) { std::cout << "assign not string" << std::endl; return error; }
+  if (s.size() != 1) { return simdjson::INCORRECT_TYPE; }
+  assign = static_cast<ori3dta::edge_assign_t>(s[0]);
+  return simdjson::SUCCESS;
+}
+
+
 template <typename simdjson_value>
 auto tag_invoke(deserialize_tag, simdjson_value &val, ori3dta::FOLD& fold) {
   ondemand::object obj;
@@ -136,7 +147,7 @@ auto tag_invoke(deserialize_tag, simdjson_value &val, ori3dta::FOLD& fold) {
 
   obj["edges_vertices"].get<>(fold.edges_vertices);
   obj["edges_faces"].get<>(fold.edges_faces);
-//  obj["edges_assignment"].get<>(fold.edges_assignment);
+  obj["edges_assignment"].get<>(fold.edges_assignment);
   obj["edges_foldAngle"].get<>(fold.edges_foldAngle);
   obj["edges_length"].get<>(fold.edges_length);
 

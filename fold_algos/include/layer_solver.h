@@ -21,13 +21,13 @@ struct LayerSolver : public PlaneGroup {
   Solver solver;
   std::vector<Var> vars;
 
-  using overlaps_var_key = std::tuple<int, int>;
+  using overlaps_var_key = std::tuple<face_id_t, face_id_t>;
   std::unordered_map<overlaps_var_key, Var, hash_tuple::hash<overlaps_var_key>> overlaps_var;
 
   LayerSolver(const FOLD& f);
 
   void compute_constraints();
-  void compute_plane_constraints(int planegroup_id);
+  void compute_plane_constraints(planegroup_id_t planegroup_id);
 };
 
 } // namespace ori3dta
