@@ -421,6 +421,7 @@ const Editor: React.FC = () => {
             console.log(scaleFactorRef.current,panOffsetRef.current)
             console.log("Drawing mode active", unscale(clickStart, scaleFactorRef.current, panOffsetRef.current), unscale(clickEnd,scaleFactorRef.current,panOffsetRef.current));
 
+            console.log(cpRef.current)
             const output = createEdge(cpRef.current,unscale(clickStart, scaleFactorRef.current, panOffsetRef.current),unscale(clickEnd,scaleFactorRef.current,panOffsetRef.current),mvmodeRef.current==MvMode.Valley?Math.PI:mvmodeRef.current==MvMode.Mountain?-Math.PI:0,mvmodeRef.current,SNAP_TOLERANCE/scaleFactorRef.current)
             setCP(output.fold);
             const updatedErrors = new Set(errorVerticesRef.current);
@@ -456,7 +457,6 @@ const Editor: React.FC = () => {
           } else {
             console.error("clickStart is null, cannot unscale");
           }
-          // Add deleting logic here
         } else if (modeRef.current === Mode.Selecting) {
 
         }
