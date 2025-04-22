@@ -121,6 +121,12 @@ const renderCP = (
   }
 };
 
+declare global {
+  interface Window {
+    setMvMode: (mode: MvMode) => void;
+  }
+}
+
 const Editor: React.FC = () => {
   const navigate = useNavigate();
   const context = useContext(UserContext);
@@ -623,7 +629,7 @@ const Editor: React.FC = () => {
   };
 
   // Navbar items
-  const items: MenuProps["items"] = [
+  const navbarItems: MenuProps["items"] = [
     {
       key: "library",
       icon: (
@@ -641,6 +647,111 @@ const Editor: React.FC = () => {
     },
   ];
 
+  let selectedKeys:string[] = [];
+
+  const toolmenuItems: MenuProps["items"] = [
+    {
+      key: "Drawing",
+      label: "Draw",
+      onClick: () => {
+        setMode(Mode.Drawing);  
+        selectedKeys = [mode.toString(),mvmode.toString()];
+      },
+      
+    },
+    {
+      key: "Selecting",
+      label: "Select",
+      onClick: () => {
+        setMode(Mode.Selecting);  
+        selectedKeys = [mode.toString(),mvmode.toString()];
+      },
+    },
+    {
+      key: "Deleting",
+      label: "Delete",
+      onClick: () => {
+        setMode(Mode.Deleting);  
+        selectedKeys = [mode.toString(),mvmode.toString()];
+      },
+    },
+
+    //set mvmode buttons
+    {
+      key: "Mountain",
+      label: (
+        <div
+          style={{
+            width: "20px",
+            height: "20px",
+            backgroundColor: edge_colors[MvMode.Mountain],
+            border: "1px solid black",
+            cursor: "pointer",
+            display: "flex",
+          }}
+        ></div>
+      ),
+      onClick: () => {
+        setMvMode(MvMode.Mountain);  
+        selectedKeys = [mode.toString(),mvmode.toString()];
+      },
+    },
+    {
+      key: "Valley",
+      label: (
+        <div
+          style={{
+            width: "20px",
+            height: "20px",
+            backgroundColor: edge_colors[MvMode.Valley],
+            border: "1px solid black",
+            cursor: "pointer",
+            display: "flex",
+          }}
+        ></div>
+      ),
+      onClick: () => {
+        setMvMode(MvMode.Mountain);  
+        selectedKeys = [mode.toString(),mvmode.toString()];
+      },    },
+    {
+      key: "Border",
+      label: (
+        <div
+          style={{
+            width: "20px",
+            height: "20px",
+            backgroundColor: edge_colors[MvMode.Border],
+            border: "1px solid black",
+            cursor: "pointer",
+            display: "flex",
+          }}
+        ></div>
+      ),
+      onClick: () => {
+        setMvMode(MvMode.Mountain);  
+        selectedKeys = [mode.toString(),mvmode.toString()];
+      },    },
+    {
+      key: "Aux",
+      label: (
+        <div
+          style={{
+            width: "20px",
+            height: "20px",
+            backgroundColor: edge_colors[MvMode.Aux],
+            border: "1px solid black",
+            cursor: "pointer",
+            display: "flex",
+          }}
+        ></div>
+      ),
+      onClick: () => {
+        setMvMode(MvMode.Mountain);  
+        selectedKeys = [mode.toString(),mvmode.toString()];
+      },    },
+  ];
+
   // TODO: implement this loading spinner logic on the other pages as well
   if (isLoading) {
     return (
@@ -652,19 +763,12 @@ const Editor: React.FC = () => {
   // console.log("CP data:", cp);
   return (
     <div className="flex flex-col h-screen">
-      <Menu mode="horizontal" items={items} />
+      <Menu mode="horizontal" items={navbarItems} />
       <div className="flex-1 flex">
+        <Menu mode="vertical" items={toolmenuItems} selectedKeys={selectedKeys} className="w-1/6 h-full bg-gray-200" />
         <div className="w-full h-full">
           <canvas ref={canvasRef} className="w-full h-full"></canvas>
         </div>
-        {/* <div className="w-1/3 h-full">
-          <p>{cp?._id}</p>
-          <div>
-            <h2>CP Details</h2>
-            <p>{cp?.vertices_coords}</p>
-            <pre>{JSON.stringify(cp, null, 2)}</pre>
-          </div>
-        </div> */}
       </div>
     </div>
   );
