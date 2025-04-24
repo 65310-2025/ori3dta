@@ -1,18 +1,28 @@
-import React, { useContext } from "react";
+import React from "react";
 
-import { UserContext } from "../App";
-import Library from "./Library";
-import Login from "./Login";
+import logo from "../../../favicon.svg";
+import Navbar from "../modules/Navbar";
+import "./Landing.css";
 
 const Landing: React.FC = () => {
-  const context = useContext(UserContext);
-
-  if (!context) {
-    return null; // or handle the case where context is null
-  }
-
-  const { userId, handleLogin, handleLogout } = context;
-  return <>{userId ? <Library /> : <Login />}</>;
+  return (
+    <div>
+      <Navbar />
+      <div className="Home">
+        <div className="Home-title">
+          <div className="Home-title-logo">
+            <img src={logo} className="Home-logo" alt="logo" />
+          </div>
+          <div className="Home-title-text">
+            <h1 className="Home-title-text">Ori3dita</h1>
+            <h2 className="Home-title-text">
+              The collaborative 3D crease pattern editor
+            </h2>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Landing;

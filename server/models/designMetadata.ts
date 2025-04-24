@@ -7,6 +7,8 @@ export interface IDbDesignMetadata extends Document {
   dateLastModified: Date;
   dateCreated: Date;
   cpID: string;
+  readAccess: string[];
+  writeAccess: string[];
 }
 
 const DesignMetadataSchema = new Schema<IDbDesignMetadata>({
@@ -15,6 +17,8 @@ const DesignMetadataSchema = new Schema<IDbDesignMetadata>({
   creatorID: { type: String, required: true },
   dateLastModified: { type: Date, required: true },
   dateCreated: { type: Date, required: true },
+  readAccess: [{ type: String, required: true }],
+  writeAccess: [{ type: String, required: true }],
   cpID: { type: String, required: true },
 });
 

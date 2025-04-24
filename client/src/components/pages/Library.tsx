@@ -5,12 +5,7 @@ import { Button, Card, Flex, Form, Input, Menu, Modal } from "antd";
 import type { MenuProps } from "antd";
 import { useNavigate } from "react-router-dom";
 
-import {
-  ClientCPDto,
-  DesignMetadataDto,
-  NewDesignDto,
-  ServerCPDto,
-} from "../../../../dto/dto";
+import { DesignMetadataDto, NewDesignDto } from "../../../../dto/dto";
 import LogoutIcon from "../../assets/icons/logout.svg";
 import NewIcon from "../../assets/icons/new.svg";
 import { get, post } from "../../utils/requests";
@@ -23,13 +18,12 @@ const Library: React.FC = () => {
     return <p>Error: User context is not available.</p>;
   }
 
-  const { userId, handleLogin, handleLogout } = context;
+  const { userId, handleLogout } = context;
 
   if (!userId) {
     return <p>Error: You must be logged in to view this page.</p>;
   }
 
-  //setDesigns will update/rerender the page
   const [designs, setDesigns] = useState<DesignMetadataDto[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
@@ -38,8 +32,7 @@ const Library: React.FC = () => {
   // Get metadata for all designs from server
   // TODO: later on, implement pagination in the /designs endpoint in case we have some
   // extremely prolific CP creators
-  
-  //fetch designs
+
   useEffect(() => {
     const getDesigns = async () => {
       try {
@@ -80,6 +73,7 @@ const Library: React.FC = () => {
           onClick={() => {
             googleLogout();
             handleLogout();
+            navigate("/");
           }}
         />
       ),
@@ -91,42 +85,17 @@ const Library: React.FC = () => {
     form.resetFields();
   };
 
-  // const templateStarterFile = JSON.stringify({
-  //   vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
-  //   edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0]],
-  //   edges_assignment: ["B", "B", "B", "B"],
-  //   edges_foldAngle: [0, 0, 0, 0],
-  // });
-  const templateStarterFile: ClientCPDto = {
-    vertices_coords: [
-      [0, 0],
-      [1, 0],
-      [1, 1],
-      [0, 1],
-    ],
-    edges_vertices: [
-      [0, 1],
-      [1, 2],
-      [2, 3],
-      [3, 0],
-    ],
-    edges_assignment: ["B", "B", "B", "B",],
-    edges_foldAngle: [0, 0, 0, 0,],
-  };
-
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
       const newDesign: NewDesignDto = {
         name: values.name,
         description: values.description,
-        content: templateStarterFile,
       };
       await post("/api/designs", newDesign);
       setIsModalOpen(false);
       form.resetFields();
       // Refresh designs
-      //get designs from current user
       const designs: Array<DesignMetadataDto> = await get("/api/designs");
       setDesigns(designs);
     } catch (error) {
@@ -188,4 +157,4 @@ const Library: React.FC = () => {
 
 export default Library;
 
-//TODO: add functionality for deleting files
+// TODO: add functionality for deleting files

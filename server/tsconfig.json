@@ -8,5 +8,5 @@
     "rootDir": "..",
     "strict": true
   },
-  "include": [".", "../dto", "../client/src/types/fold.ts"]
+  "include": [".", "../dto"]
 }

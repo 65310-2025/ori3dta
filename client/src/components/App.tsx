@@ -11,13 +11,15 @@ import { get, post } from "../utils/requests";
 export const UserContext = createContext<AuthContextValue | null>(null);
 
 const App: React.FC = () => {
-  const [userId, setUserId] = useState<string | null | undefined>(undefined);
+  const [userId, setUserId] = useState<string | undefined | null>(undefined);
+  const [userName, setUserName] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     get("/api/whoami").then((user: UserDto) => {
       if (user._id) {
         // logged in
         setUserId(user._id);
+        setUserName(user.name);
       } else {
         // not logged in
         setUserId(null);
@@ -31,17 +33,20 @@ const App: React.FC = () => {
     console.log(`Logged in as ${decodedCredential.name}`);
     post("/api/login", { token: userToken }).then((user: UserDto) => {
       setUserId(user._id);
+      setUserName(user.name);
       post("/api/initsocket", { socketid: socket.id });
     });
   };
 
   const handleLogout = () => {
     setUserId(null);
+    setUserName(undefined);
     post("/api/logout");
   };
 
   const authContextValue: AuthContextValue = {
     userId,
+    userName,
     handleLogin,
     handleLogout,
   };
