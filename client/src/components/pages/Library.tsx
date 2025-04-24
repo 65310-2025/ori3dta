@@ -10,6 +10,8 @@ import LogoutIcon from "../../assets/icons/logout.svg";
 import NewIcon from "../../assets/icons/new.svg";
 import { get, post } from "../../utils/requests";
 import { UserContext } from "../App";
+import Navbar from "../modules/LandingNavbar";
+
 
 const Library: React.FC = () => {
   const context = useContext(UserContext);
@@ -104,6 +106,7 @@ const Library: React.FC = () => {
 
   return (
     <div className="bg-gray-100 min-h-screen">
+      <Navbar />
       <Menu mode="horizontal" items={items} />
       <Modal
         title="New Crease Pattern"

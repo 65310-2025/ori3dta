@@ -1,8 +1,9 @@
 import React from "react";
 
 import logo from "../../../favicon.svg";
-import Navbar from "../modules/Navbar";
+import Navbar from "../modules/LandingNavbar";
 import "./Landing.css";
+import demo from "../../assets/img/demo.jpg";
 
 const Landing: React.FC = () => {
   return (
@@ -10,15 +11,24 @@ const Landing: React.FC = () => {
       <Navbar />
       <div className="Home">
         <div className="Home-title">
-          <div className="Home-title-logo">
-            <img src={logo} className="Home-logo" alt="logo" />
-          </div>
           <div className="Home-title-text">
-            <h1 className="Home-title-text">Ori3dita</h1>
-            <h2 className="Home-title-text">
-              The collaborative 3D crease pattern editor
-            </h2>
+            <h1>Ori3Dita: the modern crease pattern editor.</h1>
+            <p>Browser-based, collaborative, and open source crease pattern editor and simulator with handling for non-flat creases. </p>
           </div>
+
+          <div className="Home-title-demo">
+            <img src={demo} alt="Demo" className="Home-demo-image" />
+          </div>
+        </div>
+        <br />
+        <br />
+        <div className="Home-try-button">
+          <button 
+            className="TryNowButton" 
+            onClick={() => window.location.href = "/login"}
+          >
+            Try it now
+          </button>
         </div>
       </div>
     </div>

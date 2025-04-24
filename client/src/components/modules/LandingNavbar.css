@@ -1,9 +1,10 @@
 .Navbar {
   height: var(--header-height);
-  background-color: var(--background-dark);
+  background-color: var(--navbar-background); /* Very light grey */
   display: flex;
   color: var(--text-color);
   font-size: 1.2rem;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Adds a subtle drop shadow */
 }
 
 .Navbar-items {
@@ -13,13 +14,6 @@
   width: 80%;
 }
 
-.Navbar-login {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  width: 20%;
-  height: var(--header-height);
-}
 
 .Navbar-logo {
   margin: 10px 20px;
@@ -42,6 +36,21 @@
   border-color: var(--text-color);
 }
 
+.Navbar-login {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 30%;
+  height: var(--header-height);
+
+  /* background: var(--button-color); */
+  /* color: "white"; */
+  /* border: "none"; */
+  /* border-radius: "10px"; */
+  padding: "0.5rem 1rem";
+  cursor: "pointer";
+}
+
 .Navbar-dropdown {
   margin: 0px 10px;
   align-self: flex-start;
@@ -61,20 +70,23 @@
 .Navbar-dropdown-username {
   font-weight: bold;
   align-self: center;
+  margin: 10px;
+  padding: 15px 15px; /* Increased padding to make the button larger */
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--button-color);
+  color: var(--text-color);
 }
 
-.Navbar-button {
-  margin: 7px;
-  padding: 3px 7px;
-  border: 1px solid var(--text-color);
-  border-radius: 5px;
-}
 
 .Navbar-button:hover {
   background-color: var(--text-color);
   color: var(--background-dark);
   cursor: pointer;
-}
+} 
+ 
 
 .Navbar-dropdown-link {
   background-color: var(--foreground-color);
