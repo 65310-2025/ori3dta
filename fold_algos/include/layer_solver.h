@@ -15,6 +15,7 @@ namespace ori3dta {
 
 using Solver = Glucose::SimpSolver;
 using Var = Glucose::Var;
+using Lit = Glucose::Lit;
 
 
 struct LayerSolver : public PlaneGroup {
@@ -26,6 +27,8 @@ struct LayerSolver : public PlaneGroup {
 
   LayerSolver(const FOLD& f);
 
+  Lit get_lit(face_id_t f1, face_id_t f2);
+  void add_equality(Lit a, Lit b);
   void compute_constraints();
   void compute_plane_constraints(planegroup_id_t planegroup_id);
 };

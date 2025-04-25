@@ -269,6 +269,7 @@ int main() {
 
   ori3dta::FOLD fold;
   doc.get(fold);
+  fold.compute_edges_faces_from_faces_edges();
 
 //  for (auto& x : fold.vertices_coords_folded) {
 //    for (auto& x : x) std::cout << x << ' '; std::cout << std::endl;
@@ -277,5 +278,12 @@ int main() {
   PlaneGroup groups(fold);
 //  std::cout << std::setprecision(std::numeric_limits<double>::digits10) << groups;
   LayerSolver solver(fold);
+
+  solver.solver.verbosity = -1;
+  std::cout << "Solver out: " << solver.solver.solve() << std::endl;
+  for (const auto& [k, v] : solver.overlaps_var) {
+    const auto& [f1, f2] = k;
+    std::cout << f1 << ", " << f2 << ": " << Glucose::toInt(solver.solver.value(v)) << std::endl;
+  }
   return 0;
 }

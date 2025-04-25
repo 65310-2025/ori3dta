@@ -66,6 +66,8 @@ struct FOLD {
   std::vector<std::tuple<edge_id_t, edge_id_t, int>> edgeOrders;
 
   std::vector<coord_t> compute_normal(int face_id);
+
+  void compute_edges_faces_from_faces_edges();
 };
 
 coord_t vec_len(const std::vector<coord_t>& v);

@@ -36,7 +36,7 @@ std::ostream& PlaneGroup::print_debug(std::ostream& os) const {
     os << ". Dot products (should be identity):";
     for (auto& x : {planegroup_normal, planegroup_tangent, planegroup_bi}) {
       for (auto& y : {planegroup_normal, planegroup_tangent, planegroup_bi}) {
-        std::cout << " " << dot_prod(x, y);
+        os << " " << dot_prod(x, y);
       }
     }
     os << "\n";

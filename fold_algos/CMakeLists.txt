@@ -59,46 +59,26 @@ set(CGAL_DIR "${FETCHCONTENT_BASE_DIR}/cgal-src")
 
 find_package(CGAL REQUIRED)
 
-add_executable(test
-  src/test.cpp
-  src/dsu.cpp
-  src/fold.cpp
-  src/plane_group.cpp
-  )
-
-
-add_executable(test_plane_group
-  src/test_plane_group.cpp
+add_executable(layer_solver
+  src/main.cpp
   src/dsu.cpp
   src/fold.cpp
   src/plane_group.cpp
   src/layer_solver.cpp
   )
 
-target_include_directories(test
-  PUBLIC include
-  PRIVATE "${FETCHCONTENT_BASE_DIR}/glucose-src/"
-)
-
-target_link_libraries(test
-  simdjson
-  glucose
-  CGAL::CGAL)
-
-target_include_directories(test_plane_group
+target_include_directories(layer_solver
   PUBLIC include
   PRIVATE "${FETCHCONTENT_BASE_DIR}/glucose-src"
 )
 
-target_link_libraries(test_plane_group
+target_link_libraries(layer_solver
   simdjson
   glucose
   CGAL::CGAL)
 
-target_precompile_headers(test_plane_group
+target_precompile_headers(layer_solver
   PUBLIC
   <CGAL/Exact_predicates_exact_constructions_kernel.h>
   <CGAL/Boolean_set_operations_2.h>
 )
-
-target_precompile_headers(test REUSE_FROM test_plane_group)
