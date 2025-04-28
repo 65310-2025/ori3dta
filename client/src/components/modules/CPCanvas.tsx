@@ -9,8 +9,8 @@ import { createEdge, deleteBox } from "../../utils/cpEdit";
 import { checkKawasakiVertex } from "../../utils/kawasaki";
 import { get, post } from "../../utils/requests";
 
-const SNAP_TOLERANCE = 30; // pixels
-const ERROR_CIRCLE_RADIUS = 10; //pixels
+const SNAP_TOLERANCE = 30;
+const ERROR_CIRCLE_RADIUS = 0.02;
 const STROKE_WIDTH = 0.004;
 const TEMP_STROKE_WIDTH = 0.002;
 
@@ -402,17 +402,14 @@ const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      console.log("Key pressed:", event.key);
       if (event.key == " ") {
         event.preventDefault();
       }
       console.log(mode_keys, mv_keys);
-      if (mode_keys.includes(event.key)) {
-        console.log("mode changed to", mode_map[event.key as ModeKey]);
+      if (mode_keys.includes(event.key as ModeKey)) {
         setMode(mode_map[event.key as ModeKey]);
       }
-      if (mv_keys.includes(event.key)) {
-        console.log("mv mode changed to", mv_map[event.key as MvKey]);
+      if (mv_keys.includes(event.key as MvKey)) {
         setMvMode(mv_map[event.key as MvKey]);
       }
     };
@@ -426,7 +423,7 @@ const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
     console.log("Current mode:", Mode[mode], "Current MV mode:", mvmode);
   }, [mode, mvmode]);
 
-  const [showKawasaki, setShowKawasaki] = useState(false);
+  const [showKawasaki, setShowKawasaki] = useState(false); // TODO: make button/keybind
   const showKawasakiRef = useRef<boolean>(false);
 
   useEffect(() => {
