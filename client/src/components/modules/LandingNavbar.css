@@ -14,7 +14,6 @@
   width: 80%;
 }
 
-
 .Navbar-logo {
   margin: 10px 20px;
   height: calc(var(--header-height) - 10px);
@@ -80,13 +79,11 @@
   color: var(--text-color);
 }
 
-
 .Navbar-button:hover {
   background-color: var(--text-color);
   color: var(--background-dark);
   cursor: pointer;
-} 
- 
+}
 
 .Navbar-dropdown-link {
   background-color: var(--foreground-color);

@@ -95,7 +95,7 @@ const Navbar: React.FC = () => {
     <button
       className="Navbar-dropdown-username"
       onClick={() => {
-      navigate("/login");
+        navigate("/login");
       }}
     >
       Login / Sign Up
@@ -105,7 +105,8 @@ const Navbar: React.FC = () => {
   return (
     <div className="Navbar">
       <div className="Navbar-items">
-        <a className="Navbar-link"
+        <a
+          className="Navbar-link"
           onClick={() => {
             navigate("/");
           }}

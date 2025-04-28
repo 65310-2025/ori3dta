@@ -2,7 +2,7 @@
   height: calc(100vh - var(--header-height));
   color: var(--text-color);
   /* font-family: var(--font-family-gothic) !important; */
-  padding:50px;
+  padding: 50px;
 }
 
 .Home-title {
@@ -16,15 +16,16 @@
   height: 60vh;
   justify-content: space-between;
   /* align-items: center; */
-  width:100%
+  width: 100%;
 }
 
 .Home-title-text {
   flex: 1;
   color: var(--text-color);
-  font-size:30px;
+  font-size: 30px;
   text-align: left;
-  font-family: "Century Gothic", "Apple Gothic","Avenir","Gothic A1", sans-serif;
+  font-family:
+    "Century Gothic", "Apple Gothic", "Avenir", "Gothic A1", sans-serif;
 }
 h1.Home-title-text {
   font-weight: bold;
@@ -42,7 +43,7 @@ h1.Home-title-text {
   object-fit: contain; /* Ensure the image maintains its aspect ratio */
 }
 
-.Home-try-button{
+.Home-try-button {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -50,6 +51,7 @@ h1.Home-title-text {
 }
 .TryNowButton {
   font-size: 2rem;
-  padding: 1rem 2rem;  
-  font-family: "Century Gothic", "Apple Gothic","Avenir","Gothic A1", sans-serif;
+  padding: 1rem 2rem;
+  font-family:
+    "Century Gothic", "Apple Gothic", "Avenir", "Gothic A1", sans-serif;
 }
