@@ -4,7 +4,10 @@ import { GoogleLogin } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 
 import { UserContext } from "../App";
-import Navbar from "../modules/Navbar";
+import logo from "../../../logo_text.svg";
+
+
+import Navbar from "../modules/LandingNavbar";
 import "./Login.css";
 
 const Login: React.FC = () => {
@@ -19,7 +22,7 @@ const Login: React.FC = () => {
 
   const handleLoginAndNavigate = (credentialResponse: any) => {
     handleLogin(credentialResponse);
-    navigate("/");
+    navigate("/library");
   };
 
   return (
@@ -27,7 +30,9 @@ const Login: React.FC = () => {
       <Navbar />
       <div className="Login-page">
         <div className="Login-box">
-          <h1 className="Login-title">Log in to Ori3dita</h1>
+          <img src={logo} alt="Ori3dita Logo" className="Login-logo" />
+          {/* <h1 className="Login-title">Log in to Ori3dita</h1> */}
+
           <GoogleLogin
             onSuccess={handleLoginAndNavigate}
             onError={() => console.log("Login failed")}

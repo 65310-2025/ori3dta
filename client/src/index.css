@@ -1,13 +1,17 @@
-@import "tailwindcss";
+/* @import "tailwindcss"; */
 
 :root {
-  --header-height: 50px;
+  --font-family-gothic: "Century Gothic", "Apple Gothic","Avenir","Gothic A1" sans-serif;
+  --header-height: 60px;
   --dropdown-height: 40px;
-  --background: #1f37d3;
-  --background-dark: #041899;
-  --background-light: #3f51b5;
-  --text-color: #ffffff;
-  --foreground-color: #aaaaaa;
-  --text-color-dark: #000000;
+  /* --blue-background: #1f37d3;
+  --blue-background-dark: #041899;
+  --blue-background-light: #3f51b5; */
+  --background: #ffffff;
+  --navbar-background: #ffffff;
+  --text-color: #333333;
+  --foreground-color: #dddddd;
+  --text-color-dark: #444444;
   --text-color-secondary: #eeeeee;
+  --button-color: #eeeeee;
 }

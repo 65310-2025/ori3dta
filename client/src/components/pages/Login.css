@@ -9,7 +9,7 @@
   width: max(400px, 30%);
   padding: 30px;
   margin-top: 50px;
-  border: 1px solid var(--text-color);
+  /* border: 1px solid var(--text-color); */
   border-radius: 20px;
   height: max(200px, 25%);
   display: flex;
@@ -19,7 +19,7 @@
   color: var(--text-color);
 }
 
-.Login-title {
+/* .Login-title {
   font-size: 2em;
   padding: 20px;
-}
+} */
