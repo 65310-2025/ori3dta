@@ -32,7 +32,6 @@ const Library: React.FC = () => {
   // Get metadata for all designs from server
   // TODO: later on, implement pagination in the /designs endpoint in case we have some
   // extremely prolific CP creators
-
   useEffect(() => {
     const getDesigns = async () => {
       try {

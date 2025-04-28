@@ -30,6 +30,12 @@ mongoose
 const app = express();
 app.use(checkRoutes);
 
+// Set up request logging
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
+
 // allow us to process POST requests
 app.use(express.json());
 
