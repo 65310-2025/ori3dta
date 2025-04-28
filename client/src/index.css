@@ -1,7 +1,8 @@
-/* @import "tailwindcss"; */
+@import "tailwindcss";
 
 :root {
-  --font-family-gothic: "Century Gothic", "Apple Gothic","Avenir","Gothic A1" sans-serif;
+  --font-family-gothic:
+    "Century Gothic", "Apple Gothic", "Avenir", "Gothic A1" sans-serif;
   --header-height: 60px;
   --dropdown-height: 40px;
   /* --blue-background: #1f37d3;
