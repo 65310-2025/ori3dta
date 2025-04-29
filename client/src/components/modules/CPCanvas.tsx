@@ -298,8 +298,8 @@ const renderCP = (
     errorVertices.forEach((vertexIndex) => {
       const vertex = vertices_coords[vertexIndex];
       const circle = new Circle({
-        left: vertex[0] - ERROR_CIRCLE_RADIUS, // Adjust to center the circle
-        top: vertex[1] - ERROR_CIRCLE_RADIUS, // Adjust to center the circle
+        left: vertex[0]-0.5 - ERROR_CIRCLE_RADIUS, // Adjust to center the circle
+        top: vertex[1]-0.5 - ERROR_CIRCLE_RADIUS, // Adjust to center the circle
         radius: ERROR_CIRCLE_RADIUS,
         fill: "red",
         selectable: false,
@@ -409,7 +409,7 @@ const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
       if (event.key == " ") {
         event.preventDefault();
       }
-      console.log(mode_keys, mv_keys);
+      // console.log(mode_keys, mv_keys); 
       if (mode_keys.includes(event.key as ModeKey)) {
         setMode(mode_map[event.key as ModeKey]);
         console.log(cpRef.current)
@@ -429,7 +429,7 @@ const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
     console.log("Current mode:", Mode[mode], "Current MV mode:", mvmode);
   }, [mode, mvmode]);
 
-  const [showKawasaki, setShowKawasaki] = useState(false); // TODO: make button/keybind
+  const [showKawasaki, setShowKawasaki] = useState(false);
   const showKawasakiRef = useRef<boolean>(false);
   useEffect(() => {
     showKawasakiRef.current = showKawasaki;
@@ -451,7 +451,7 @@ const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
       const fabricCanvas = fabricCanvasRef.current;
       const errors = cp.vertices_coords
         .keys()
-        .filter((index) => checkKawasakiVertex(cp, index));
+        .filter((index) => !checkKawasakiVertex(cp, index));
       fabricCanvas.clear();
       console.log("rerendering");
       renderCP(cp, fabricCanvas, Array.from(errors), showKawasaki);
@@ -459,6 +459,7 @@ const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
     }
   }, [cp, showKawasaki]);
 
+  //post
   useEffect(() => {
     if (cp) {
       const postCP = async () => {
