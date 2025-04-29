@@ -34,19 +34,6 @@ const Editor: React.FC = () => {
     }
   }, [userId]);
 
-  // //prevent context window from popping up when right clicking
-  // useEffect(() => {
-  //   const handleContextMenu = (event: MouseEvent) => {
-  //     event.preventDefault(); // Prevent the default right-click menu
-  //   };
-  //   window.addEventListener("contextmenu", handleContextMenu);
-  //   return () => {
-  //     window.removeEventListener("contextmenu", handleContextMenu);
-  //   };
-  // }, []);
-
-  // Render cp on the canvas
-
   const handleLogoutAndNavigate = () => {
     googleLogout();
     handleLogout();
