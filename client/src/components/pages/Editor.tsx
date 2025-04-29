@@ -80,10 +80,8 @@ const Editor: React.FC = () => {
           // </div>
         }
         <div className="w-1/3 h-full">
-          <p>{/*cp?._id*/}</p>
           <div>
-            <h2>CP Details</h2>
-            <pre>{/*JSON.stringify(cp, null, 2)*/}</pre>
+            <h2>CP Details. 3d model/xray to go here</h2>
           </div>
         </div>
       </div>

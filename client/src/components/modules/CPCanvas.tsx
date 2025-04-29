@@ -160,7 +160,9 @@ const handleLeftClick = (
       }
     } else if (modeRef.current === Mode.Deleting) {
       if (cpRef.current) {
-        setCP(deleteBox(cpRef.current, { min: clickStart, max: pos }));
+        const min_:[number,number] = [Math.min(clickStart[0], pos[0]), Math.min(clickStart[1], pos[1])];
+        const max_:[number,number] = [Math.max(clickStart[0], pos[0]), Math.max(clickStart[1], pos[1])];
+        setCP(deleteBox(cpRef.current, { min: min_, max: max_ }));
       } else {
         console.error("cpRef is null, cannot delete");
       }
@@ -292,6 +294,7 @@ const renderCP = (
   });
 
   if (showKawasaki) {
+    console.log("error vertices",errorVertices)
     errorVertices.forEach((vertexIndex) => {
       const vertex = vertices_coords[vertexIndex];
       const circle = new Circle({
@@ -400,6 +403,7 @@ const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
     mvmodeRef.current = mvmode;
   }, [mvmode]);
 
+  // Prevent default space key behavior (scrolling) and handle keyboard shortcuts for changing tool
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key == " ") {
@@ -408,6 +412,7 @@ const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
       console.log(mode_keys, mv_keys);
       if (mode_keys.includes(event.key as ModeKey)) {
         setMode(mode_map[event.key as ModeKey]);
+        console.log(cpRef.current)
       }
       if (mv_keys.includes(event.key as MvKey)) {
         setMvMode(mv_map[event.key as MvKey]);
@@ -419,16 +424,27 @@ const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
     };
   }, []);
 
+  // Debugging: log the current mode and mv mode
   useEffect(() => {
     console.log("Current mode:", Mode[mode], "Current MV mode:", mvmode);
   }, [mode, mvmode]);
 
   const [showKawasaki, setShowKawasaki] = useState(false); // TODO: make button/keybind
   const showKawasakiRef = useRef<boolean>(false);
-
   useEffect(() => {
     showKawasakiRef.current = showKawasaki;
   }, [showKawasaki]);
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "/") {
+        setShowKawasaki((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   useEffect(() => {
     if (fabricCanvasRef.current && cp) {

@@ -137,8 +137,8 @@ export function createEdge(
   }
 
   intersections.sort((a, b) => distance(v1, a.v) - distance(v1, b.v));
-  console.log(intersections);
-  console.log(coincidentEdges);
+  // console.log(intersections);
+  // console.log(coincidentEdges);
 
   if (intersections.length === 0) {
     connectVertices(
@@ -211,18 +211,45 @@ export function deleteBox(
     }
   }
 
+  // Remove edges that are connected to vertices that are being deleted
+  for (const vertexIndex of verticesToDelete) {
+    for (const edgeIndex of newFold.vertices_edges[vertexIndex]) {
+      if (!edgesToDelete.includes(edgeIndex)) {
+        edgesToDelete.push(edgeIndex);
+      }
+    }
+  }
+  //For all edges to be deleted, remove their vertices if those vertices have only one edge and aren't already in verticestodelete
+  for (const edgeIndex of edgesToDelete) {
+    const vertex1 = newFold.edges_vertices[edgeIndex][0];
+    const vertex2 = newFold.edges_vertices[edgeIndex][1];
+    if (
+      newFold.vertices_edges[vertex1].length <= 1 &&
+      !verticesToDelete.includes(vertex1)
+    ) {
+      verticesToDelete.push(vertex1);
+    }
+    if (
+      newFold.vertices_edges[vertex2].length <= 1 &&
+      !verticesToDelete.includes(vertex2)
+    ) {
+      verticesToDelete.push(vertex2);
+    }
+  }
+  console.log("verticesToDelete", verticesToDelete);
+  console.log("edgesToDelete", edgesToDelete);
   // Mark vertices and edges for deletion by setting them to null
   for (const vertexIndex of verticesToDelete) {
     newFold.vertices_coords[vertexIndex] = [NaN, NaN];
     newFold.vertices_vertices[vertexIndex] = [];
     newFold.vertices_edges[vertexIndex] = [];
   }
-
   for (const edgeIndex of edgesToDelete) {
     newFold.edges_vertices[edgeIndex] = [NaN, NaN];
     newFold.edges_assignment[edgeIndex] = "";
     newFold.edges_foldAngle[edgeIndex] = NaN;
   }
+
 
   // Remove all null entries from the arrays
   newFold.vertices_coords = newFold.vertices_coords.filter((v) => !isNaN(v[0]));
@@ -234,6 +261,7 @@ export function deleteBox(
   newFold.edges_assignment = newFold.edges_assignment.filter((v) => v !== "");
   newFold.edges_foldAngle = newFold.edges_foldAngle.filter((v) => !isNaN(v));
 
+  console.log(newFold)
   return newFold;
 }
 
@@ -357,10 +385,10 @@ function distance(v1: [number, number], v2: [number, number]): number {
 
 function vertexInBox(
   v: [number, number],
-  box: { min: [number, number]; max: [number, number] },
+  box: { min: [number, number]; max: [number, number] }, //min x, min y. max x, max y
 ): boolean {
   return (
-    v[0] >= box.min[0] &&
+    v[0] >= box.min[0] && 
     v[0] <= box.max[0] &&
     v[1] >= box.min[1] &&
     v[1] <= box.max[1]
