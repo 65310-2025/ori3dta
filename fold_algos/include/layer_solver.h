@@ -4,6 +4,9 @@
 #include <tuple>
 #include <vector>
 
+#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
+#include <CGAL/Boolean_set_operations_2.h>
+
 #include <core/SolverTypes.h>
 #include <simp/SimpSolver.h>
 
@@ -42,6 +45,7 @@ public:
 
   Lit get_lit(face_id_t f1, face_id_t f2);
   void add_equality(Lit a, Lit b);
+
   void compute_constraints();
   void compute_plane_constraints(planegroup_id_t planegroup_id);
   void compute_faces_proj(planegroup_id_t planegroup_id);
