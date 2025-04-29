@@ -13,14 +13,6 @@
 
 using namespace ori3dta;
 
-using Kernel = CGAL::Exact_predicates_exact_constructions_kernel;
-using Point_2 = Kernel::Point_2;
-using Segment_2 = CGAL::Segment_2<Kernel>;
-using Polygon_2 = CGAL::Polygon_2<Kernel>;
-
-using Polygon_with_holes_2 = CGAL::Polygon_with_holes_2<Kernel>;
-using Pwh_list_2 = std::list<Polygon_with_holes_2>;
-
 LayerSolver::LayerSolver(const FOLD& f) : PlaneGroup(f) {
   std::clog << *static_cast<PlaneGroup*>(this) << std::endl;
   compute_constraints();
@@ -39,7 +31,12 @@ void LayerSolver::add_equality(Lit a, Lit b) {
 
 
 void LayerSolver::compute_constraints() {
-  for (int i = 0; i < planegroups_faces.size(); i++) {
+  face_id_t n_pg = planegroups_faces.size();
+  pg_faces_proj.assign(n_pg, {});
+  pg_faces_id.assign(n_pg, {});
+  pg_in_pg_edges.assign(n_pg, {});
+
+  for (int i = 0; i < n_pg; i++) {
     compute_plane_constraints(i);
   }
 }
@@ -81,14 +78,22 @@ bool does_edge_overlap_edge(const Segment_2& e1, const Segment_2& e2) {
 }
 
 void LayerSolver::compute_plane_constraints(planegroup_id_t planegroup_id) {
+  compute_faces_proj(planegroup_id);
+  compute_variables(planegroup_id);
+  compute_transitivity(planegroup_id);
+  compute_taco_tortilla(planegroup_id);
+
+}
+
+void LayerSolver::compute_faces_proj(planegroup_id_t planegroup_id) {
   const auto& faces = planegroups_faces[planegroup_id];
   const auto& tangent = planegroups_tangent[planegroup_id];
   const auto& bi = planegroups_bi[planegroup_id];
 
-  int n_faces = faces.size();
+  face_id_t n_faces = faces.size();
 
-  std::vector<Polygon_2> faces_proj;
-  std::vector<face_id_t> faces_id;
+  auto& faces_proj = pg_faces_proj[planegroup_id];
+  auto& faces_id = pg_faces_id[planegroup_id];
 
   for (const auto& face : faces) {
     auto& proj = faces_proj.emplace_back();
@@ -101,11 +106,12 @@ void LayerSolver::compute_plane_constraints(planegroup_id_t planegroup_id) {
       proj.reverse_orientation();
     }
   }
+}
 
-  for (const auto& x : faces_proj) {
-    std::cout << x << std::endl;
-    std::cout << x.is_simple() << std::endl;
-  }
+void LayerSolver::compute_variables(planegroup_id_t planegroup_id) {
+  const auto& faces_proj = pg_faces_proj[planegroup_id];
+  const auto& faces_id = pg_faces_id[planegroup_id];
+  face_id_t n_faces = faces_proj.size();
 
   // Compute pairs of overlapping faces to generate variables
   for (int i = 0; i < n_faces; i++) {
@@ -118,6 +124,12 @@ void LayerSolver::compute_plane_constraints(planegroup_id_t planegroup_id) {
       }
     }
   }
+}
+
+void LayerSolver::compute_transitivity(planegroup_id_t planegroup_id) {
+  const auto& faces_proj = pg_faces_proj[planegroup_id];
+  const auto& faces_id = pg_faces_id[planegroup_id];
+  face_id_t n_faces = faces_proj.size();
 
   // Compute triples of overlapping faces to generate transitivity
   for (int i = 0; i < n_faces; i++) {
@@ -157,8 +169,14 @@ void LayerSolver::compute_plane_constraints(planegroup_id_t planegroup_id) {
       }
     }
   }
+}
 
-  std::vector<std::pair<edge_id_t, Segment_2>> in_pg_edges;
+void LayerSolver::compute_taco_tortilla(planegroup_id_t planegroup_id) {
+  const auto& faces_proj = pg_faces_proj[planegroup_id];
+  const auto& faces_id = pg_faces_id[planegroup_id];
+  face_id_t n_faces = faces_proj.size();
+
+  auto& in_pg_edges = pg_in_pg_edges[planegroup_id];
 
   // Taco-tortilla
   for (int i = 0; i < n_faces; i++) {

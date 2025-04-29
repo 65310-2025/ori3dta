@@ -32,7 +32,7 @@ std::vector<coord_t> FOLD::compute_normal(int face_id) {
 
 void FOLD::compute_edges_faces_from_faces_edges() {
   edge_id_t num_edges = edges_vertices.size();
-  edges_faces.assign(num_edges, std::vector<std::optional<face_id_t>>(2));
+  edges_faces.assign(num_edges, {{},{}}/*std::vector<std::optional<face_id_t>>(2)*/);
 
   face_id_t num_faces = faces_edges.size();
   for (face_id_t face_id = 0; face_id < num_faces; face_id++) {

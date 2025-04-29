@@ -17,8 +17,21 @@ using Solver = Glucose::SimpSolver;
 using Var = Glucose::Var;
 using Lit = Glucose::Lit;
 
+using Kernel = CGAL::Exact_predicates_exact_constructions_kernel;
+using Point_2 = Kernel::Point_2;
+using Segment_2 = CGAL::Segment_2<Kernel>;
+using Polygon_2 = CGAL::Polygon_2<Kernel>;
 
-struct LayerSolver : public PlaneGroup {
+using Polygon_with_holes_2 = CGAL::Polygon_with_holes_2<Kernel>;
+using Pwh_list_2 = std::list<Polygon_with_holes_2>;
+
+class LayerSolver : public PlaneGroup {
+  std::vector<std::vector<Polygon_2>> pg_faces_proj;
+  std::vector<std::vector<face_id_t>> pg_faces_id;
+
+  std::vector<std::vector<std::pair<edge_id_t, Segment_2>>> pg_in_pg_edges;
+
+public:
   Solver solver;
   std::vector<Var> vars;
 
@@ -31,6 +44,10 @@ struct LayerSolver : public PlaneGroup {
   void add_equality(Lit a, Lit b);
   void compute_constraints();
   void compute_plane_constraints(planegroup_id_t planegroup_id);
+  void compute_faces_proj(planegroup_id_t planegroup_id);
+  void compute_variables(planegroup_id_t planegroup_id);
+  void compute_transitivity(planegroup_id_t planegroup_id);
+  void compute_taco_tortilla(planegroup_id_t planegroup_id);
 };
 
 } // namespace ori3dta
