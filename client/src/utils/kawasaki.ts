@@ -33,7 +33,6 @@ function getRotationMatrices(
   }
 
   //Convert connected vertices into thetas
-  console.log(connectedVertices);
   const thetas = connectedVertices.map((connectedVertexIndex) => {
     const connectedVertex = fold.vertices_coords[connectedVertexIndex];
     const x = connectedVertex[0] - vertex[0];

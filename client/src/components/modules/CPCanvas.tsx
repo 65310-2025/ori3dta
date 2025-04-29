@@ -1,17 +1,16 @@
 import React, { RefObject, useEffect, useRef, useState } from "react";
 
 import { Circle, Line, Rect } from "fabric";
-import { Canvas, Point } from "fabric";
+import { Canvas, Point, Polygon} from "fabric";
 
 import { ClientCPDto } from "../../../../dto/dto";
 import { Fold } from "../../types/fold";
-import { createEdge, deleteBox } from "../../utils/cpEdit";
+import { createEdge, deleteBox, findNearestCrease } from "../../utils/cpEdit";
 import { checkKawasakiVertex } from "../../utils/kawasaki";
 import { get, post } from "../../utils/requests";
 
 const SNAP_TOLERANCE = 30;
-const ERROR_CIRCLE_RADIUS = 0.02;
-const STROKE_WIDTH = 0.004;
+const STROKE_WIDTH = 4//0.004;
 const TEMP_STROKE_WIDTH = 0.002;
 
 enum MvMode {
@@ -27,9 +26,10 @@ enum Mode {
   Selecting, // select, open inspector window
   Deleting, // box delete
   ChangeMV, // box change mv
+  ChangeAngle, // select specific crease, change angle
 }
 
-const mode_keys = [" ", "q", "w", "e"] as const;
+const mode_keys = [" ", "q", "w", "e","g"] as const;
 const mv_keys = ["a", "s", "d", "f"] as const;
 type ModeKey = (typeof mode_keys)[number];
 type MvKey = (typeof mv_keys)[number];
@@ -39,6 +39,9 @@ const mode_map: Record<ModeKey, Mode> = {
   q: Mode.Selecting,
   w: Mode.Deleting,
   e: Mode.ChangeMV,
+  // r: radial snapping
+  // t: kawasaki flat fold finder
+  g: Mode.ChangeAngle
 };
 const mv_map: Record<MvKey, MvMode> = {
   a: MvMode.Mountain,
@@ -169,6 +172,15 @@ const handleLeftClick = (
     } else if (modeRef.current === Mode.Selecting) {
       // TODO: implement this
       console.warn("Selecting mode is not implemented yet");
+    } else if (modeRef.current === Mode.ChangeMV) {
+      console.warn("ChangeMV mode is not implemented yet");
+    } else if (modeRef.current === Mode.ChangeAngle) {
+      if(cpRef.current){
+        const nearestCrease = findNearestCrease(cpRef.current,clickStart,SNAP_TOLERANCE)
+      //figure out which crease is the closest to the click
+      //highlight the crease
+      //open up a dialog box for setting the angle 
+      }
     }
     clickStart = null;
   };
@@ -206,6 +218,15 @@ const makeCanvas = (
 
     // Zoom to the mouse pointer
     canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY } as Point, zoom);
+    canvas.getObjects().forEach((obj) => {
+      if (obj.type=== "line"){
+        obj.strokeWidth = STROKE_WIDTH/zoom
+      }
+      else if (obj.type=== "polygon"){
+        obj.strokeWidth = 5*STROKE_WIDTH/zoom
+      }
+      
+    });
 
     // Prevent default scrolling behavior
     opt.e.preventDefault();
@@ -269,17 +290,16 @@ const renderCP = (
 ) => {
   const { vertices_coords, edges_vertices, edges_assignment, edges_foldAngle } =
     cp;
-
+  console.log("stroke width", STROKE_WIDTH,canvas.getZoom())
   edges_vertices.forEach((edge, index) => {
     const [startIndex, endIndex] = edge;
     const start = vertices_coords[startIndex];
     const end = vertices_coords[endIndex];
-
     if (start && end) {
       const line = new Line([start[0], start[1], end[0], end[1]], {
         stroke:
           edge_colors[edges_assignment[index] as "M" | "V" | "B"] ?? "green",
-        strokeWidth: STROKE_WIDTH,
+        strokeWidth: 0.005,
         selectable: false,
         evented: false,
         opacity:
@@ -294,19 +314,25 @@ const renderCP = (
   });
 
   if (showKawasaki) {
-    console.log("error vertices",errorVertices)
     errorVertices.forEach((vertexIndex) => {
       const vertex = vertices_coords[vertexIndex];
-      const circle = new Circle({
-        left: vertex[0]-0.5 - ERROR_CIRCLE_RADIUS, // Adjust to center the circle
-        top: vertex[1]-0.5 - ERROR_CIRCLE_RADIUS, // Adjust to center the circle
-        radius: ERROR_CIRCLE_RADIUS,
-        fill: "red",
-        selectable: false,
-        evented: false,
-        opacity: 0.2,
-      });
-      canvas.add(circle);
+      const epsilon = 0.001;
+      const triangle = new Polygon(
+        [
+          { x: vertex[0] + Math.sqrt(3) * epsilon/2, y: vertex[1] + epsilon/2 }, // Right vertex
+          { x: vertex[0] - Math.sqrt(3) * epsilon/2, y: vertex[1] + epsilon/2 }, // Bottom vertex
+          { x: vertex[0], y: vertex[1] - epsilon  }, // Top vertex
+        ],
+        {
+          fill: "red",
+          selectable: false,
+          evented: false,
+          opacity: 0.2,
+          stroke: "pink",
+          strokeWidth: 0.01,
+        }
+      );
+      canvas.add(triangle);
     });
   }
 };
@@ -426,7 +452,7 @@ const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
 
   // Debugging: log the current mode and mv mode
   useEffect(() => {
-    console.log("Current mode:", Mode[mode], "Current MV mode:", mvmode);
+    console.log("Current mode:", Mode[mode], "Current MV mode:", mvmode, "zoom", );
   }, [mode, mvmode]);
 
   const [showKawasaki, setShowKawasaki] = useState(false);
@@ -446,6 +472,7 @@ const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
     };
   }, []);
 
+  //render cp on canvas
   useEffect(() => {
     if (fabricCanvasRef.current && cp) {
       const fabricCanvas = fabricCanvasRef.current;

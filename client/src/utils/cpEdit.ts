@@ -286,7 +286,34 @@ export function deleteBox(
   );
 
   console.log(newFold)
-  return oldfold;
+  return newFold;
+}
+
+export function findNearestCrease(fold:Fold, click:[number,number],tolerance:number):number {
+  /*
+  Given a click position, find the nearest crease to that position and return the crease's index. This is for changing the crease angle, so should only be returning creases whose assignment is M or V
+  */
+  let nearestCreaseIndex = -1;
+  let minDistance = Infinity;
+
+  for (let i = 0; i < fold.edges_vertices.length; i++) {
+    if (fold.edges_assignment[i] !== "M" && fold.edges_assignment[i] !== "V") {
+      continue;
+    }
+
+    const edge = fold.edges_vertices[i];
+    const v1 = fold.vertices_coords[edge[0]];
+    const v2 = fold.vertices_coords[edge[1]];
+
+    const distanceToEdge = pointToLineDistance(click, v1, v2);
+    if (distanceToEdge < minDistance && distanceToEdge < tolerance) {
+      minDistance = distanceToEdge;
+      nearestCreaseIndex = i;
+    }
+  }
+
+  return nearestCreaseIndex;
+
 }
 
 function splitEdge(fold: Fold, edgeIndex: number, vertexIndex: number): void {
@@ -444,4 +471,38 @@ function lineThroughBox(
   }
 
   return false;
+}
+
+function pointToLineDistance(
+  point: [number, number],
+  lineStart: [number, number],
+  lineEnd: [number, number],
+): number {
+  const [px, py] = point;
+  const [x1, y1] = lineStart;
+  const [x2, y2] = lineEnd;
+
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+
+  if (dx === 0 && dy === 0) {
+    // The line segment is a single point
+    return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2);
+  }
+
+  // Calculate the projection of the point onto the line (parameterized by t)
+  const t = ((px - x1) * dx + (py - y1) * dy) / (dx ** 2 + dy ** 2);
+
+  if (t < 0) {
+    // Closest point is lineStart
+    return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2);
+  } else if (t > 1) {
+    // Closest point is lineEnd
+    return Math.sqrt((px - x2) ** 2 + (py - y2) ** 2);
+  }
+
+  // Closest point is on the line segment
+  const projectionX = x1 + t * dx;
+  const projectionY = y1 + t * dy;
+  return Math.sqrt((px - projectionX) ** 2 + (py - projectionY) ** 2);
 }
