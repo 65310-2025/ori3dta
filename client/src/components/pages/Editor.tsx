@@ -49,7 +49,7 @@ const Editor: React.FC = () => {
           src={LibraryIcon}
           alt="Library"
           style={{ width: "0px" }}
-          onClick={() => navigate("/")}
+          onClick={() => navigate("../library")}
         />
       ),
     },

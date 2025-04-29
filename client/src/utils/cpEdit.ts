@@ -193,6 +193,7 @@ export function deleteBox(
   const verticesToDelete: number[] = [];
   const edgesToDelete: number[] = [];
 
+  //look for edges/vertices that are in the box
   for (let i = 0; i < newFold.vertices_coords.length; i++) {
     if (vertexInBox(newFold.vertices_coords[i], box)) {
       verticesToDelete.push(i);
@@ -236,8 +237,10 @@ export function deleteBox(
       verticesToDelete.push(vertex2);
     }
   }
+
   console.log("verticesToDelete", verticesToDelete);
   console.log("edgesToDelete", edgesToDelete);
+
   // Mark vertices and edges for deletion by setting them to null
   for (const vertexIndex of verticesToDelete) {
     newFold.vertices_coords[vertexIndex] = [NaN, NaN];
@@ -261,8 +264,29 @@ export function deleteBox(
   newFold.edges_assignment = newFold.edges_assignment.filter((v) => v !== "");
   newFold.edges_foldAngle = newFold.edges_foldAngle.filter((v) => !isNaN(v));
 
+  //adjust indices
+  newFold.edges_vertices = newFold.edges_vertices.map(([vertex1, vertex2]) => {
+    const deletedBeforeVertex1 = verticesToDelete.filter((v) => v < vertex1).length;
+    const deletedBeforeVertex2 = verticesToDelete.filter((v) => v < vertex2).length;
+    return [vertex1 - deletedBeforeVertex1, vertex2 - deletedBeforeVertex2];
+  });
+  newFold.vertices_vertices = newFold.vertices_vertices.map((vertexIndices) =>
+    vertexIndices.map((vertexIndex) => {
+      const deletedBeforeVertex = verticesToDelete.filter(
+        (v) => v < vertexIndex,
+      ).length;
+      return vertexIndex - deletedBeforeVertex;
+    }),
+  );
+  newFold.vertices_edges = newFold.vertices_edges.map((edgeIndices) =>
+    edgeIndices.map((edgeIndex) => {
+      const deletedBeforeEdge = edgesToDelete.filter((v) => v < edgeIndex).length;
+      return edgeIndex - deletedBeforeEdge;
+    }),
+  );
+
   console.log(newFold)
-  return newFold;
+  return oldfold;
 }
 
 function splitEdge(fold: Fold, edgeIndex: number, vertexIndex: number): void {
