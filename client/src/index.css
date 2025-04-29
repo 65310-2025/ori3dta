@@ -3,13 +3,22 @@
 :root {
   --font-family-gothic:
     "Century Gothic", "Apple Gothic", "Avenir", "Gothic A1" sans-serif;
-  --header-height: 60px;
-  --dropdown-height: 40px;
-  /* --blue-background: #1f37d3;
-  --blue-background-dark: #041899;
-  --blue-background-light: #3f51b5; */
-  --background: #ffffff;
-  --navbar-background: #ffffff;
+  --header-height: max(7vh, 60px);
+  --dropdown-height: 50px;
+  --background: #182472;
+  --background-dark: #061156;
+  --background-light: #3344b2;
+  --foreground: #eeeeee;
+  --foreground-secondary: #cccccc;
+  --text-color: #ffffff;
+  --text-color-secondary: #eeeeee;
+  --text-color-dark: #333333;
+}
+
+[data-theme="light"] {
+  --background: #f0f0f0;
+  --background-dark: #f0f0f0;
+  --background-light: #ffffff;
   --text-color: #333333;
   --foreground-color: #dddddd;
   --text-color-dark: #444444;

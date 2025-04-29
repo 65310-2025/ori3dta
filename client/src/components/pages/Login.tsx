@@ -29,7 +29,7 @@ const Login: React.FC = () => {
       <div className="Login-page">
         <div className="Login-box">
           <img src={logo} alt="Ori3dita Logo" className="Login-logo" />
-          {/* <h1 className="Login-title">Log in to Ori3dita</h1> */}
+          <h1 className="Login-title">Log in to Ori3dita</h1>
 
           <GoogleLogin
             onSuccess={handleLoginAndNavigate}

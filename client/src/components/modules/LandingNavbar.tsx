@@ -3,7 +3,6 @@ import React, { useContext, useEffect, useState } from "react";
 import { googleLogout } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 
-// import logo from "../../../favicon.svg";
 import logo from "../../../logo_text.svg";
 import { UserContext } from "../App";
 import "./LandingNavbar.css";
@@ -93,7 +92,7 @@ const Navbar: React.FC = () => {
     </div>
   ) : (
     <button
-      className="Navbar-dropdown-username"
+      className="Navbar-link"
       onClick={() => {
         navigate("/login");
       }}
@@ -113,14 +112,14 @@ const Navbar: React.FC = () => {
         >
           <img src={logo} alt="Logo" className="Navbar-logo" />
         </a>
-        {/* <a
+        <a
           className="Navbar-link"
           onClick={() => {
             navigate("/");
           }}
         >
           Home
-        </a> */}
+        </a>
       </div>
       <div className="Navbar-login" ref={dropdownRef}>
         {loginElement}

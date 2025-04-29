@@ -1,6 +1,6 @@
 .Navbar {
   height: var(--header-height);
-  background-color: var(--navbar-background); /* Very light grey */
+  background-color: var(--background-dark);
   display: flex;
   color: var(--text-color);
   font-size: 1.2rem;
@@ -15,12 +15,13 @@
 }
 
 .Navbar-logo {
-  margin: 10px 20px;
-  height: calc(var(--header-height) - 10px);
+  margin-top: 0px;
+  margin-bottom: 0px;
+  height: calc(var(--header-height) - 30px);
 }
 
 .Navbar-link {
-  padding: 10px 20px;
+  padding: 10px 40px;
 }
 
 .Navbar-links {
@@ -41,13 +42,6 @@
   justify-content: flex-end;
   width: 30%;
   height: var(--header-height);
-
-  /* background: var(--button-color); */
-  /* color: "white"; */
-  /* border: "none"; */
-  /* border-radius: "10px"; */
-  padding: "0.5rem 1rem";
-  cursor: "pointer";
 }
 
 .Navbar-dropdown {
@@ -79,14 +73,8 @@
   color: var(--text-color);
 }
 
-.Navbar-button:hover {
-  background-color: var(--text-color);
-  color: var(--background-dark);
-  cursor: pointer;
-}
-
 .Navbar-dropdown-link {
-  background-color: var(--foreground-color);
+  background-color: var(--foreground);
   color: var(--text-color-dark);
   border-width: 2px;
   border-style: none none solid none;

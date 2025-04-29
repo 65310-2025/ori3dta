@@ -1,57 +1,54 @@
 .Home {
   height: calc(100vh - var(--header-height));
   color: var(--text-color);
-  /* font-family: var(--font-family-gothic) !important; */
-  padding: 50px;
 }
 
-.Home-title {
-  background-color: var(--background);
-  /* background: linear-gradient(
+.Home-title-block {
+  background: linear-gradient(
     180deg,
     var(--background-light) 0%,
     var(--background-dark) 100%
-  ); */
+  );
   display: flex;
   height: 60vh;
-  justify-content: space-between;
-  /* align-items: center; */
-  width: 100%;
+  justify-content: space-around;
+  align-items: center;
+  color: var(--text-color-secondary);
 }
 
-.Home-title-text {
-  flex: 1;
-  color: var(--text-color);
-  font-size: 30px;
-  text-align: left;
-  font-family:
-    "Century Gothic", "Apple Gothic", "Avenir", "Gothic A1", sans-serif;
+.Home-logo {
+  height: 40vh;
 }
+
 h1.Home-title-text {
-  font-weight: bold;
+  font-size: 6rem;
 }
 
-.Home-title-demo {
-  flex: 1;
+h2.Home-title-text {
+  font-size: 4rem;
+  margin: 0.5rem 0;
+}
+
+.Home-demo-image {
+  height: 40vh;
+}
+
+.Home-demo-text {
+  width: 60vw;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
 }
-.Home-demo-image {
-  max-width: 100%; /* Prevent the image from being wider than its container */
-  max-height: 100%; /* Prevent the image from being taller than its container */
-  object-fit: contain; /* Ensure the image maintains its aspect ratio */
+
+h3.Home-demo-text {
+  font-size: 3rem;
 }
 
 .Home-try-button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: auto;
-}
-.TryNowButton {
+  background-color: var(--background-light);
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
   font-size: 2rem;
-  padding: 1rem 2rem;
-  font-family:
-    "Century Gothic", "Apple Gothic", "Avenir", "Gothic A1", sans-serif;
+  border: none;
+  margin: 20px;
 }
