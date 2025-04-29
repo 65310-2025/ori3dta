@@ -294,6 +294,7 @@ const renderCP = (
   });
 
   if (showKawasaki) {
+    console.log("error vertices",errorVertices)
     errorVertices.forEach((vertexIndex) => {
       const vertex = vertices_coords[vertexIndex];
       const circle = new Circle({
