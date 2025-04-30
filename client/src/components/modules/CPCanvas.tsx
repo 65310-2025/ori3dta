@@ -62,7 +62,7 @@ const edge_colors: {
 };
 
 const inspector = (
-  <div className="fixed bottom-0 left-0 w-full bg-gray-800 text-white p-4 flex" style={{ display: "flex", justifyContent: "flex-start", alignItems: "center", gap: "1rem" }}>
+  <div className="fixed bottom-0 left-0 w-full bg-gray-800 text-white p-4 flex" style={{ display: "none", justifyContent: "flex-start", alignItems: "center", gap: "1rem" }}>
     <div className="flex-1">
       <input
         type="text"
@@ -119,15 +119,8 @@ const handleLeftClick = (
 ) => {
   let clickStart: [number, number] | null = null;
 
-  const handleMouseDown = (pos: [number, number],setSelectedCrease:(crease:number|null)=>void) => {
+  const handleMouseDown = (pos: [number, number]) => {
     clickStart = pos;
-    // console.log("left click down at:", pos);
-    // if(modeRef.current === Mode.EditCrease){
-    //   setSelectedCrease(null)
-    //   setInspectorText("No crease selected")
-    //   setInspectorInput("")
-    //   hideInspector()
-    // }
   };
 
   const handleMouseMove = (pos: [number, number]) => {
@@ -260,9 +253,15 @@ const handleLeftClick = (
 
               const handleChange = (event: Event) => {
                 console.log("input changed", event);
-                const newValue = parseFloat((event.target as HTMLInputElement).value);
+                const newValue = Math.max(-180, Math.min(180, parseFloat((event.target as HTMLInputElement).value)));
                 if (!isNaN(newValue) && cpRef.current) {
                   cpRef.current.edges_foldAngle[nearestCrease] = (newValue * Math.PI) / 180;
+                  if (newValue > 0) {
+                    cpRef.current.edges_assignment[nearestCrease] = "V";
+                  }
+                  else if (newValue < 0) {
+                    cpRef.current.edges_assignment[nearestCrease] = "M";
+                  }
                   setCP({ ...cpRef.current });
                 }
               };
@@ -338,7 +337,7 @@ const makeCanvas = (
     const evt = opt.e as MouseEvent;
     if (evt.button === 0) {
       const pos = opt.absolutePointer;
-      leftHandler.handleMouseDown([pos.x, pos.y],setSelectedCrease);
+      leftHandler.handleMouseDown([pos.x, pos.y]);
     }
     if (evt.altKey || evt.button === 2) {
       evt.preventDefault();
