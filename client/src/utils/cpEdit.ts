@@ -193,6 +193,7 @@ export function deleteBox(
   const verticesToDelete: number[] = [];
   const edgesToDelete: number[] = [];
 
+  //look for edges/vertices that are in the box
   for (let i = 0; i < newFold.vertices_coords.length; i++) {
     if (vertexInBox(newFold.vertices_coords[i], box)) {
       verticesToDelete.push(i);
@@ -236,8 +237,10 @@ export function deleteBox(
       verticesToDelete.push(vertex2);
     }
   }
+
   console.log("verticesToDelete", verticesToDelete);
   console.log("edgesToDelete", edgesToDelete);
+
   // Mark vertices and edges for deletion by setting them to null
   for (const vertexIndex of verticesToDelete) {
     newFold.vertices_coords[vertexIndex] = [NaN, NaN];
@@ -261,8 +264,56 @@ export function deleteBox(
   newFold.edges_assignment = newFold.edges_assignment.filter((v) => v !== "");
   newFold.edges_foldAngle = newFold.edges_foldAngle.filter((v) => !isNaN(v));
 
+  //adjust indices
+  newFold.edges_vertices = newFold.edges_vertices.map(([vertex1, vertex2]) => {
+    const deletedBeforeVertex1 = verticesToDelete.filter((v) => v < vertex1).length;
+    const deletedBeforeVertex2 = verticesToDelete.filter((v) => v < vertex2).length;
+    return [vertex1 - deletedBeforeVertex1, vertex2 - deletedBeforeVertex2];
+  });
+  newFold.vertices_vertices = newFold.vertices_vertices.map((vertexIndices) =>
+    vertexIndices.map((vertexIndex) => {
+      const deletedBeforeVertex = verticesToDelete.filter(
+        (v) => v < vertexIndex,
+      ).length;
+      return vertexIndex - deletedBeforeVertex;
+    }),
+  );
+  newFold.vertices_edges = newFold.vertices_edges.map((edgeIndices) =>
+    edgeIndices.map((edgeIndex) => {
+      const deletedBeforeEdge = edgesToDelete.filter((v) => v < edgeIndex).length;
+      return edgeIndex - deletedBeforeEdge;
+    }),
+  );
+
   console.log(newFold)
   return newFold;
+}
+
+export function findNearestCrease(fold:Fold, click:[number,number],tolerance:number):number {
+  /*
+  Given a click position, find the nearest crease to that position and return the crease's index. This is for changing the crease angle, so should only be returning creases whose assignment is M or V
+  */
+  let nearestCreaseIndex = -1;
+  let minDistance = Infinity;
+
+  for (let i = 0; i < fold.edges_vertices.length; i++) {
+    if (fold.edges_assignment[i] !== "M" && fold.edges_assignment[i] !== "V") {
+      continue;
+    }
+
+    const edge = fold.edges_vertices[i];
+    const v1 = fold.vertices_coords[edge[0]];
+    const v2 = fold.vertices_coords[edge[1]];
+
+    const distanceToEdge = pointToLineDistance(click, v1, v2);
+    if (distanceToEdge < minDistance && distanceToEdge < tolerance) {
+      minDistance = distanceToEdge;
+      nearestCreaseIndex = i;
+    }
+  }
+
+  return nearestCreaseIndex;
+
 }
 
 function splitEdge(fold: Fold, edgeIndex: number, vertexIndex: number): void {
@@ -420,4 +471,38 @@ function lineThroughBox(
   }
 
   return false;
+}
+
+function pointToLineDistance(
+  point: [number, number],
+  lineStart: [number, number],
+  lineEnd: [number, number],
+): number {
+  const [px, py] = point;
+  const [x1, y1] = lineStart;
+  const [x2, y2] = lineEnd;
+
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+
+  if (dx === 0 && dy === 0) {
+    // The line segment is a single point
+    return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2);
+  }
+
+  // Calculate the projection of the point onto the line (parameterized by t)
+  const t = ((px - x1) * dx + (py - y1) * dy) / (dx ** 2 + dy ** 2);
+
+  if (t < 0) {
+    // Closest point is lineStart
+    return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2);
+  } else if (t > 1) {
+    // Closest point is lineEnd
+    return Math.sqrt((px - x2) ** 2 + (py - y2) ** 2);
+  }
+
+  // Closest point is on the line segment
+  const projectionX = x1 + t * dx;
+  const projectionY = y1 + t * dy;
+  return Math.sqrt((px - projectionX) ** 2 + (py - projectionY) ** 2);
 }

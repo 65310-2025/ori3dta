@@ -7,7 +7,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import LibraryIcon from "../../assets/icons/library.svg";
 import { UserContext } from "../App";
-import CPCanvas from "../modules/CPCanvas";
+import {CPCanvas} from "../modules/CPCanvas";
 
 const Editor: React.FC = () => {
   const navigate = useNavigate();
@@ -49,7 +49,7 @@ const Editor: React.FC = () => {
           src={LibraryIcon}
           alt="Library"
           style={{ width: "0px" }}
-          onClick={() => navigate("/")}
+          onClick={() => navigate("../library")}
         />
       ),
     },
