@@ -27,7 +27,7 @@ enum Mode {
   Selecting, // select, open inspector window
   Deleting, // box delete
   ChangeMV, // box change mv
-  ChangeAngle, // select specific crease, change angle
+  EditCrease, // select specific crease, change angle
 }
 
 const mode_keys = [" ", "q", "w", "e","g"] as const; //TODO: it gets confused if you have caps lock on
@@ -42,7 +42,7 @@ const mode_map: Record<ModeKey, Mode> = {
   e: Mode.ChangeMV,
   // r: radial snapping
   // t: kawasaki flat fold finder
-  g: Mode.ChangeAngle
+  g: Mode.EditCrease
 };
 const mv_map: Record<MvKey, MvMode> = {
   a: MvMode.Mountain,
@@ -120,8 +120,8 @@ const handleLeftClick = (
 
   const handleMouseDown = (pos: [number, number],setSelectedCrease:(crease:number|null)=>void) => {
     clickStart = pos;
-    console.log("left click down at:", pos);
-    // if(modeRef.current === Mode.ChangeAngle){
+    // console.log("left click down at:", pos);
+    // if(modeRef.current === Mode.EditCrease){
     //   setSelectedCrease(null)
     //   setInspectorText("No crease selected")
     //   setInspectorInput("")
@@ -190,9 +190,11 @@ const handleLeftClick = (
       }
     }
   };
+  // Store the input listeners to remove them later
+  const inputListeners = new Map<HTMLInputElement, EventListener>();
 
   const handleMouseUp = (pos: [number, number],setSelectedCrease:(crease: number | null)=>void) => {
-    console.log("left click up at:", pos);
+    // console.log("left click up at:", pos);
     if (clickStart === null) {
       return;
     }
@@ -230,7 +232,7 @@ const handleLeftClick = (
       console.warn("Selecting mode is not implemented yet");
     } else if (modeRef.current === Mode.ChangeMV) {
       console.warn("ChangeMV mode is not implemented yet");
-    } else if (modeRef.current === Mode.ChangeAngle) {
+    } else if (modeRef.current === Mode.EditCrease) {
       if(cpRef.current){
         const nearestCrease = findNearestCrease(cpRef.current,clickStart,CLICK_TOLERANCE/canvas.getZoom())
         console.log(nearestCrease)
@@ -249,21 +251,30 @@ const handleLeftClick = (
           if (inspectorElement) {
             const inputElement = inspectorElement.querySelector("input");
             if (inputElement) {
+              // If a listener was previously attached, remove it
+              const previousListener = inputListeners.get(inputElement);
+              if (previousListener) {
+                inputElement.removeEventListener("change", previousListener);
+              }
+
               const handleChange = (event: Event) => {
+                console.log("input changed", event);
                 const newValue = parseFloat((event.target as HTMLInputElement).value);
                 if (!isNaN(newValue) && cpRef.current) {
                   cpRef.current.edges_foldAngle[nearestCrease] = (newValue * Math.PI) / 180;
                   setCP({ ...cpRef.current });
                 }
               };
-
+              inputListeners.set(inputElement, handleChange);
               inputElement.addEventListener("change", handleChange);
 
               // Cleanup: Remove the event listener when the component unmounts
-              return () => {
-                inputElement.removeEventListener("change", handleChange);
-              };
+              // return () => {
+              //   console.log("done")
+              //   inputElement.removeEventListener("change", handleChange);
+              // };
             }
+            // return () => {}
           }
         }
       }
@@ -325,7 +336,7 @@ const makeCanvas = (
   let lastPosY = 0;
 
   canvas.on("mouse:down", function (opt) {
-    console.log(opt);
+    // console.log(opt);
     const evt = opt.e as MouseEvent;
     if (evt.button === 0) {
       const pos = opt.absolutePointer;
@@ -333,7 +344,7 @@ const makeCanvas = (
     }
     if (evt.altKey || evt.button === 2) {
       evt.preventDefault();
-      console.log("right click");
+      // console.log("right click");
       isPanning = true;
       lastPosX = evt.clientX;
       lastPosY = evt.clientY;

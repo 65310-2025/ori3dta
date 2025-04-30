@@ -297,9 +297,9 @@ export function findNearestCrease(fold:Fold, click:[number,number],tolerance:num
   let minDistance = Infinity;
 
   for (let i = 0; i < fold.edges_vertices.length; i++) {
-    if (fold.edges_assignment[i] !== "M" && fold.edges_assignment[i] !== "V") {
-      continue;
-    }
+    // if (fold.edges_assignment[i] !== "M" && fold.edges_assignment[i] !== "V") {
+    //   continue;
+    // }
 
     const edge = fold.edges_vertices[i];
     const v1 = fold.vertices_coords[edge[0]];
