@@ -11,6 +11,7 @@ import { get, post } from "../../utils/requests";
 
 const SNAP_TOLERANCE = 30;
 const STROKE_WIDTH = 4//0.004;
+const ERROR_CIRCLE_RADIUS = 10;
 const TEMP_STROKE_WIDTH = 0.002;
 const CLICK_TOLERANCE = 10;
 
@@ -267,14 +268,7 @@ const handleLeftClick = (
               };
               inputListeners.set(inputElement, handleChange);
               inputElement.addEventListener("change", handleChange);
-
-              // Cleanup: Remove the event listener when the component unmounts
-              // return () => {
-              //   console.log("done")
-              //   inputElement.removeEventListener("change", handleChange);
-              // };
             }
-            // return () => {}
           }
         }
       }
@@ -323,6 +317,10 @@ const makeCanvas = (
       else if (obj.type=== "polygon"){
         obj.strokeWidth = 5*STROKE_WIDTH/zoom
       }
+      else if (obj instanceof Circle) {
+        obj.radius = ERROR_CIRCLE_RADIUS / zoom;
+      }
+
       
     });
 
@@ -393,23 +391,33 @@ const renderCP = (
   if (showKawasaki) {
     errorVertices.forEach((vertexIndex) => {
       const vertex = vertices_coords[vertexIndex];
-      const epsilon = 0.001;
-      const triangle = new Polygon(
-        [
-          { x: vertex[0] + Math.sqrt(3) * epsilon/2, y: vertex[1] + epsilon/2 }, // Right vertex
-          { x: vertex[0] - Math.sqrt(3) * epsilon/2, y: vertex[1] + epsilon/2 }, // Bottom vertex
-          { x: vertex[0], y: vertex[1] - epsilon  }, // Top vertex
-        ],
-        {
-          fill: "red",
-          selectable: false,
-          evented: false,
-          opacity: 0.2,
-          stroke: "pink",
-          strokeWidth: 0.01,
-        }
-      );
-      canvas.add(triangle);
+      // const epsilon = 0.001;
+      // const triangle = new Polygon(
+      //   [
+      //     { x: vertex[0] + Math.sqrt(3) * epsilon/2, y: vertex[1] + epsilon/2 }, // Right vertex
+      //     { x: vertex[0] - Math.sqrt(3) * epsilon/2, y: vertex[1] + epsilon/2 }, // Bottom vertex
+      //     { x: vertex[0], y: vertex[1] - epsilon  }, // Top vertex
+      //   ],
+      //   {
+      //     fill: "red",
+      //     selectable: false,
+      //     evented: false,
+      //     opacity: 0.2,
+      //     stroke: "pink",
+      //     strokeWidth: 0.01,
+      //   }
+      // );
+      // canvas.add(triangle);
+      const circle = new Circle({
+        left: vertex[0]-0.5 - ERROR_CIRCLE_RADIUS/canvas.getZoom(),
+        top: vertex[1]-0.5 - ERROR_CIRCLE_RADIUS/canvas.getZoom(),
+        radius: ERROR_CIRCLE_RADIUS/canvas.getZoom(),
+        fill: "pink",
+        selectable: false,
+        evented: false,
+        opacity: 1,
+      });
+      canvas.add(circle);
     });
   }
   if (selectedCrease !== null) {
