@@ -5,7 +5,7 @@ import { Canvas, Point, Polygon} from "fabric";
 
 import { ClientCPDto } from "../../../../dto/dto";
 import { Fold } from "../../types/fold";
-import { createEdge, deleteBox, findNearestCrease } from "../../utils/cpEdit";
+import { createEdge, deleteBox, findNearestCrease, findNearestVertex } from "../../utils/cpEdit";
 import { checkKawasakiVertex } from "../../utils/kawasaki";
 import { get, post } from "../../utils/requests";
 
@@ -29,9 +29,10 @@ enum Mode {
   Deleting, // box delete
   ChangeMV, // box change mv
   EditCrease, // select specific crease, change angle
+  EditVertex, // select vertex, find the kawasaki crease to add
 }
 
-const mode_keys = [" ", "q", "w", "e","g"] as const; //TODO: it gets confused if you have caps lock on
+const mode_keys = [" ", "q", "w", "e","g","t"] as const; //TODO: it gets confused if you have caps lock on
 const mv_keys = ["a", "s", "d", "f"] as const;
 type ModeKey = (typeof mode_keys)[number];
 type MvKey = (typeof mv_keys)[number];
@@ -42,8 +43,8 @@ const mode_map: Record<ModeKey, Mode> = {
   w: Mode.Deleting,
   e: Mode.ChangeMV,
   // r: radial snapping
-  // t: kawasaki flat fold finder
-  g: Mode.EditCrease
+  g: Mode.EditCrease,
+  t: Mode.EditVertex,
 };
 const mv_map: Record<MvKey, MvMode> = {
   a: MvMode.Mountain,
@@ -187,12 +188,15 @@ const handleLeftClick = (
   // Store the input listeners to remove them later
   const inputListeners = new Map<HTMLInputElement, EventListener>();
 
-  const handleMouseUp = (pos: [number, number],setSelectedCrease:(crease: number | null)=>void) => {
+  const handleMouseUp = (pos: [number, number],setSelectedCrease:(crease: number | null)=>void, setSelectedVertex:(vertex:number|null)=>void) => {
     // console.log("left click up at:", pos);
     if (clickStart === null) {
       return;
     }
-
+    setSelectedCrease(null)
+    setInspectorText("No crease selected")
+    setInspectorInput("")
+    hideInspector()
     if (modeRef.current === Mode.Drawing) {
       // console.log(clickStart,clickEnd,cpRef.current)
       if (cpRef.current) {
@@ -231,10 +235,10 @@ const handleLeftClick = (
         const nearestCrease = findNearestCrease(cpRef.current,clickStart,CLICK_TOLERANCE/canvas.getZoom())
         console.log(nearestCrease)
         if (nearestCrease == -1) {
-          setSelectedCrease(null)
-          setInspectorText("No crease selected")
-          setInspectorInput("")
-          hideInspector()
+          // setSelectedCrease(null)
+          // setInspectorText("No crease selected")
+          // setInspectorInput("")
+          // hideInspector()
         } else {
           setSelectedCrease(nearestCrease)
           showInspector()
@@ -271,6 +275,17 @@ const handleLeftClick = (
           }
         }
       }
+    } else if (modeRef.current === Mode.EditVertex) {
+      if(cpRef.current){
+        const nearestVertex = findNearestVertex(cpRef.current,clickStart,CLICK_TOLERANCE/canvas.getZoom())
+        console.log(nearestVertex)
+        if (nearestVertex == -1) {
+          setSelectedVertex(null)
+        }
+        else {
+          setSelectedVertex(nearestVertex)
+        }
+      }
     }
     clickStart = null;
   };
@@ -285,6 +300,7 @@ const makeCanvas = (
   cpRef: RefObject<Fold | null>,
   setCP: (cp: Fold) => void,
   setSelectedCrease: (crease: number | null) => void,
+  setSelectedVertex: (vertex: number | null) => void,
 ) => {
   const canvas = new Canvas(canvaselement, {
     allowTouchScrolling: true,
@@ -370,7 +386,7 @@ const makeCanvas = (
     const evt = opt.e as MouseEvent;
     if (evt.button === 0) {
       const pos = opt.absolutePointer;
-      leftHandler.handleMouseUp([pos.x, pos.y],setSelectedCrease);
+      leftHandler.handleMouseUp([pos.x, pos.y],setSelectedCrease,setSelectedVertex);
     }
   });
 
@@ -383,6 +399,7 @@ const renderCP = (
   errorVertices: number[],
   showKawasaki: boolean,
   selectedCrease: number | null,
+  selectedVertex: number | null,
 ) => {
   const { vertices_coords, edges_vertices, edges_assignment, edges_foldAngle } =
     cp;
@@ -390,23 +407,6 @@ const renderCP = (
   if (showKawasaki) {
     errorVertices.forEach((vertexIndex) => {
       const vertex = vertices_coords[vertexIndex];
-      // const epsilon = 0.001;
-      // const triangle = new Polygon(
-      //   [
-      //     { x: vertex[0] + Math.sqrt(3) * epsilon/2, y: vertex[1] + epsilon/2 }, // Right vertex
-      //     { x: vertex[0] - Math.sqrt(3) * epsilon/2, y: vertex[1] + epsilon/2 }, // Bottom vertex
-      //     { x: vertex[0], y: vertex[1] - epsilon  }, // Top vertex
-      //   ],
-      //   {
-      //     fill: "red",
-      //     selectable: false,
-      //     evented: false,
-      //     opacity: 0.2,
-      //     stroke: "pink",
-      //     strokeWidth: 0.01,
-      //   }
-      // );
-      // canvas.add(triangle);
       const circle = new Circle({
         left: vertex[0]-0.5 - ERROR_CIRCLE_RADIUS/canvas.getZoom(),
         top: vertex[1]-0.5 - ERROR_CIRCLE_RADIUS/canvas.getZoom(),
@@ -418,6 +418,20 @@ const renderCP = (
       });
       canvas.add(circle);
     });
+  }
+  if (selectedVertex !== null) {
+    console.log("selected vertex", selectedVertex);
+    const vertex = vertices_coords[selectedVertex];
+    const circle = new Circle({
+      left: vertex[0]-0.5 - ERROR_CIRCLE_RADIUS/canvas.getZoom(),
+      top: vertex[1]-0.5 - ERROR_CIRCLE_RADIUS/canvas.getZoom(),
+      radius: ERROR_CIRCLE_RADIUS/canvas.getZoom(),
+      fill: "yellow",
+      selectable: false,
+      evented: false,
+      opacity: 1,
+    });
+    canvas.add(circle);
   }
   if (selectedCrease !== null) {
     const crease = edges_vertices[selectedCrease];
@@ -505,6 +519,7 @@ export const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
       cpRef,
       setCP,
       setSelectedCrease,
+      setSelectedVertex,
     );
     fabricCanvasRef.current = fabricCanvas;
 
@@ -599,6 +614,12 @@ export const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
     selectedCreaseRef.current = selectedCrease;
   }, [selectedCrease]);
 
+  const [selectedVertex, setSelectedVertex] = useState<number | null>(null);
+  const selectedVertexRef = useRef<number | null>(null);
+  useEffect(() => {
+    selectedVertexRef.current = selectedVertex;
+  }, [selectedVertex]);
+
   //render cp on canvas
   useEffect(() => {
     if (fabricCanvasRef.current && cp) {
@@ -608,10 +629,10 @@ export const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
         .filter((index) => !checkKawasakiVertex(cp, index));
       fabricCanvas.clear();
       console.log("rerendering");
-      renderCP(cp, fabricCanvas, Array.from(errors), showKawasaki,selectedCrease);
+      renderCP(cp, fabricCanvas, Array.from(errors), showKawasaki,selectedCrease,selectedVertex);
       fabricCanvas.renderAll();
     }
-  }, [cp, showKawasaki,selectedCrease]);
+  }, [cp, showKawasaki,selectedCrease,selectedVertex]);
 
   //post
   useEffect(() => {

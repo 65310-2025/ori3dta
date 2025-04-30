@@ -316,6 +316,23 @@ export function findNearestCrease(fold:Fold, click:[number,number],tolerance:num
 
 }
 
+export function findNearestVertex(fold:Fold, click:[number,number],tolerance:number):number {
+  /*
+  Given a click position, find the nearest vertex to that position and return the vertex's index.
+  */
+  let nearestVertexIndex = -1;
+  let minDistance = Infinity;
+  for (let i = 0; i < fold.vertices_coords.length; i++) {
+    const vertex = fold.vertices_coords[i];
+    const distanceToVertex = distance(click, vertex);
+    if (distanceToVertex < minDistance && distanceToVertex < tolerance) {
+      minDistance = distanceToVertex;
+      nearestVertexIndex = i;
+    }
+  }
+  return nearestVertexIndex;
+}
+
 function splitEdge(fold: Fold, edgeIndex: number, vertexIndex: number): void {
   const oldVertex1Index = fold.edges_vertices[edgeIndex][0];
   const oldVertex2Index = fold.edges_vertices[edgeIndex][1];
