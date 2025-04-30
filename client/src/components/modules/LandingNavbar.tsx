@@ -3,7 +3,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { googleLogout } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 
-import logo from "../../../logo_text.svg";
+import logo from "../../../logo_text.png";
 import { UserContext } from "../App";
 import "./LandingNavbar.css";
 

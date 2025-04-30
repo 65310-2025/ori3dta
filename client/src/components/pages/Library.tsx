@@ -19,7 +19,7 @@ const Library: React.FC = () => {
     return <p>Error: User context is not available.</p>;
   }
 
-  const { userId, handleLogout } = context;
+  const { userId } = context;
 
   if (!userId) {
     return <p>Error: You must be logged in to view this page.</p>;
@@ -47,39 +47,6 @@ const Library: React.FC = () => {
     getDesigns();
   }, []);
 
-  const items: MenuProps["items"] = [
-    {
-      label: "Some other pages that don't exist yet",
-      key: "app",
-    },
-    {
-      key: "new",
-      icon: (
-        <img
-          src={NewIcon}
-          alt="New crease pattern"
-          style={{ width: "50px" }}
-          onClick={() => setIsModalOpen(true)}
-        />
-      ),
-    },
-    {
-      key: "logout",
-      icon: (
-        <img
-          src={LogoutIcon}
-          alt="Logout"
-          style={{ width: "50px" }}
-          onClick={() => {
-            googleLogout();
-            handleLogout();
-            navigate("/");
-          }}
-        />
-      ),
-    },
-  ];
-
   const handleCancel = () => {
     setIsModalOpen(false);
     form.resetFields();
@@ -104,55 +71,60 @@ const Library: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <>
       <Navbar />
-      <Menu mode="horizontal" items={items} />
-      <Modal
-        title="New Crease Pattern"
-        open={isModalOpen}
-        onCancel={handleCancel}
-        onOk={handleSubmit}
-        okText="Create"
-        cancelText="Cancel"
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="name"
-            label="Name"
-            rules={[{ required: true, message: "Please enter the name" }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="description"
-            label="Description"
-            rules={[
-              { required: true, message: "Please enter the description" },
-            ]}
-          >
-            <Input.TextArea />
-          </Form.Item>
-        </Form>
-      </Modal>
-      <Flex wrap>
-        {designs.map((design: DesignMetadataDto) => (
-          <div className="m-2" key={design._id}>
-            <Card title={design.name} variant="borderless">
-              <p>{design.description}</p>
-              <p>Creator: {design.creatorName}</p>
-              <Button
-                type="default"
-                onClick={() => {
-                  navigate(`/editor/${design.cpID}`);
-                }}
+      <div className="Library">
+        <Modal
+          title="New Crease Pattern"
+          open={isModalOpen}
+          onCancel={handleCancel}
+          onOk={handleSubmit}
+          okText="Create"
+          cancelText="Cancel"
+        >
+          <Form form={form} layout="vertical">
+            <Form.Item
+              name="name"
+              label="Name"
+              rules={[{ required: true, message: "Please enter the name" }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="description"
+              label="Description"
+              rules={[
+                { required: true, message: "Please enter the description" },
+              ]}
+            >
+              <Input.TextArea />
+            </Form.Item>
+          </Form>
+        </Modal>
+        <Flex wrap>
+          {designs.map((design: DesignMetadataDto) => (
+            <div className="Library-design" key={design._id}>
+              <Card
+                className="Library-design"
+                title={design.name}
+                variant="borderless"
               >
-                Edit
-              </Button>
-            </Card>
-          </div>
-        ))}
-      </Flex>
-    </div>
+                <p>{design.description}</p>
+                <p>Creator: {design.creatorName}</p>
+                <Button
+                  type="default"
+                  onClick={() => {
+                    navigate(`/editor/${design.cpID}`);
+                  }}
+                >
+                  Edit
+                </Button>
+              </Card>
+            </div>
+          ))}
+        </Flex>
+      </div>
+    </>
   );
 };
 
