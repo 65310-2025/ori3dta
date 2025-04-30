@@ -74,6 +74,13 @@ const Library: React.FC = () => {
     <>
       <Navbar />
       <div className="Library">
+        <Button
+          type="primary"
+          icon={<img src={NewIcon} alt="New Design" style={{ width: "100px", height: "100px" }} />}
+          onClick={() => setIsModalOpen(true)}
+        >
+          New Design
+        </Button>
         <Modal
           title="New Crease Pattern"
           open={isModalOpen}
@@ -94,7 +101,7 @@ const Library: React.FC = () => {
               name="description"
               label="Description"
               rules={[
-                { required: true, message: "Please enter the description" },
+          { required: true, message: "Please enter the description" },
               ]}
             >
               <Input.TextArea />

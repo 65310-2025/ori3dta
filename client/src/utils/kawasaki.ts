@@ -34,6 +34,7 @@ function getRotationMatrices(
 
   //Convert connected vertices into thetas
   const thetas = connectedVertices.map((connectedVertexIndex) => {
+    console.log(`Connected vertex index: ${connectedVertexIndex}, vertex: ${vertexIndex}, connected vertex coords: ${fold.vertices_coords[connectedVertexIndex]}`);
     const connectedVertex = fold.vertices_coords[connectedVertexIndex];
     const x = connectedVertex[0] - vertex[0];
     const y = connectedVertex[1] - vertex[1];
@@ -60,6 +61,11 @@ export function checkKawasakiVertex(fold: Fold, vertexIndex: number): boolean {
     Check if a particular vertex is foldable by Kawasaki's theorem. This is a necessary condition, not sufficient. Returns true if foldable and false if not
     Should run in O(n) time where n is the number of connected vertices. In practice, n rarely exceeds 8 or so
     */
+
+  if (!fold.vertices_coords || !fold.vertices_coords[vertexIndex]) {
+    console.warn(`Vertex ${vertexIndex} is undefined or invalid`);
+    return false;
+  }
   const rotationMatrices = getRotationMatrices(fold, vertexIndex);
   if (rotationMatrices === null) {
     return true; //vertex IS foldable
@@ -116,6 +122,7 @@ export function makeKawasakiFoldable(
     }
   }
 
+  console.log("Candidate creases: ", candidateCreases);
   //For each candidate crease, check if it actually makes the vertex foldable.
   let verifiedCreases: Array<{ theta: number; rho: number }> = [];
   //Zip the candidate creases with their matrix forms

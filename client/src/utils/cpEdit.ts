@@ -253,6 +253,23 @@ export function deleteBox(
     newFold.edges_foldAngle[edgeIndex] = NaN;
   }
 
+  // also remove from within the adjacency lists
+  for (const vertex_vertices of newFold.vertices_vertices) {
+    for (let i = 0; i < vertex_vertices.length; i++) {
+      const vertexIndex = vertex_vertices[i];
+      if (verticesToDelete.includes(vertexIndex)) {
+        vertex_vertices[i] = NaN;
+      }
+    }
+  }
+  for (const vertex_edges of newFold.vertices_edges) {
+    for (let i = 0; i < vertex_edges.length; i++) {
+      const edgeIndex = vertex_edges[i];
+      if (edgesToDelete.includes(edgeIndex)) {
+        vertex_edges[i] = NaN;
+      }
+    }
+  }
 
   // Remove all null entries from the arrays
   newFold.vertices_coords = newFold.vertices_coords.filter((v) => !isNaN(v[0]));
@@ -264,6 +281,14 @@ export function deleteBox(
   newFold.edges_assignment = newFold.edges_assignment.filter((v) => v !== "");
   newFold.edges_foldAngle = newFold.edges_foldAngle.filter((v) => !isNaN(v));
 
+  // Remove NaN entries from arrays within the adjacency lists
+  for (let i = 0; i < newFold.vertices_vertices.length; i++) {
+    newFold.vertices_vertices[i] = newFold.vertices_vertices[i].filter((v) => !isNaN(v));
+  }
+  for (let i = 0; i < newFold.vertices_edges.length; i++) {
+    newFold.vertices_edges[i] = newFold.vertices_edges[i].filter((v) => !isNaN(v));
+  }
+  
   //adjust indices
   newFold.edges_vertices = newFold.edges_vertices.map(([vertex1, vertex2]) => {
     const deletedBeforeVertex1 = verticesToDelete.filter((v) => v < vertex1).length;
@@ -285,7 +310,7 @@ export function deleteBox(
     }),
   );
 
-  console.log(newFold)
+  console.log("after deletion", newFold)
   return newFold;
 }
 

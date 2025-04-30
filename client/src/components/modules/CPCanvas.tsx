@@ -6,7 +6,7 @@ import { Canvas, Point, Polygon} from "fabric";
 import { ClientCPDto } from "../../../../dto/dto";
 import { Fold } from "../../types/fold";
 import { createEdge, deleteBox, findNearestCrease, findNearestVertex } from "../../utils/cpEdit";
-import { checkKawasakiVertex } from "../../utils/kawasaki";
+import { checkKawasakiVertex, makeKawasakiFoldable } from "../../utils/kawasaki";
 import { get, post } from "../../utils/requests";
 
 const SNAP_TOLERANCE = 30;
@@ -197,6 +197,8 @@ const handleLeftClick = (
     setInspectorText("No crease selected")
     setInspectorInput("")
     hideInspector()
+
+    setSelectedVertex(null)
     if (modeRef.current === Mode.Drawing) {
       // console.log(clickStart,clickEnd,cpRef.current)
       if (cpRef.current) {
@@ -284,6 +286,12 @@ const handleLeftClick = (
         }
         else {
           setSelectedVertex(nearestVertex)
+          const solution = makeKawasakiFoldable(cpRef.current, nearestVertex);
+          if (solution) {
+            console.log("solution", solution);
+          } else {
+            console.log("vertex is already foldable");
+          }
         }
       }
     }
@@ -624,6 +632,7 @@ export const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
   useEffect(() => {
     if (fabricCanvasRef.current && cp) {
       const fabricCanvas = fabricCanvasRef.current;
+      console.log("about to check kawasaki",cp)
       const errors = cp.vertices_coords
         .keys()
         .filter((index) => !checkKawasakiVertex(cp, index));
