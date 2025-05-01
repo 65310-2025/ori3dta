@@ -11,8 +11,9 @@
   --foreground: #eeeeee;
   --foreground-secondary: #cccccc;
   --text-color: #ffffff;
-  --text-color-secondary: #eeeeee;
+  --text-color-secondary: #dddddd;
   --text-color-dark: #333333;
+  --darkmode-invert: 100%;
 }
 
 [data-theme="light"] {
