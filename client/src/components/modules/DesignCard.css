@@ -1,0 +1,47 @@
+.Library-design {
+  margin: 10px;
+  background-color: var(--background-light);
+  color: var(--text-color);
+  height: 220px;
+  width: 190px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.Design-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.Design-title {
+  font-size: 1.5em;
+  margin: 10px 15px;
+  font-weight: bold;
+  border-bottom: 2px solid;
+  height: 38px;
+}
+
+.Design-delete {
+  height: 30px;
+  filter: invert(var(--darkmode-invert));
+  margin: 10px 15px;
+}
+
+.Design-content {
+  margin-left: 15px;
+  margin-right: 15px;
+  height: 94px;
+}
+
+.Design-desc {
+  margin-top: 10px;
+}
+
+.Design-footer {
+  margin: 5px 15px;
+  color: var(--text-color-secondary);
+  font-size: 0.8em;
+}

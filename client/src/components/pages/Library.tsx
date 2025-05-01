@@ -1,18 +1,19 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import { googleLogout } from "@react-oauth/google";
-import { Button, Card, Flex, Form, Input, Menu, Modal } from "antd";
-import type { MenuProps } from "antd";
+import { Form, Input, Modal } from "antd";
 import { useNavigate } from "react-router-dom";
 
 import { DesignMetadataDto, NewDesignDto } from "../../../../dto/dto";
-import LogoutIcon from "../../assets/icons/logout.svg";
 import NewIcon from "../../assets/icons/new.svg";
 import { get, post } from "../../utils/requests";
 import { UserContext } from "../App";
+import DesignCard from "../modules/DesignCard";
 import Navbar from "../modules/LandingNavbar";
+import "./Library.css";
 
 const Library: React.FC = () => {
+  const navigate = useNavigate();
+
   const context = useContext(UserContext);
 
   if (!context) {
@@ -22,13 +23,12 @@ const Library: React.FC = () => {
   const { userId } = context;
 
   if (!userId) {
-    return <p>Error: You must be logged in to view this page.</p>;
+    navigate("/login");
   }
 
   const [designs, setDesigns] = useState<DesignMetadataDto[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
-  const navigate = useNavigate(); // Get the navigate function
 
   // Get metadata for all designs from server
   // TODO: later on, implement pagination in the /designs endpoint in case we have some
@@ -45,7 +45,7 @@ const Library: React.FC = () => {
     };
 
     getDesigns();
-  }, []);
+  }, [userId]);
 
   const handleCancel = () => {
     setIsModalOpen(false);
@@ -74,14 +74,8 @@ const Library: React.FC = () => {
     <>
       <Navbar />
       <div className="Library">
-        <Button
-          type="primary"
-          icon={<img src={NewIcon} alt="New Design" style={{ width: "100px", height: "100px" }} />}
-          onClick={() => setIsModalOpen(true)}
-        >
-          New Design
-        </Button>
         <Modal
+          className="Library-new-form"
           title="New Crease Pattern"
           open={isModalOpen}
           onCancel={handleCancel}
@@ -89,7 +83,7 @@ const Library: React.FC = () => {
           okText="Create"
           cancelText="Cancel"
         >
-          <Form form={form} layout="vertical">
+          <Form className="Library-new-form" form={form} layout="vertical">
             <Form.Item
               name="name"
               label="Name"
@@ -101,35 +95,30 @@ const Library: React.FC = () => {
               name="description"
               label="Description"
               rules={[
-          { required: true, message: "Please enter the description" },
+                { required: true, message: "Please enter the description" },
               ]}
             >
               <Input.TextArea />
             </Form.Item>
           </Form>
         </Modal>
-        <Flex wrap>
+        <div className="Library-design-list">
           {designs.map((design: DesignMetadataDto) => (
-            <div className="Library-design" key={design._id}>
-              <Card
-                className="Library-design"
-                title={design.name}
-                variant="borderless"
-              >
-                <p>{design.description}</p>
-                <p>Creator: {design.creatorName}</p>
-                <Button
-                  type="default"
-                  onClick={() => {
-                    navigate(`/editor/${design.cpID}`);
-                  }}
-                >
-                  Edit
-                </Button>
-              </Card>
-            </div>
+            <DesignCard
+              design={design}
+              setDesigns={setDesigns}
+              key={design._id}
+            />
           ))}
-        </Flex>
+          <div className="Library-design">
+            <div className="Library-new">
+              <p>New Design</p>
+              <button onClick={() => setIsModalOpen(true)}>
+                <img className="Library-new-icon" src={NewIcon}></img>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );

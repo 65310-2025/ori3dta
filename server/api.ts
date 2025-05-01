@@ -134,7 +134,7 @@ router.get("/designs/:id", async (req: Request, res: Response) => {
   const metadata = await DesignMetadata.find({
     cpID: req.params.id,
   });
-  if (!metadata || !metadata[0].readAccess.includes(req.user._id)) {
+  if (!metadata[0] || !metadata[0].readAccess.includes(req.user._id)) {
     res.status(403).send({ msg: "Forbidden" });
     return;
   }
@@ -183,22 +183,30 @@ router.post("/designs/:id", async (req: Request, res: Response) => {
   res.send(design);
 });
 
-router.delete("/designs/:id", async (req: Request, res: Response) => {
+router.post("/designs/delete/:id", async (req: Request, res: Response) => {
+  console.log(req.user);
   if (!req.user) {
     // not logged in
     res.status(401).send({ msg: "Unauthorized" });
     return;
   }
 
-  const design = await DesignMetadata.findById(req.params.id);
-  if (!design || design.creatorID !== req.user._id) {
-    res.status(403).send({ msg: "Forbidden" });
-    return;
-  }
+  console.log(req.params.id);
+  console.log(req.user._id);
+  const design = await DesignMetadata.find({
+    cpID: req.params.id,
+  });
+  console.log(design);
+  // if (!design || design.creatorID !== req.user._id) {
+  //   res.status(403).send({ msg: "Forbidden" });
+  //   return;
+  // }
 
-  const cp = await CP.findById(design.cpID);
-  await design.deleteOne();
-  await cp?.deleteOne();
+  if (design) {
+    const cp = await CP.findById(design[0].cpID);
+    await design[0].deleteOne();
+    await cp?.deleteOne();
+  }
   res.send({ msg: "Design deleted" });
 });
 
