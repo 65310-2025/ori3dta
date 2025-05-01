@@ -29,13 +29,11 @@ const Navbar: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    console.log("Theme changed to:", theme);
     localStorage.setItem("theme", theme);
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
   const toggleTheme = () => {
-    console.log("Theme toggled");
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
