@@ -8,7 +8,7 @@
   --background: #182472;
   --background-dark: #061156;
   --background-light: #3344b2;
-  --foreground: #eeeeee;
+  --foreground: #3354d2;
   --foreground-secondary: #cccccc;
   --text-color: #ffffff;
   --text-color-secondary: #dddddd;
@@ -17,12 +17,13 @@
 }
 
 [data-theme="light"] {
-  --background: #f0f0f0;
-  --background-dark: #f0f0f0;
+  --background: #eeeeee;
+  --background-dark: #aaaaaa;
   --background-light: #ffffff;
-  --text-color: #333333;
-  --foreground-color: #dddddd;
-  --text-color-dark: #444444;
-  --text-color-secondary: #eeeeee;
-  --button-color: #eeeeee;
+  --foreground: #dddddd;
+  --foreground-secondary: #cccccc;
+  --text-color: #000000;
+  --text-color-secondary: #333333;
+  --text-color-dark: #ffffff;
+  --darkmode-invert: 0%;
 }

@@ -70,21 +70,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--button-color);
   color: var(--text-color);
 }
 
 .Navbar-dropdown-link {
   background-color: var(--foreground);
-  color: var(--text-color-dark);
+  color: var(--text-color);
   border-width: 2px;
   border-style: none none solid none;
-  border-color: var(--text-color-dark);
+  border-color: var(--text-color);
   height: var(--dropdown-height);
 }
 
 .Navbar-dropdown-link:hover {
-  color: var(--foreground-color);
-  background-color: var(--text-color-dark);
-  border-color: var(--foreground-color);
+  color: var(--foreground);
+  background-color: var(--text-color);
+  border-color: var(--foreground);
+}
+
+.Navbar-theme-toggle {
+  height: calc(var(--header-height) - 20px);
+  filter: invert(var(--darkmode-invert));
 }

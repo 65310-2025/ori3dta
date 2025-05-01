@@ -4,6 +4,7 @@ import { googleLogout } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 
 import logo from "../../../logo_text.png";
+import themeToggle from "../../assets/icons/theme-toggle.svg";
 import { UserContext } from "../App";
 import "./LandingNavbar.css";
 
@@ -13,6 +14,30 @@ const Navbar: React.FC = () => {
 
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [theme, setTheme] = useState("dark");
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else {
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)",
+      ).matches;
+      setTheme(prefersDark ? "dark" : "light");
+    }
+  }, []);
+
+  useEffect(() => {
+    console.log("Theme changed to:", theme);
+    localStorage.setItem("theme", theme);
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    console.log("Theme toggled");
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  };
 
   if (!context) {
     return null;
@@ -38,8 +63,6 @@ const Navbar: React.FC = () => {
   };
 
   const toggleDropdown = () => {
-    console.log(`Setting dropdownVisible to ${!dropdownVisible}`);
-    console.log(dropdownVisible.toString());
     setDropdownVisible(!dropdownVisible);
   };
 
@@ -122,6 +145,12 @@ const Navbar: React.FC = () => {
         </a>
       </div>
       <div className="Navbar-login" ref={dropdownRef}>
+        <img
+          src={themeToggle}
+          alt="Theme Toggle"
+          className="Navbar-theme-toggle"
+          onClick={toggleTheme}
+        />
         {loginElement}
       </div>
     </div>

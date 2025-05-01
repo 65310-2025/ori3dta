@@ -25,9 +25,7 @@ const DesignCard: React.FC<DesignCardProps> = ({ design, setDesigns }) => {
   const handleDelete = async () => {
     try {
       await post(`/api/designs/delete/${design.cpID}`);
-      console.log("Getting desings");
       const designs: Array<DesignMetadataDto> = await get("/api/designs");
-      console.log("Hello", designs);
       setDesigns(designs);
       setIsModalOpen(false);
     } catch (error) {
