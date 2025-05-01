@@ -4,6 +4,7 @@
   background-color: var(--background);
   height: calc(100vh - var(--header-height));
   padding: 30px;
+  overflow: scroll;
 }
 
 .Library-new {

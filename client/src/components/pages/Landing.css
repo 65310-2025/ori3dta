@@ -21,11 +21,11 @@
 }
 
 h1.Home-title-text {
-  font-size: 6rem;
+  font-size: min(6rem, 10vw);
 }
 
 h2.Home-title-text {
-  font-size: 4rem;
+  font-size: min(4rem, min(7vh, 7vw));
   margin: 0.5rem 0;
 }
 
@@ -41,7 +41,7 @@ h2.Home-title-text {
 }
 
 h3.Home-demo-text {
-  font-size: 3rem;
+  font-size: min(3rem, min(5vw, 5vh));
 }
 
 .Home-try-button {
