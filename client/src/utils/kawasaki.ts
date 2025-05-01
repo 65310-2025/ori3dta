@@ -34,7 +34,6 @@ function getRotationMatrices(
 
   //Convert connected vertices into thetas
   const thetas = connectedVertices.map((connectedVertexIndex) => {
-    console.log(`Connected vertex index: ${connectedVertexIndex}, vertex: ${vertexIndex}, connected vertex coords: ${fold.vertices_coords[connectedVertexIndex]}`);
     const connectedVertex = fold.vertices_coords[connectedVertexIndex];
     const x = connectedVertex[0] - vertex[0];
     const y = connectedVertex[1] - vertex[1];
@@ -94,7 +93,7 @@ export function makeKawasakiFoldable(
   if (rotationMatrices === null) {
     return null; //vertex is on the edge, does not need to be made foldable
   }
-
+  // console.log("Rotation matrices: ", rotationMatrices);
   //rotationMatrices is a circular list. Make n copies so that each copy starts with a different rotation matrix
   const n = rotationMatrices.length;
   const rotationMatricesCopies = Array.from({ length: n }, (_, index) => {
@@ -107,34 +106,38 @@ export function makeKawasakiFoldable(
     matrices.multiplyMatricesList(rotationMatrices.map(({ matrix }) => matrix)),
   );
 
-  const candidateCreases: Array<{ theta: number; rho: number }> = [];
+  const candidateCreases: Array<{
+    theta: number;
+    rho: number;
+    matrix: number[][];
+  }> = [];
   //For each matrix in netMatrices, check if matrix[1][0] == matrix[0][1]. This means the rotation matrix has no z component, and can be expressed as a single crease
   for (const matrix of netMatrices) {
     if (float.eq(matrix[1][0], matrix[0][1])) {
       //Find the theta and rho values of this single creases
       const theta = Math.atan2(matrix[0][2], matrix[2][1]); //really is the theta of the transpose, which is also the inverse
       const rho = Math.atan2(matrix[2][1] / Math.cos(theta), matrix[2][2]); //this is also the rho of the transpose
-      candidateCreases.push({ theta: theta, rho: rho });
+      candidateCreases.push({ theta: theta, rho: rho, matrix: matrix });
       candidateCreases.push({
         theta: theta >= 0 ? theta - Math.PI : theta + Math.PI,
         rho: -rho,
+        matrix: matrix,
       }); //add the opposite solution
     }
   }
 
-  console.log("Candidate creases: ", candidateCreases);
   //For each candidate crease, check if it actually makes the vertex foldable.
   let verifiedCreases: Array<{ theta: number; rho: number }> = [];
   //Zip the candidate creases with their matrix forms
-  const candidateCreaseMatrices = candidateCreases.map(({ theta, rho }) => ({
-    theta: theta,
-    rho: rho,
-    matrix: matrices.rotationMatrix(theta, rho),
-  }));
+  // const candidateCreaseMatrices = candidateCreases.map(({ theta, rho }) => ({
+  //   theta: theta,
+  //   rho: rho,
+  //   matrix: matrices.rotationMatrix(theta, rho),
+  // }));
   //Also zip the original rotation matrices with their thetas
   // const zipped_rotationMatrices = rotationMatrices.map(({matrix})=>matrix).map((matrix) => ({theta:Math.atan2(matrix[0][2],matrix[2][1]), matrix:matrix}));
 
-  for (const candidate of candidateCreaseMatrices) {
+  for (const candidate of candidateCreases) {
     //insert the candidate
     const newRotationMatrices = rotationMatrices.concat(candidate);
     //sort by theta
@@ -148,11 +151,12 @@ export function makeKawasakiFoldable(
     // const rotationVector = matrices.rotationMatrixToVector(finalMatrix);
     // console.log(rotationVector);
     // console.log("======")
+    console.log(finalMatrix);
     if (matrices.isIdentity(finalMatrix)) {
       verifiedCreases.push({ theta: candidate.theta, rho: candidate.rho });
     }
   }
-
+  console.log("Verified creases: ", verifiedCreases);
   //Eliminate duplicate solutions
   //NOTE: might end up with both pi and -pi because maekawa/local self intersection is not implemented
   verifiedCreases = verifiedCreases.filter(

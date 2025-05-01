@@ -283,16 +283,24 @@ export function deleteBox(
 
   // Remove NaN entries from arrays within the adjacency lists
   for (let i = 0; i < newFold.vertices_vertices.length; i++) {
-    newFold.vertices_vertices[i] = newFold.vertices_vertices[i].filter((v) => !isNaN(v));
+    newFold.vertices_vertices[i] = newFold.vertices_vertices[i].filter(
+      (v) => !isNaN(v),
+    );
   }
   for (let i = 0; i < newFold.vertices_edges.length; i++) {
-    newFold.vertices_edges[i] = newFold.vertices_edges[i].filter((v) => !isNaN(v));
+    newFold.vertices_edges[i] = newFold.vertices_edges[i].filter(
+      (v) => !isNaN(v),
+    );
   }
-  
+
   //adjust indices
   newFold.edges_vertices = newFold.edges_vertices.map(([vertex1, vertex2]) => {
-    const deletedBeforeVertex1 = verticesToDelete.filter((v) => v < vertex1).length;
-    const deletedBeforeVertex2 = verticesToDelete.filter((v) => v < vertex2).length;
+    const deletedBeforeVertex1 = verticesToDelete.filter(
+      (v) => v < vertex1,
+    ).length;
+    const deletedBeforeVertex2 = verticesToDelete.filter(
+      (v) => v < vertex2,
+    ).length;
     return [vertex1 - deletedBeforeVertex1, vertex2 - deletedBeforeVertex2];
   });
   newFold.vertices_vertices = newFold.vertices_vertices.map((vertexIndices) =>
@@ -305,16 +313,21 @@ export function deleteBox(
   );
   newFold.vertices_edges = newFold.vertices_edges.map((edgeIndices) =>
     edgeIndices.map((edgeIndex) => {
-      const deletedBeforeEdge = edgesToDelete.filter((v) => v < edgeIndex).length;
+      const deletedBeforeEdge = edgesToDelete.filter(
+        (v) => v < edgeIndex,
+      ).length;
       return edgeIndex - deletedBeforeEdge;
     }),
   );
 
-  console.log("after deletion", newFold)
   return newFold;
 }
 
-export function findNearestCrease(fold:Fold, click:[number,number],tolerance:number):number {
+export function findNearestCrease(
+  fold: Fold,
+  click: [number, number],
+  tolerance: number,
+): number {
   /*
   Given a click position, find the nearest crease to that position and return the crease's index. This is for changing the crease angle, so should only be returning creases whose assignment is M or V
   */
@@ -338,10 +351,13 @@ export function findNearestCrease(fold:Fold, click:[number,number],tolerance:num
   }
 
   return nearestCreaseIndex;
-
 }
 
-export function findNearestVertex(fold:Fold, click:[number,number],tolerance:number):number {
+export function findNearestVertex(
+  fold: Fold,
+  click: [number, number],
+  tolerance: number,
+): number {
   /*
   Given a click position, find the nearest vertex to that position and return the vertex's index.
   */
@@ -481,7 +497,7 @@ function vertexInBox(
   box: { min: [number, number]; max: [number, number] }, //min x, min y. max x, max y
 ): boolean {
   return (
-    v[0] >= box.min[0] && 
+    v[0] >= box.min[0] &&
     v[0] <= box.max[0] &&
     v[1] >= box.min[1] &&
     v[1] <= box.max[1]
