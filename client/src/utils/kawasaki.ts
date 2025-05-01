@@ -106,19 +106,22 @@ export function makeKawasakiFoldable(
     matrices.multiplyMatricesList(rotationMatrices.map(({ matrix }) => matrix)),
   );
 
-
-  const candidateCreases: Array<{ theta: number; rho: number ;matrix: number[][]}> = [];
+  const candidateCreases: Array<{
+    theta: number;
+    rho: number;
+    matrix: number[][];
+  }> = [];
   //For each matrix in netMatrices, check if matrix[1][0] == matrix[0][1]. This means the rotation matrix has no z component, and can be expressed as a single crease
   for (const matrix of netMatrices) {
     if (float.eq(matrix[1][0], matrix[0][1])) {
       //Find the theta and rho values of this single creases
       const theta = Math.atan2(matrix[0][2], matrix[2][1]); //really is the theta of the transpose, which is also the inverse
       const rho = Math.atan2(matrix[2][1] / Math.cos(theta), matrix[2][2]); //this is also the rho of the transpose
-      candidateCreases.push({ theta: theta, rho: rho, matrix:matrix });
+      candidateCreases.push({ theta: theta, rho: rho, matrix: matrix });
       candidateCreases.push({
         theta: theta >= 0 ? theta - Math.PI : theta + Math.PI,
         rho: -rho,
-        matrix:matrix
+        matrix: matrix,
       }); //add the opposite solution
     }
   }
@@ -148,7 +151,7 @@ export function makeKawasakiFoldable(
     // const rotationVector = matrices.rotationMatrixToVector(finalMatrix);
     // console.log(rotationVector);
     // console.log("======")
-    console.log(finalMatrix)
+    console.log(finalMatrix);
     if (matrices.isIdentity(finalMatrix)) {
       verifiedCreases.push({ theta: candidate.theta, rho: candidate.rho });
     }

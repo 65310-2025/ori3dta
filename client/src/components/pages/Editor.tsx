@@ -7,7 +7,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import LibraryIcon from "../../assets/icons/library.svg";
 import { UserContext } from "../App";
-import {CPCanvas} from "../modules/CPCanvas";
+import { CPCanvas } from "../modules/CPCanvas";
 
 const Editor: React.FC = () => {
   const navigate = useNavigate();
