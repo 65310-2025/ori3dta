@@ -122,6 +122,9 @@ const handleLeftClick = (
 
   const handleMouseDown = (pos: [number, number]) => {
     clickStart = pos;
+    // if (selectedVertexRef.current !== null) {
+    //   setSelectedVertex(null);
+    // }
   };
 
   const handleMouseMove = (pos: [number, number]) => {
@@ -289,6 +292,42 @@ const handleLeftClick = (
           const solution = makeKawasakiFoldable(cpRef.current, nearestVertex);
           if (solution) {
             console.log("solution", solution);
+            if (canvas) {
+              for (const { theta, rho } of solution) {
+                // Draw a temporary line from the vertex in the direction of theta
+                const vertex = cpRef.current?.vertices_coords[nearestVertex];
+                const creaseLine = new Line(
+                  [
+                  vertex[0],
+                  vertex[1],
+                  vertex[0] + 0.1 * Math.cos(theta),
+                  vertex[1] + 0.1 * Math.sin(theta),
+                  ],
+                  {
+                  stroke: "purple",
+                  strokeWidth: 0.5 * STROKE_WIDTH / canvas.getZoom(),
+                  selectable: false,
+                  evented: false,
+                  },
+                );
+
+                const arrowHead = new Polygon(
+                  [
+                  { x: vertex[0] + 0.1 * Math.cos(theta), y: vertex[1] + 0.1 * Math.sin(theta) },
+                  { x: vertex[0] + 0.07 * Math.cos(theta + Math.PI / 12), y: vertex[1] + 0.07 * Math.sin(theta + Math.PI / 12) },
+                  { x: vertex[0] + 0.07 * Math.cos(theta - Math.PI / 12), y: vertex[1] + 0.07 * Math.sin(theta - Math.PI / 12) },
+                  ],
+                  {
+                  fill: "purple",
+                  selectable: false,
+                  evented: false,
+                  },
+                );
+                canvas.add(creaseLine); // Add the crease line to the canvas
+                canvas.add(arrowHead); // Add the arrowhead to the canvas
+              }
+              canvas.renderAll(); // Render the canvas
+            }
           } else {
             console.log("vertex is already foldable");
           }
@@ -334,10 +373,10 @@ const makeCanvas = (
     // Zoom to the mouse pointer
     canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY } as Point, zoom);
     canvas.getObjects().forEach((obj) => {
-      if (obj.type=== "line"){
+      if (obj.type=== "line" && obj.stroke !== "purple"){
         obj.strokeWidth = STROKE_WIDTH/zoom
       }
-      else if (obj.type=== "polygon"){
+      else if (obj.type=== "polygon" && obj.fill !== "purple"){
         obj.strokeWidth = 5*STROKE_WIDTH/zoom
       }
       else if (obj instanceof Circle) {
@@ -632,7 +671,6 @@ export const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
   useEffect(() => {
     if (fabricCanvasRef.current && cp) {
       const fabricCanvas = fabricCanvasRef.current;
-      console.log("about to check kawasaki",cp)
       const errors = cp.vertices_coords
         .keys()
         .filter((index) => !checkKawasakiVertex(cp, index));

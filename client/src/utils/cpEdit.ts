@@ -310,7 +310,6 @@ export function deleteBox(
     }),
   );
 
-  console.log("after deletion", newFold)
   return newFold;
 }
 
