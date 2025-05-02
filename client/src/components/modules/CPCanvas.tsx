@@ -14,6 +14,7 @@ import {
 import {
   checkKawasakiVertex,
   makeKawasakiFoldable,
+  angleDifference
 } from "../../utils/kawasaki";
 import { get, post } from "../../utils/requests";
 
@@ -22,6 +23,7 @@ const STROKE_WIDTH = 4; //0.004;
 const ERROR_CIRCLE_RADIUS = 10;
 const TEMP_STROKE_WIDTH = 0.002;
 const CLICK_TOLERANCE = 10;
+const ANGLE_TOLERANCE = 0.1; // radians for kawasaki fix
 
 enum MvMode {
   Mountain = "M",
@@ -144,10 +146,7 @@ const handleLeftClick = (
   let clickStart: [number, number] | null = null;
 
   const handleMouseDown = (pos: [number, number]) => {
-    clickStart = pos;
-    // if (selectedVertexRef.current !== null) {
-    //   setSelectedVertex(null);
-    // }
+    clickStart = pos;  
   };
 
   const handleMouseMove = (pos: [number, number]) => {
@@ -218,7 +217,9 @@ const handleLeftClick = (
     pos: [number, number],
     setSelectedCrease: (crease: number | null) => void,
     setSelectedVertex: (vertex: number | null) => void,
+    selectedVertexRef: RefObject<number | null>,
   ) => {
+    const selectedVertex= selectedVertexRef.current;
     // console.log("left click up at:", pos);
     if (clickStart === null) {
       return;
@@ -227,8 +228,10 @@ const handleLeftClick = (
     setInspectorText("No crease selected");
     setInspectorInput("");
     hideInspector();
+    if (modeRef.current !== Mode.EditVertex){
+      setSelectedVertex(null);
+    }
 
-    setSelectedVertex(null);
     if (modeRef.current === Mode.Drawing) {
       // console.log(clickStart,clickEnd,cpRef.current)
       if (cpRef.current) {
@@ -336,10 +339,32 @@ const handleLeftClick = (
           clickStart,
           CLICK_TOLERANCE / canvas.getZoom(),
         );
-        console.log(nearestVertex);
-        if (nearestVertex == -1) {
-          setSelectedVertex(null);
-        } else {
+        console.log("selected vertex", selectedVertex);
+        if (selectedVertex !== null && selectedVertex !== nearestVertex) {
+          // try to draw line
+          const solution = makeKawasakiFoldable(cpRef.current, selectedVertex);
+          const vertex = cpRef.current?.vertices_coords[selectedVertex];
+          const clickAngle = Math.atan2(pos[1]-vertex[1], pos[0]-vertex[0])
+          console.log("click angle", clickAngle);
+          if (solution && solution.length > 0) {
+            const closestSolution = solution.reduce((prev, curr) => {
+              return Math.abs(angleDifference(curr.theta,clickAngle)) < Math.abs(angleDifference(prev.theta,clickAngle))
+                ? curr
+                : prev;
+            });
+            if(
+              Math.abs(angleDifference(closestSolution.theta, clickAngle)) <
+              ANGLE_TOLERANCE
+            ) {
+              const distance = Math.sqrt((pos[0] - vertex[0]) ** 2 + (pos[1] - vertex[1]) ** 2)
+              const output = createEdge(cpRef.current, vertex, [vertex[0] + distance * Math.cos(closestSolution.theta),vertex[1] + distance * Math.sin(closestSolution.theta),], closestSolution.rho, closestSolution.theta>0?"V":"M", SNAP_TOLERANCE / canvas.getZoom());
+              setCP(output.fold);
+              console.log("added crease for kawasaki fix");
+            }
+          }     
+        }
+        if (nearestVertex !== -1) {
+          console.log("setting selected vertex", nearestVertex);
           setSelectedVertex(nearestVertex);
           const solution = makeKawasakiFoldable(cpRef.current, nearestVertex);
           if (solution) {
@@ -388,13 +413,18 @@ const handleLeftClick = (
                 canvas.add(arrowHead); // Add the arrowhead to the canvas
               }
               canvas.renderAll(); // Render the canvas
+              // arrows appear on the double click. the first time, changing the selected vertex rerenders the canvas after the arrows are placed and overwrites them. the second time, the click does not change the selected vertex, so the arrows are not overwritten
             }
           } else {
             console.log("vertex is already foldable");
           }
+        } else {
+          console.log("setting selected vertex to null");
+          setSelectedVertex(null);
         }
       }
     }
+    
     clickStart = null;
   };
 
@@ -409,6 +439,7 @@ const makeCanvas = (
   setCP: (cp: Fold) => void,
   setSelectedCrease: (crease: number | null) => void,
   setSelectedVertex: (vertex: number | null) => void,
+  selectedVertex: RefObject<number | null>,
 ) => {
   const canvas = new Canvas(canvaselement, {
     allowTouchScrolling: true,
@@ -416,7 +447,7 @@ const makeCanvas = (
     selection: false,
   });
 
-  canvas.zoomToPoint({ x: 0.5, y: 0.5 } as Point, 500);
+  canvas.zoomToPoint({ x: -0.1, y: -0.1 } as Point, 500);
 
   const leftHandler = handleLeftClick(canvas, modeRef, mvmodeRef, cpRef, setCP);
 
@@ -494,6 +525,7 @@ const makeCanvas = (
         [pos.x, pos.y],
         setSelectedCrease,
         setSelectedVertex,
+        selectedVertex,
       );
     }
   });
@@ -507,10 +539,11 @@ const renderCP = (
   errorVertices: number[],
   showKawasaki: boolean,
   selectedCrease: number | null,
-  selectedVertex: number | null,
+  selectedVertexRef: RefObject<number | null>,
 ) => {
   const { vertices_coords, edges_vertices, edges_assignment, edges_foldAngle } =
     cp;
+  const selectedVertex = selectedVertexRef.current;
 
   if (showKawasaki) {
     errorVertices.forEach((vertexIndex) => {
@@ -628,6 +661,7 @@ export const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
       setCP,
       setSelectedCrease,
       setSelectedVertex,
+      selectedVertexRef,
     );
     fabricCanvasRef.current = fabricCanvas;
 
@@ -749,7 +783,7 @@ export const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
         Array.from(errors),
         showKawasaki,
         selectedCrease,
-        selectedVertex,
+        selectedVertexRef,
       );
       fabricCanvas.renderAll();
     }

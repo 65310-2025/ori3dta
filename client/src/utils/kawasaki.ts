@@ -151,12 +151,12 @@ export function makeKawasakiFoldable(
     // const rotationVector = matrices.rotationMatrixToVector(finalMatrix);
     // console.log(rotationVector);
     // console.log("======")
-    console.log(finalMatrix);
+    // console.log(finalMatrix);
     if (matrices.isIdentity(finalMatrix)) {
       verifiedCreases.push({ theta: candidate.theta, rho: candidate.rho });
     }
   }
-  console.log("Verified creases: ", verifiedCreases);
+  // console.log("Verified creases: ", verifiedCreases);
   //Eliminate duplicate solutions
   //NOTE: might end up with both pi and -pi because maekawa/local self intersection is not implemented
   verifiedCreases = verifiedCreases.filter(
@@ -167,4 +167,12 @@ export function makeKawasakiFoldable(
       ),
   );
   return verifiedCreases;
+}
+
+export function angleDifference(a: number, b: number): number {
+  /*
+    Get the difference between two angles in radians. Returns a value between -pi and pi
+    */
+  const diff = a - b;
+  return Math.atan2(Math.sin(diff), Math.cos(diff));
 }
