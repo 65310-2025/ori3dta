@@ -80,6 +80,7 @@
   border-style: none none solid none;
   border-color: var(--text-color);
   height: var(--dropdown-height);
+  z-index: 10000;
 }
 
 .Navbar-dropdown-link:hover {

@@ -1,4 +1,10 @@
-import React, { RefObject, useEffect, useRef, useState } from "react";
+import React, {
+  RefObject,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { Circle, Line, Rect } from "fabric";
 import { Canvas, Point, Polygon } from "fabric";
@@ -12,11 +18,13 @@ import {
   findNearestVertex,
 } from "../../utils/cpEdit";
 import {
+  angleDifference,
   checkKawasakiVertex,
   makeKawasakiFoldable,
-  angleDifference
 } from "../../utils/kawasaki";
 import { get, post } from "../../utils/requests";
+import { ThemeContext } from "../App";
+import "./CPCanvas.css";
 
 const SNAP_TOLERANCE = 30;
 const STROKE_WIDTH = 4; //0.004;
@@ -64,12 +72,20 @@ const mv_map: Record<MvKey, MvMode> = {
 };
 
 const edge_colors: {
-  [key: string]: string;
+  [key: string]: { [key: string]: string };
 } = {
-  M: "red",
-  V: "blue",
-  B: "black",
-  A: "green",
+  light: {
+    M: "red",
+    V: "blue",
+    B: "black",
+    A: "green",
+  },
+  dark: {
+    M: "red",
+    V: "#6394f5",
+    B: "white",
+    A: "green",
+  },
 };
 
 const inspector = (
@@ -146,7 +162,7 @@ const handleLeftClick = (
   let clickStart: [number, number] | null = null;
 
   const handleMouseDown = (pos: [number, number]) => {
-    clickStart = pos;  
+    clickStart = pos;
   };
 
   const handleMouseMove = (pos: [number, number]) => {
@@ -219,7 +235,7 @@ const handleLeftClick = (
     setSelectedVertex: (vertex: number | null) => void,
     selectedVertexRef: RefObject<number | null>,
   ) => {
-    const selectedVertex= selectedVertexRef.current;
+    const selectedVertex = selectedVertexRef.current;
     // console.log("left click up at:", pos);
     if (clickStart === null) {
       return;
@@ -228,7 +244,7 @@ const handleLeftClick = (
     setInspectorText("No crease selected");
     setInspectorInput("");
     hideInspector();
-    if (modeRef.current !== Mode.EditVertex){
+    if (modeRef.current !== Mode.EditVertex) {
       setSelectedVertex(null);
     }
 
@@ -344,24 +360,37 @@ const handleLeftClick = (
           // try to draw line
           const solution = makeKawasakiFoldable(cpRef.current, selectedVertex);
           const vertex = cpRef.current?.vertices_coords[selectedVertex];
-          const clickAngle = Math.atan2(pos[1]-vertex[1], pos[0]-vertex[0])
+          const clickAngle = Math.atan2(pos[1] - vertex[1], pos[0] - vertex[0]);
           console.log("click angle", clickAngle);
           if (solution && solution.length > 0) {
             const closestSolution = solution.reduce((prev, curr) => {
-              return Math.abs(angleDifference(curr.theta,clickAngle)) < Math.abs(angleDifference(prev.theta,clickAngle))
+              return Math.abs(angleDifference(curr.theta, clickAngle)) <
+                Math.abs(angleDifference(prev.theta, clickAngle))
                 ? curr
                 : prev;
             });
-            if(
+            if (
               Math.abs(angleDifference(closestSolution.theta, clickAngle)) <
               ANGLE_TOLERANCE
             ) {
-              const distance = Math.sqrt((pos[0] - vertex[0]) ** 2 + (pos[1] - vertex[1]) ** 2)
-              const output = createEdge(cpRef.current, vertex, [vertex[0] + distance * Math.cos(closestSolution.theta),vertex[1] + distance * Math.sin(closestSolution.theta),], closestSolution.rho, closestSolution.theta>0?"V":"M", SNAP_TOLERANCE / canvas.getZoom());
+              const distance = Math.sqrt(
+                (pos[0] - vertex[0]) ** 2 + (pos[1] - vertex[1]) ** 2,
+              );
+              const output = createEdge(
+                cpRef.current,
+                vertex,
+                [
+                  vertex[0] + distance * Math.cos(closestSolution.theta),
+                  vertex[1] + distance * Math.sin(closestSolution.theta),
+                ],
+                closestSolution.rho,
+                closestSolution.theta > 0 ? "V" : "M",
+                SNAP_TOLERANCE / canvas.getZoom(),
+              );
               setCP(output.fold);
               console.log("added crease for kawasaki fix");
             }
-          }     
+          }
         }
         if (nearestVertex !== -1) {
           console.log("setting selected vertex", nearestVertex);
@@ -424,7 +453,7 @@ const handleLeftClick = (
         }
       }
     }
-    
+
     clickStart = null;
   };
 
@@ -484,7 +513,6 @@ const makeCanvas = (
   let lastPosY = 0;
 
   canvas.on("mouse:down", function (opt) {
-    // console.log(opt);
     const evt = opt.e as MouseEvent;
     if (evt.button === 0) {
       const pos = opt.absolutePointer;
@@ -592,10 +620,13 @@ const renderCP = (
     const [startIndex, endIndex] = edge;
     const start = vertices_coords[startIndex];
     const end = vertices_coords[endIndex];
+    const theme = document.documentElement.getAttribute("data-theme");
+    console.log("theme", theme);
+    const color =
+      edge_colors[theme || "dark"][edges_assignment[index]] ?? "green";
     if (start && end) {
       const line = new Line([start[0], start[1], end[0], end[1]], {
-        stroke:
-          edge_colors[edges_assignment[index] as "M" | "V" | "B"] ?? "green",
+        stroke: color,
         strokeWidth: STROKE_WIDTH / canvas.getZoom(),
         selectable: false,
         evented: false,
@@ -768,6 +799,8 @@ export const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
     selectedVertexRef.current = selectedVertex;
   }, [selectedVertex]);
 
+  const { theme } = useContext(ThemeContext);
+
   //render cp on canvas
   useEffect(() => {
     if (fabricCanvasRef.current && cp) {
@@ -787,7 +820,7 @@ export const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
       );
       fabricCanvas.renderAll();
     }
-  }, [cp, showKawasaki, selectedCrease, selectedVertex]);
+  }, [cp, theme, showKawasaki, selectedCrease, selectedVertex]);
 
   //post
   useEffect(() => {
@@ -818,8 +851,8 @@ export const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
   }, [cp]);
 
   return (
-    <div className="w-2/3 h-full">
-      <canvas ref={canvasRef} className="w-full h-full"></canvas>
+    <div className="Editor-canvas-wrap">
+      <canvas ref={canvasRef} className="Editor-canvas"></canvas>
       {inspector}
     </div>
   );

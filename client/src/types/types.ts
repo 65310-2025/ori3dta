@@ -10,3 +10,8 @@ export interface AuthContextValue {
   handleLogin: (credentialResponse: any) => void;
   handleLogout: () => void;
 }
+
+export interface ThemeContextValue {
+  theme: string;
+  setTheme: (string) => void;
+}

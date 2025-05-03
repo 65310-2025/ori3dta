@@ -5,36 +5,21 @@ import { useNavigate } from "react-router-dom";
 
 import logo from "../../../logo_text.png";
 import themeToggle from "../../assets/icons/theme-toggle.svg";
-import { UserContext } from "../App";
+import { ThemeContext, UserContext } from "../App";
 import "./LandingNavbar.css";
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const context = useContext(UserContext);
+  const themeContext = useContext(ThemeContext);
 
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [theme, setTheme] = useState("dark");
 
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme) {
-      setTheme(savedTheme);
-    } else {
-      const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)",
-      ).matches;
-      setTheme(prefersDark ? "dark" : "light");
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("theme", theme);
-    document.documentElement.setAttribute("data-theme", theme);
-  }, [theme]);
+  const { theme, setTheme } = themeContext || {};
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+    setTheme(theme === "dark" ? "light" : "dark");
   };
 
   if (!context) {

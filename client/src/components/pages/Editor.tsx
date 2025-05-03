@@ -1,13 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import { googleLogout } from "@react-oauth/google";
-import { Button, Menu, Spin } from "antd";
-import type { MenuProps } from "antd";
+import { Spin } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 
-import LibraryIcon from "../../assets/icons/library.svg";
 import { UserContext } from "../App";
 import { CPCanvas } from "../modules/CPCanvas";
+import Navbar from "../modules/LandingNavbar";
+import "./Editor.css";
 
 const Editor: React.FC = () => {
   const navigate = useNavigate();
@@ -20,7 +19,7 @@ const Editor: React.FC = () => {
     return <p>Error: User context is not available.</p>;
   }
 
-  const { userId, handleLogout } = context;
+  const { userId } = context;
 
   const { cpID } = useParams<{ cpID: string }>();
 
@@ -34,31 +33,6 @@ const Editor: React.FC = () => {
     }
   }, [userId]);
 
-  const handleLogoutAndNavigate = () => {
-    googleLogout();
-    handleLogout();
-    navigate("/");
-  };
-
-  // Navbar items
-  const items: MenuProps["items"] = [
-    {
-      key: "library",
-      icon: (
-        <img
-          src={LibraryIcon}
-          alt="Library"
-          style={{ width: "0px" }}
-          onClick={() => navigate("../library")}
-        />
-      ),
-    },
-    {
-      key: "logout",
-      icon: <Button onClick={handleLogoutAndNavigate}>Logout</Button>,
-    },
-  ];
-
   // TODO: implement this loading spinner logic on the other pages as well
   if (isLoading) {
     return (
@@ -70,22 +44,19 @@ const Editor: React.FC = () => {
 
   // TODO: forward ref CP
   return (
-    <div className="flex flex-col h-screen">
-      <Menu mode="horizontal" items={items} />
-      <div className="flex-1 flex">
-        <CPCanvas cpID={cpID} />
-        {
-          // <div className="w-2/3 h-full">
-          //   <canvas ref={canvasRef} className="w-full h-full"></canvas>
-          // </div>
-        }
-        <div className="w-1/3 h-full">
-          <div>
-            <h2>CP Details. 3d model/xray to go here</h2>
+    <>
+      <Navbar />
+      <div className="flex flex-col h-screen">
+        <div className="flex-1 flex">
+          <CPCanvas cpID={cpID} />
+          <div className="Editor-sidebar">
+            <div>
+              <h2>CP Details. 3d model/xray to go here</h2>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
