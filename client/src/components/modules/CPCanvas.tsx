@@ -71,9 +71,7 @@ const mv_map: Record<MvKey, MvMode> = {
   f: MvMode.Aux,
 };
 
-const edge_colors: {
-  [key: string]: { [key: string]: string };
-} = {
+const edge_colors: Record<string, Record<string, string>> = {
   light: {
     M: "red",
     V: "blue",
@@ -176,10 +174,11 @@ const handleLeftClick = (
       canvas.remove(existingTempLine); // Remove the existing temporary line or select or delete box
     }
     if (modeRef.current === Mode.Drawing && clickStart) {
+      const theme = document.documentElement.getAttribute("data-theme");
       const tempLine = new Line(
         [clickStart[0], clickStart[1], pos[0], pos[1]],
         {
-          stroke: edge_colors[mvmodeRef.current] ?? "gray",
+          stroke: edge_colors[theme || "dark"][mvmodeRef.current] ?? "gray",
           strokeWidth: TEMP_STROKE_WIDTH,
           selectable: false,
           evented: false,
@@ -472,7 +471,6 @@ const makeCanvas = (
 ) => {
   const canvas = new Canvas(canvaselement, {
     allowTouchScrolling: true,
-    backgroundColor: "gray", // TODO: match this with my actual color scheme
     selection: false,
   });
 
@@ -799,7 +797,7 @@ export const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
     selectedVertexRef.current = selectedVertex;
   }, [selectedVertex]);
 
-  const { theme } = useContext(ThemeContext);
+  const { theme } = useContext(ThemeContext) || { theme: "dark" };
 
   //render cp on canvas
   useEffect(() => {

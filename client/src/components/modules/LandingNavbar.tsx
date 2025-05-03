@@ -16,7 +16,10 @@ const Navbar: React.FC = () => {
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
-  const { theme, setTheme } = themeContext || {};
+  const { theme, setTheme } = themeContext || {
+    theme: "dark",
+    setTheme: () => {},
+  };
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");

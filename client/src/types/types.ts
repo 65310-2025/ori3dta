@@ -13,5 +13,5 @@ export interface AuthContextValue {
 
 export interface ThemeContextValue {
   theme: string;
-  setTheme: (string) => void;
+  setTheme: (theme: string) => void;
 }
