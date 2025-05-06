@@ -640,42 +640,15 @@ const renderCP = (
   });
 };
 
-export const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
-  if (!cpID) {
-    return <div>Error: cpID is undefined</div>;
-  }
+export interface CPCanvasProps {
+  cp: Fold | null;
+  setCP: (cp: Fold) => void;
+  cpRef: RefObject<Fold | null>;
+}
+
+export const CPCanvas: React.FC<CPCanvasProps> = ({ cp, setCP, cpRef }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<Canvas | null>(null);
-
-  const [cp, setCP] = useState<Fold | null>(null);
-  const cpRef = useRef<Fold | null>(null);
-
-  useEffect(() => {
-    cpRef.current = cp;
-  }, [cp]);
-
-  // Fetch the CP data from the server using CPid
-  useEffect(() => {
-    get(`/api/designs/${cpID}`).then((cp: Fold) => {
-      // Expand the CP by filling out redundant fields
-      cp.vertices_edges = Array(cp.vertices_coords.length)
-        .fill(null)
-        .map(() => []);
-      cp.vertices_vertices = Array(cp.vertices_coords.length)
-        .fill(null)
-        .map(() => []);
-
-      cp.edges_vertices.forEach(([start, end], index) => {
-        cp.vertices_edges[start].push(index);
-        cp.vertices_edges[end].push(index);
-
-        cp.vertices_vertices[start].push(end);
-        cp.vertices_vertices[end].push(start);
-      });
-      console.log(cp);
-      setCP(cp);
-    });
-  }, [cpID]);
 
   // Initialize FabricJS canvas
   useEffect(() => {
@@ -819,34 +792,6 @@ export const CPCanvas: React.FC<{ cpID: string | undefined }> = ({ cpID }) => {
       fabricCanvas.renderAll();
     }
   }, [cp, theme, showKawasaki, selectedCrease, selectedVertex]);
-
-  //post
-  useEffect(() => {
-    if (cp) {
-      const postCP = async () => {
-        try {
-          // convert cp to interface ClientCPDto
-          const cpData: ClientCPDto = {
-            vertices_coords: cp.vertices_coords,
-            edges_vertices: cp.edges_vertices,
-            edges_assignment: cp.edges_assignment,
-            edges_foldAngle: cp.edges_foldAngle, // TODO: convert to degrees?
-          };
-          const response = await post(`/api/designs/${cpID}`, cpData);
-
-          if (!response) {
-            console.error("Failed to post CP data");
-          } else {
-            console.log("CP data successfully posted");
-          }
-        } catch (error) {
-          console.error("Error posting CP data:", error);
-        }
-      };
-
-      postCP();
-    }
-  }, [cp]);
 
   return (
     <div className="Editor-canvas-wrap">
