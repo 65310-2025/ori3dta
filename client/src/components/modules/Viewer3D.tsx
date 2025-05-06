@@ -1,21 +1,20 @@
 import React, {
-    RefObject,
-    useContext,
-    useEffect,
-    useRef,
-    useState,
+  RefObject,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
 } from "react";
+
 import * as THREE from "three";
 // import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-// import "./Viewer3D.css"
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 export const Viewer3D: React.FC = () => {
-    const mountRef: RefObject<HTMLDivElement | null> = useRef(null);
+  const mountRef: RefObject<HTMLDivElement | null> = useRef(null);
 
-    useEffect(() => {
-        if (!mountRef.current) return;
+  useEffect(() => {
+    if (!mountRef.current) return;
 
         // Scene
         const scene = new THREE.Scene();
@@ -31,13 +30,13 @@ export const Viewer3D: React.FC = () => {
         camera.position.set(1, 1, 1);
         camera.lookAt(0, 0, 0);
 
-        // Renderer
-        const renderer = new THREE.WebGLRenderer();
-        renderer.setSize(
-            mountRef.current.clientWidth,
-            mountRef.current.clientHeight
-        );
-        mountRef.current.appendChild(renderer.domElement);
+    // Renderer
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(
+      mountRef.current.clientWidth,
+      mountRef.current.clientHeight,
+    );
+    mountRef.current.appendChild(renderer.domElement);
 
         const controls = new OrbitControls(camera, renderer.domElement);
         // controls.enableDamping = true; // Enable damping for smoother controls

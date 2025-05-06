@@ -49,7 +49,7 @@ const DesignCard: React.FC<DesignCardProps> = ({ design, setDesigns }) => {
         cancelText="Cancel"
         okButtonProps={{
           style: {
-            backgroundColor: "#ff4d4f", // red color (for delete warning)
+            backgroundColor: "#ff4d4f",
             borderColor: "#ff4d4f",
             color: "#fff",
           },

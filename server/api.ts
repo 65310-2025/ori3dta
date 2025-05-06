@@ -86,27 +86,50 @@ router.post("/designs", async (req: Request, res: Response) => {
     }
 
     // Create new document for the CP itself
-    const newCP = new CP({
-      vertices_coords: [
-        [0, 0],
-        [1, 0],
-        [1, 1],
-        [0, 1],
-      ],
-      edges_vertices: [
-        [0, 1],
-        [1, 2],
-        [2, 3],
-        [3, 0],
-      ],
-      edges_assignment: ["B", "B", "B", "B"],
-      edges_foldAngle: [0, 0, 0, 0],
-    });
+    let newCP;
+    try {
+      const uploadedDesign = JSON.parse(design.design);
+      newCP = new CP(uploadedDesign);
+      let is200scale = false;
+      for (let i = 0; i < newCP.vertices_coords.length; i++) {
+        if (
+          Math.abs(newCP.vertices_coords[i][0]) > 100 ||
+          Math.abs(newCP.vertices_coords[i][1]) > 100
+        ) {
+          is200scale = true;
+          break;
+        }
+      }
+      if (is200scale) {
+        for (let i = 0; i < newCP.vertices_coords.length; i++) {
+          newCP.vertices_coords[i][0] = newCP.vertices_coords[i][0] / 400 + 0.5;
+          newCP.vertices_coords[i][1] = newCP.vertices_coords[i][1] / 400 + 0.5;
+        }
+      }
+    } catch (error) {
+      newCP = new CP({
+        vertices_coords: [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 1],
+        ],
+        edges_vertices: [
+          [0, 1],
+          [1, 2],
+          [2, 3],
+          [3, 0],
+        ],
+        edges_assignment: ["B", "B", "B", "B"],
+        edges_foldAngle: [0, 0, 0, 0],
+      });
+    }
     const cpDocument: ICP = await newCP.save();
     const cpID = cpDocument._id;
 
     const newDesign = new DesignMetadata({
-      ...design,
+      name: design.name,
+      description: design.description,
       creatorID: req.user._id,
       dateCreated: new Date(),
       dateLastModified: new Date(),

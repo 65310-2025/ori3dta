@@ -1,10 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import { Form, Input, Modal } from "antd";
+import { CloseOutlined } from "@ant-design/icons";
+import { Form, Input, Modal, Upload } from "antd";
 import { useNavigate } from "react-router-dom";
 
 import { DesignMetadataDto, NewDesignDto } from "../../../../dto/dto";
 import NewIcon from "../../assets/icons/new.svg";
+import UploadIcon from "../../assets/icons/upload.svg";
 import { get, post } from "../../utils/requests";
 import { UserContext } from "../App";
 import DesignCard from "../modules/DesignCard";
@@ -28,7 +30,14 @@ const Library: React.FC = () => {
 
   const [designs, setDesigns] = useState<DesignMetadataDto[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState<string>("");
+  const [uploadFileName, setUploadFileName] = useState<string>("");
   const [form] = Form.useForm();
+
+  const handleRemove = () => {
+    setUploadFile("");
+    setUploadFileName("");
+  };
 
   // Get metadata for all designs from server
   // TODO: later on, implement pagination in the /designs endpoint in case we have some
@@ -58,6 +67,7 @@ const Library: React.FC = () => {
       const newDesign: NewDesignDto = {
         name: values.name,
         description: values.description,
+        design: uploadFile,
       };
       await post("/api/designs", newDesign);
       setIsModalOpen(false);
@@ -99,6 +109,41 @@ const Library: React.FC = () => {
               ]}
             >
               <Input.TextArea />
+            </Form.Item>
+            <Form.Item
+              name="file"
+              rules={[{ required: false, message: "Upload a .fold file" }]}
+              valuePropName="fileList"
+              getValueFromEvent={(e) => (Array.isArray(e) ? e : e?.fileList)}
+            >
+              <Upload
+                accept=".fold"
+                showUploadList={false}
+                beforeUpload={(file) => {
+                  const reader = new FileReader();
+                  reader.onload = (e) => {
+                    const content = e.target?.result as string;
+                    setUploadFile(content);
+                    setUploadFileName(file.name);
+                  };
+                  reader.readAsText(file);
+                  return false; // Prevent automatic upload
+                }}
+              >
+                <button className="Library-upload-button">
+                  <p>Upload .fold file</p>
+                  <img className="Library-upload-icon" src={UploadIcon}></img>
+                </button>
+              </Upload>
+              {uploadFileName && (
+                <div className="Library-uploaded-file">
+                  <p>Uploaded file: {uploadFileName}</p>
+                  <CloseOutlined
+                    onClick={handleRemove}
+                    style={{ cursor: "pointer" }}
+                  />
+                </div>
+              )}
             </Form.Item>
           </Form>
         </Modal>
