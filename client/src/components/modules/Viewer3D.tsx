@@ -19,15 +19,17 @@ export const Viewer3D: React.FC = () => {
 
         // Scene
         const scene = new THREE.Scene();
-
+        scene.background = new THREE.Color(0xffffff); // Set background color to white
         // Camera
         const camera = new THREE.PerspectiveCamera(
-            75,
+            100,
             mountRef.current.clientWidth / mountRef.current.clientHeight,
             0.1,
             1000
         );
-        camera.position.z = 5;
+        // camera.position.z = 5;
+        camera.position.set(1, 1, 1);
+        camera.lookAt(0, 0, 0);
 
         // Renderer
         const renderer = new THREE.WebGLRenderer();
@@ -38,37 +40,55 @@ export const Viewer3D: React.FC = () => {
         mountRef.current.appendChild(renderer.domElement);
 
         const controls = new OrbitControls(camera, renderer.domElement);
-        // const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true; // Enable damping for smoother controls
+        // controls.enableDamping = true; // Enable damping for smoother controls
 
-        // Cube
-        const geometry = new THREE.BoxGeometry();
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-        const cube = new THREE.Mesh(geometry, material);
-        scene.add(cube);
 
-        // Edges
-        const edges = new THREE.EdgesGeometry(geometry);
-        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
-        const edgeLines = new THREE.LineSegments(edges, lineMaterial);
-        scene.add(edgeLines);
+        // starter square
+        const geometry = new THREE.PlaneGeometry(1, 1); // Unit square
+        const material = new THREE.MeshBasicMaterial({ 
+            color: 0x000000, 
+            transparent: true, 
+            opacity: 0.1, 
+            side: THREE.DoubleSide // Make the material viewable from both sides
+        });
+        const plane = new THREE.Mesh(geometry, material);
+        plane.rotation.x = -Math.PI / 2; // Rotate the plane to lie on the X-Y plane
+        scene.add(plane);
+
+
 
         // Animation loop
         const animate = () => {
             requestAnimationFrame(animate);
-
-            // cube.rotation.x += 0.01;
-            // cube.rotation.y += 0.01;
-
             controls.update(); // Update controls
             renderer.render(scene, camera);
         };
         animate();
-
         // Cleanup
         return () => {
             mountRef.current?.removeChild(renderer.domElement);
             renderer.dispose();
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!mountRef.current) return;
+
+        const button = document.createElement("button");
+        button.textContent = "Click Me";
+        button.style.position = "absolute";
+        button.style.top = "10px";
+        button.style.left = "10px";
+        button.style.zIndex = "1";
+        button.addEventListener("click", () => {
+            alert("Button clicked!");
+        });
+
+        mountRef.current.appendChild(button);
+
+        return () => {
+            button.removeEventListener("click", () => {});
+            mountRef.current?.removeChild(button);
         };
     }, []);
 

@@ -51,12 +51,18 @@ const Editor: React.FC = () => {
         <div className="flex-1 flex">
           <CPCanvas cpID={cpID} />
           <div className="Editor-sidebar">
-            <div>
-              {/* <h2>CP Details. 3d model/xray to go here</h2> */}
-              <div className="Viewer-container">
-                <Viewer3D />
-              </div>
+            {/* <h2>CP Details. 3d model/xray to go here</h2> */}
+            <div className="Viewer-container">
+              <Viewer3D />
             </div>
+            {/* <button
+              className="Editor-button"
+              onClick={() => {
+                console.log("Button clicked!");
+              }}
+            >
+              Click Me
+            </button> */}
           </div>
         </div>
       </div>
