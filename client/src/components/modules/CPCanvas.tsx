@@ -9,7 +9,6 @@ import React, {
 import { Circle, Line, Rect } from "fabric";
 import { Canvas, Point, Polygon } from "fabric";
 
-import { ClientCPDto } from "../../../../dto/dto";
 import { Fold } from "../../types/fold";
 import {
   createEdge,
@@ -22,7 +21,6 @@ import {
   checkKawasakiVertex,
   makeKawasakiFoldable,
 } from "../../utils/kawasaki";
-import { get, post } from "../../utils/requests";
 import { ThemeContext } from "../App";
 import "./CPCanvas.css";
 

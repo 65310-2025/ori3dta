@@ -3,6 +3,8 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { Spin } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { ClientCPDto } from "../../../../dto/dto";
+import { Fold } from "../../types/fold";
 import { get, post } from "../../utils/requests";
 import { UserContext } from "../App";
 import { CPCanvas } from "../modules/CPCanvas";
@@ -104,7 +106,7 @@ const Editor: React.FC = () => {
     <>
       <Navbar />
       <div className="Editor">
-        <CPCanvas cp={cp} setCP={setCP} cpRef={cpRef}/>
+        <CPCanvas cp={cp} setCP={setCP} cpRef={cpRef} />
         <div className="Editor-sidebar">
           {/* <h2>CP Details. 3d model/xray to go here</h2> */}
           <div className="Viewer-container">
