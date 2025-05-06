@@ -5,6 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { UserContext } from "../App";
 import { CPCanvas } from "../modules/CPCanvas";
+import { Viewer3D } from "../modules/Viewer3D";
 import Navbar from "../modules/LandingNavbar";
 import "./Editor.css";
 
@@ -52,6 +53,7 @@ const Editor: React.FC = () => {
           <div className="Editor-sidebar">
             <div>
               <h2>CP Details. 3d model/xray to go here</h2>
+              <Viewer3D />
             </div>
           </div>
         </div>
