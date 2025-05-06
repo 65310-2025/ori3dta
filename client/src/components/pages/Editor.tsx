@@ -5,8 +5,8 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { UserContext } from "../App";
 import { CPCanvas } from "../modules/CPCanvas";
-import { Viewer3D } from "../modules/Viewer3D";
 import Navbar from "../modules/LandingNavbar";
+import { Viewer3D } from "../modules/Viewer3D";
 import "./Editor.css";
 
 const Editor: React.FC = () => {

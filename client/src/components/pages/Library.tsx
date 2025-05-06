@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 
+import { CloseOutlined } from "@ant-design/icons";
 import { Form, Input, Modal, Upload } from "antd";
 import { useNavigate } from "react-router-dom";
 
@@ -29,7 +30,14 @@ const Library: React.FC = () => {
 
   const [designs, setDesigns] = useState<DesignMetadataDto[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState<string>("");
+  const [uploadFileName, setUploadFileName] = useState<string>("");
   const [form] = Form.useForm();
+
+  const handleRemove = () => {
+    setUploadFile("");
+    setUploadFileName("");
+  };
 
   // Get metadata for all designs from server
   // TODO: later on, implement pagination in the /designs endpoint in case we have some
@@ -59,6 +67,7 @@ const Library: React.FC = () => {
       const newDesign: NewDesignDto = {
         name: values.name,
         description: values.description,
+        design: uploadFile,
       };
       await post("/api/designs", newDesign);
       setIsModalOpen(false);
@@ -103,8 +112,9 @@ const Library: React.FC = () => {
             </Form.Item>
             <Form.Item
               name="file"
-              label="File"
               rules={[{ required: false, message: "Upload a .fold file" }]}
+              valuePropName="fileList"
+              getValueFromEvent={(e) => (Array.isArray(e) ? e : e?.fileList)}
             >
               <Upload
                 accept=".fold"
@@ -112,10 +122,11 @@ const Library: React.FC = () => {
                 beforeUpload={(file) => {
                   const reader = new FileReader();
                   reader.onload = (e) => {
-                    console.log("File content:", e.target?.result);
+                    const content = e.target?.result as string;
+                    setUploadFile(content);
+                    setUploadFileName(file.name);
                   };
-                  const text = reader.readAsText(file);
-                  console.log("File text:", text);
+                  reader.readAsText(file);
                   return false; // Prevent automatic upload
                 }}
               >
@@ -124,6 +135,15 @@ const Library: React.FC = () => {
                   <img className="Library-upload-icon" src={UploadIcon}></img>
                 </button>
               </Upload>
+              {uploadFileName && (
+                <div className="Library-uploaded-file">
+                  <p>Uploaded file: {uploadFileName}</p>
+                  <CloseOutlined
+                    onClick={handleRemove}
+                    style={{ cursor: "pointer" }}
+                  />
+                </div>
+              )}
             </Form.Item>
           </Form>
         </Modal>
