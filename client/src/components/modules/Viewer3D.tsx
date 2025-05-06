@@ -6,8 +6,10 @@ import React, {
     useState,
 } from "react";
 import * as THREE from "three";
+// import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-
+// import "./Viewer3D.css"
 
 export const Viewer3D: React.FC = () => {
     const mountRef: RefObject<HTMLDivElement | null> = useRef(null);
@@ -35,19 +37,30 @@ export const Viewer3D: React.FC = () => {
         );
         mountRef.current.appendChild(renderer.domElement);
 
+        const controls = new OrbitControls(camera, renderer.domElement);
+        // const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; // Enable damping for smoother controls
+
         // Cube
         const geometry = new THREE.BoxGeometry();
         const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
         const cube = new THREE.Mesh(geometry, material);
         scene.add(cube);
 
+        // Edges
+        const edges = new THREE.EdgesGeometry(geometry);
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
+        const edgeLines = new THREE.LineSegments(edges, lineMaterial);
+        scene.add(edgeLines);
+
         // Animation loop
         const animate = () => {
             requestAnimationFrame(animate);
 
-            cube.rotation.x += 0.01;
-            cube.rotation.y += 0.01;
+            // cube.rotation.x += 0.01;
+            // cube.rotation.y += 0.01;
 
+            controls.update(); // Update controls
             renderer.render(scene, camera);
         };
         animate();
@@ -59,5 +72,5 @@ export const Viewer3D: React.FC = () => {
         };
     }, []);
 
-    return <div ref={mountRef} style={{ width: "100%", height: "100%" }} />;
-}
+    return <div ref={mountRef} style={{ width: "100%", height: "100%", display: "block" }} />;
+};
