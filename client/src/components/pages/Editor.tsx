@@ -110,7 +110,7 @@ const Editor: React.FC = () => {
         <div className="Editor-sidebar">
           {/* <h2>CP Details. 3d model/xray to go here</h2> */}
           <div className="Viewer-container">
-            <Viewer3D />
+            <Viewer3D cp={cp} setCP={setCP} cpRef={cpRef} />
           </div>
         </div>
       </div>

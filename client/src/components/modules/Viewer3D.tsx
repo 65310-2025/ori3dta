@@ -5,51 +5,91 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { Fold } from "../../types/fold";
+import { getFaces,getFoldedFaces } from "../../utils/xray";
+
 
 import * as THREE from "three";
 // import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-export const Viewer3D: React.FC = () => {
-  const mountRef: RefObject<HTMLDivElement | null> = useRef(null);
+export interface Viewer3DProps {
+  cp: Fold|null; // Replace 'any' with the appropriate type for 'cp'
+  setCP: (cp: Fold) => void;
+  cpRef: RefObject<Fold | null>;
+}
 
+const polygon3D = (vertices:[number,number,number][]) => {
+  // Create a geometry from a set of vertices. Assume the vertices are in 3d space and are in circular order for easy triangulation. 
+  const geometry = new THREE.BufferGeometry();
+  const verticesArray = new Float32Array(vertices.flat());
+  geometry.setAttribute("position", new THREE.BufferAttribute(verticesArray, 3));
+  const indices = [];
+  for (let i = 1; i < vertices.length - 1; i++) {
+    indices.push(0, i, i + 1);
+  }
+  geometry.setIndex(indices);
+  const front = new THREE.Mesh(geometry, faceMaterial);
+  const back = new THREE.Mesh(geometry, faceMaterialBack);
+  const polygon = new THREE.Group();
+  polygon.add(front);
+  polygon.add(back);
+  return polygon;
+}
+
+const faceMaterial = new THREE.MeshBasicMaterial({
+  color: 0x00ff00,
+  transparent: true,
+  opacity: 0.2,
+  side: THREE.FrontSide//THREE.DoubleSide,
+});
+const faceMaterialBack = new THREE.MeshBasicMaterial({
+  color: 0x000000,
+  transparent: true,
+  opacity: 0.2,
+  side: THREE.BackSide, 
+});
+
+export const Viewer3D: React.FC<Viewer3DProps> = ({ cp, setCP, cpRef }) => {
+  const mountRef: RefObject<HTMLDivElement | null> = useRef(null);
+  const sceneRef = useRef<THREE.Scene | null>(null); // Ref for the scene
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null); // Ref for the camera
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null); // Ref for the renderer
+
+  // Set up the 3D scene
   useEffect(() => {
     if (!mountRef.current) return;
 
     // Scene
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xffffff); // Set background color to white
+    sceneRef.current = scene; // Store the scene in the ref
+
     // Camera
     const camera = new THREE.PerspectiveCamera(
       100,
       mountRef.current.clientWidth / mountRef.current.clientHeight,
       0.1,
-      1000,
+      1000
     );
-    // camera.position.z = 5;
     camera.position.set(1, 1, 1);
     camera.lookAt(0, 0, 0);
+    cameraRef.current = camera; // Store the camera in the ref
 
     // Renderer
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize(
       mountRef.current.clientWidth,
-      mountRef.current.clientHeight,
+      mountRef.current.clientHeight
     );
     mountRef.current.appendChild(renderer.domElement);
+    rendererRef.current = renderer; // Store the renderer in the ref
 
     const controls = new OrbitControls(camera, renderer.domElement);
-    // controls.enableDamping = true; // Enable damping for smoother controls
 
-    // starter square
+    // Starter square
     const geometry = new THREE.PlaneGeometry(1, 1); // Unit square
-    const material = new THREE.MeshBasicMaterial({
-      color: 0x000000,
-      transparent: true,
-      opacity: 0.1,
-      side: THREE.DoubleSide, // Make the material viewable from both sides
-    });
-    const plane = new THREE.Mesh(geometry, material);
+    const plane = new THREE.Mesh(geometry, faceMaterial);
     plane.rotation.x = -Math.PI / 2; // Rotate the plane to lie on the X-Y plane
     scene.add(plane);
 
@@ -60,6 +100,7 @@ export const Viewer3D: React.FC = () => {
       renderer.render(scene, camera);
     };
     animate();
+
     // Cleanup
     return () => {
       mountRef.current?.removeChild(renderer.domElement);
@@ -67,24 +108,48 @@ export const Viewer3D: React.FC = () => {
     };
   }, []);
 
+  // Register keybinds
   useEffect(() => {
-    if (!mountRef.current) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === " ") {
+        event.preventDefault();
+      }
 
-    const button = document.createElement("button");
-    button.textContent = "Click Me";
-    button.style.position = "absolute";
-    button.style.top = "10px";
-    button.style.left = "10px";
-    button.style.zIndex = "1";
-    button.addEventListener("click", () => {
-      alert("Button clicked!");
-    });
+      if (event.key === "b") {
+        if (cpRef.current=== null) return;
+        // console.log(getFoldedFaces(cpRef.current));
+        const foldedFaces = getFoldedFaces(cpRef.current);
 
-    mountRef.current.appendChild(button);
+        // Access and modify the scene
+        if (sceneRef.current) {
+          console.log("Clearing the scene");
+          while (sceneRef.current.children.length > 0) {
+            sceneRef.current.remove(sceneRef.current.children[0]);
+          }
+          for(const face of foldedFaces) {
+            const polygon = polygon3D(face);
+            sceneRef.current.add(polygon);
+          }
 
+          // const geometry = new THREE.BufferGeometry();
+          // const vertices = new Float32Array([
+          //   0, 0, 0, // Point 1
+          //   1, 0, 0, // Point 2
+          //   1, 0, 1, // Point 3
+          //   0, 0, 1, // Point 4
+          // ]);
+          // geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
+          // geometry.setIndex([0, 1, 2, 0, 2, 3]); // Define two triangles for the polygon
+
+          // const polygon = new THREE.Mesh(geometry, faceMaterial);
+          // sceneRef.current.add(polygon);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
     return () => {
-      button.removeEventListener("click", () => {});
-      mountRef.current?.removeChild(button);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
