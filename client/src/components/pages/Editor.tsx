@@ -52,8 +52,10 @@ const Editor: React.FC = () => {
           <CPCanvas cpID={cpID} />
           <div className="Editor-sidebar">
             <div>
-              <h2>CP Details. 3d model/xray to go here</h2>
-              <Viewer3D />
+              {/* <h2>CP Details. 3d model/xray to go here</h2> */}
+              <div className="Viewer-container">
+                <Viewer3D />
+              </div>
             </div>
           </div>
         </div>
