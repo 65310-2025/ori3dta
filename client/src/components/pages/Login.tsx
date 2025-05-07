@@ -16,7 +16,11 @@ const Login: React.FC = () => {
     return null; // or handle the case where context is null
   }
 
-  const { handleLogin } = context;
+  const { userId, handleLogin } = context;
+
+  if (userId) {
+    navigate("/library");
+  }
 
   const handleLoginAndNavigate = (credentialResponse: any) => {
     handleLogin(credentialResponse);

@@ -85,8 +85,8 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   });
 });
 
-// hardcode port to 3000 for now
-const port = 3000;
+// Use port 3000 for dev, 5173 for prod
+const port = process.argv[2] || process.env.PORT || 3000;
 const server = http.createServer(app);
 socketManager.init(server);
 
