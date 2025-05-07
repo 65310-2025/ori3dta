@@ -79,6 +79,28 @@ target_link_libraries(layer_solver
 
 target_precompile_headers(layer_solver
   PUBLIC
+  <CGAL/Arrangement_2.h>
   <CGAL/Exact_predicates_exact_constructions_kernel.h>
   <CGAL/Boolean_set_operations_2.h>
+)
+
+add_executable(plane_arrangement
+  src/main_plane_arrangement.cpp
+  src/dsu.cpp
+  src/fold.cpp
+  src/plane_group.cpp
+  src/plane_arrangement.cpp
+  )
+
+target_include_directories(plane_arrangement
+  PUBLIC include
+)
+
+target_link_libraries(plane_arrangement
+  simdjson
+  CGAL::CGAL)
+
+target_precompile_headers(plane_arrangement
+  REUSE_FROM
+  layer_solver
 )

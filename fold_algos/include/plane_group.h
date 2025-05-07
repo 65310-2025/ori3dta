@@ -8,6 +8,10 @@
 
 namespace ori3dta {
 
+using Kernel = CGAL::Exact_predicates_exact_constructions_kernel;
+using Point_2 = Kernel::Point_2;
+using Polygon_2 = CGAL::Polygon_2<Kernel>;
+
 using planegroup_id_t = uint32_t;
 
 struct PlaneGroup : public FOLD {
@@ -18,10 +22,12 @@ struct PlaneGroup : public FOLD {
   std::vector<std::vector<coord_t>> planegroups_normal;
   std::vector<std::vector<coord_t>> planegroups_tangent;
   std::vector<std::vector<coord_t>> planegroups_bi;
+  std::vector<std::vector<Polygon_2>> pg_faces_proj;
 
   PlaneGroup(const FOLD& f);
 
   void compute_planegroups();
+  void compute_faces_proj(planegroup_id_t planegroup_id);
   std::ostream& print_debug(std::ostream& os) const;
 
   friend std::ostream& operator<<(std::ostream& os, const PlaneGroup& pg);

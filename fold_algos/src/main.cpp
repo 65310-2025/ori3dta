@@ -27,8 +27,6 @@ int main(int argc, char* argv[]) {
 
   LayerSolver solver(fold);
 
-  solver.solver.verbosity = -1;
-  std::cout << "Solver out: " << solver.solver.solve() << std::endl;
   for (const auto& [k, v] : solver.overlaps_var) {
     const auto& [f1, f2] = k;
     std::cout << f1 << ", " << f2 << ": " << Glucose::toInt(solver.solver.value(v)) << std::endl;

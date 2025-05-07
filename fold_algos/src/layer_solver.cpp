@@ -19,6 +19,8 @@ using namespace ori3dta;
 LayerSolver::LayerSolver(const FOLD& f) : PlaneGroup(f) {
   std::clog << *static_cast<PlaneGroup*>(this) << std::endl;
   compute_constraints();
+  solver.verbosity = -1;
+  solver.solve();
 }
 
 Lit LayerSolver::get_lit(face_id_t f1, face_id_t f2) {
@@ -34,14 +36,14 @@ void LayerSolver::add_equality(Lit a, Lit b) {
 
 
 void LayerSolver::compute_constraints() {
-  face_id_t n_pg = planegroups_faces.size();
-  pg_faces_proj.assign(n_pg, {});
-  pg_faces_id.assign(n_pg, {});
+  planegroup_id_t n_pg = planegroups_faces.size();
   pg_in_pg_edges.assign(n_pg, {});
 
-  for (int i = 0; i < n_pg; i++) {
+  for (planegroup_id_t i = 0; i < n_pg; i++) {
     compute_plane_constraints(i);
   }
+
+  compute_3d_constraints();
 }
 
 bool does_edge_overlap_face(const Segment_2& edge, const Polygon_2& poly) {
@@ -71,7 +73,7 @@ bool does_edge_overlap_face(const Segment_2& edge, const Polygon_2& poly) {
   return edge_intersections.size() == 2;
 }
 
-bool does_edge_overlap_edge(const Segment_2& e1, const Segment_2& e2) {
+bool does_edge_overlap_edge_2d(const Segment_2& e1, const Segment_2& e2) {
   // TODO: inexact ovelap?
   const auto intersection_opt = CGAL::intersection(e1, e2);
   if (!intersection_opt) return false;
@@ -81,39 +83,17 @@ bool does_edge_overlap_edge(const Segment_2& e1, const Segment_2& e2) {
 }
 
 void LayerSolver::compute_plane_constraints(planegroup_id_t planegroup_id) {
-  compute_faces_proj(planegroup_id);
   compute_variables(planegroup_id);
   compute_transitivity(planegroup_id);
   compute_taco_tortilla(planegroup_id);
 
 }
 
-void LayerSolver::compute_faces_proj(planegroup_id_t planegroup_id) {
-  const auto& faces = planegroups_faces[planegroup_id];
-  const auto& tangent = planegroups_tangent[planegroup_id];
-  const auto& bi = planegroups_bi[planegroup_id];
 
-  face_id_t n_faces = faces.size();
-
-  auto& faces_proj = pg_faces_proj[planegroup_id];
-  auto& faces_id = pg_faces_id[planegroup_id];
-
-  for (const auto& face : faces) {
-    auto& proj = faces_proj.emplace_back();
-    faces_id.emplace_back(face);
-    for (const auto& vert : faces_vertices[face]) {
-      auto& coord = vertices_coords_folded[vert];
-      proj.push_back({dot_prod(tangent, coord), dot_prod(bi, coord)});
-    }
-    if (faces_dir[face]) {
-      proj.reverse_orientation();
-    }
-  }
-}
 
 void LayerSolver::compute_variables(planegroup_id_t planegroup_id) {
   const auto& faces_proj = pg_faces_proj[planegroup_id];
-  const auto& faces_id = pg_faces_id[planegroup_id];
+  const auto& faces_id = planegroups_faces[planegroup_id];
   face_id_t n_faces = faces_proj.size();
 
   // Compute pairs of overlapping faces to generate variables
@@ -131,7 +111,7 @@ void LayerSolver::compute_variables(planegroup_id_t planegroup_id) {
 
 void LayerSolver::compute_transitivity(planegroup_id_t planegroup_id) {
   const auto& faces_proj = pg_faces_proj[planegroup_id];
-  const auto& faces_id = pg_faces_id[planegroup_id];
+  const auto& faces_id = planegroups_faces[planegroup_id];
   face_id_t n_faces = faces_proj.size();
 
   // Compute triples of overlapping faces to generate transitivity
@@ -176,7 +156,7 @@ void LayerSolver::compute_transitivity(planegroup_id_t planegroup_id) {
 
 void LayerSolver::compute_taco_tortilla(planegroup_id_t planegroup_id) {
   const auto& faces_proj = pg_faces_proj[planegroup_id];
-  const auto& faces_id = pg_faces_id[planegroup_id];
+  const auto& faces_id = planegroups_faces[planegroup_id];
   face_id_t n_faces = faces_proj.size();
 
   auto& in_pg_edges = pg_in_pg_edges[planegroup_id];
@@ -273,7 +253,7 @@ void LayerSolver::compute_taco_tortilla(planegroup_id_t planegroup_id) {
     const auto& [e1_id, e1] = in_pg_edges[i];
     for (int j = i + 1; j < num_edges; j++) {
       const auto& [e2_id, e2] = in_pg_edges[j];
-      if (!does_edge_overlap_edge(e1, e2)) {
+      if (!does_edge_overlap_edge_2d(e1, e2)) {
         continue;
       }
 
@@ -351,4 +331,68 @@ void LayerSolver::compute_taco_tortilla(planegroup_id_t planegroup_id) {
       }
     }
   }
+}
+
+void compute_linegroups() {
+/* TODO
+  edge_id_t n_edges = edges_vertices.size();
+
+  // Compute edge normals and distances
+  std::vector<std::vector<coord_t>> edges_line_vals;
+  edges_plane_vals.reserve(n_edges);
+  for (edge_id_t edge_id = 0; edge_id < n_edges; edge_id++) {
+    const auto& edge_vertices = edges_vertices[edge_id];
+
+    auto proj_len = dot_prod(norm, some_edge_vert);
+
+    auto plane_val = norm;
+    plane_val.push_back(proj_len);
+
+    edges_plane_vals.push_back(plane_val);
+  }
+
+  // Merge pairs of edges that lie in the same line
+  // Since floating point is weird, "lying in the same line" is not necessarily
+  // transitive. Merging essentially computes a transitive closure.
+  DSU plane_group_dsu(n_edges);
+  for (edge_id_t edge1_id = 0; edge1_id < n_edges; edge1_id++) {
+    for (edge_id_t edge2_id = 0; edge2_id < n_edges; edge2_id++) {
+      const auto& plane_val1 = edges_plane_vals[edge1_id];
+      auto plane_val2 = edges_plane_vals[edge2_id];
+
+      auto vec_diff = vec_diff_L1(plane_val1, plane_val2);
+      for (auto& x : plane_val2) x *= -1;
+      vec_diff = std::min(vec_diff, vec_diff_L1(plane_val1, plane_val2));
+
+      if (vec_diff < EPS) {
+        plane_group_dsu.join(edge1_id, edge2_id);
+      }
+    }
+  }
+
+  // Compute 0-indexed plane group ids from DSU representatives
+  edges_planegroup.assign(n_edges, {});
+  planegroups_edges.clear();
+
+  std::unordered_map<edge_id_t, planegroup_id_t> plane_group_ids;
+  for (edge_id_t i = 0; i < n_edges; i++) {
+    auto dsu_id = plane_group_dsu.find(i);
+    auto it = plane_group_ids.find(dsu_id);
+    int id;
+    if (it == plane_group_ids.end()) {
+      id = plane_group_ids.size();
+      plane_group_ids[dsu_id] = id;
+      planegroups_edges.emplace_back();
+    } else {
+      id = it->second;
+    }
+    edges_planegroup[i] = id;
+    planegroups_edges[id].push_back(i);
+  }
+
+*/
+}
+
+void LayerSolver::compute_3d_constraints() {
+  compute_linegroups();
 }

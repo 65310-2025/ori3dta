@@ -28,11 +28,13 @@ using Polygon_2 = CGAL::Polygon_2<Kernel>;
 using Polygon_with_holes_2 = CGAL::Polygon_with_holes_2<Kernel>;
 using Pwh_list_2 = std::list<Polygon_with_holes_2>;
 
-class LayerSolver : public PlaneGroup {
-  std::vector<std::vector<Polygon_2>> pg_faces_proj;
-  std::vector<std::vector<face_id_t>> pg_faces_id;
+using edgegroup_id_t = edge_id_t;
 
+class LayerSolver : public PlaneGroup {
   std::vector<std::vector<std::pair<edge_id_t, Segment_2>>> pg_in_pg_edges;
+
+  std::vector<edgegroup_id_t> edges_edgegroup;
+  std::vector<std::vector<edge_id_t>> edgegroups_edges;
 
 public:
   Solver solver;
@@ -48,10 +50,10 @@ public:
 
   void compute_constraints();
   void compute_plane_constraints(planegroup_id_t planegroup_id);
-  void compute_faces_proj(planegroup_id_t planegroup_id);
   void compute_variables(planegroup_id_t planegroup_id);
   void compute_transitivity(planegroup_id_t planegroup_id);
   void compute_taco_tortilla(planegroup_id_t planegroup_id);
+  void compute_3d_constraints();
 };
 
 } // namespace ori3dta

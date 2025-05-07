@@ -2,6 +2,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
+#include <CGAL/Boolean_set_operations_2.h>
+
 #include <dsu.h>
 #include <fold.h>
 #include <plane_group.h>
@@ -11,6 +14,33 @@ using namespace ori3dta;
 
 PlaneGroup::PlaneGroup(const FOLD& f) : FOLD(f) {
   compute_planegroups();
+
+  planegroup_id_t n_pg = planegroups_faces.size();
+  pg_faces_proj.assign(n_pg, {});
+  for (planegroup_id_t i = 0; i < n_pg; i++) {
+    compute_faces_proj(i);
+  }
+}
+
+void PlaneGroup::compute_faces_proj(planegroup_id_t planegroup_id) {
+  const auto& faces = planegroups_faces[planegroup_id];
+  const auto& tangent = planegroups_tangent[planegroup_id];
+  const auto& bi = planegroups_bi[planegroup_id];
+
+  face_id_t n_faces = faces.size();
+
+  auto& faces_proj = pg_faces_proj[planegroup_id];
+
+  for (const auto& face : faces) {
+    auto& proj = faces_proj.emplace_back();
+    for (const auto& vert : faces_vertices[face]) {
+      auto& coord = vertices_coords_folded[vert];
+      proj.push_back({dot_prod(tangent, coord), dot_prod(bi, coord)});
+    }
+    if (faces_dir[face]) {
+      proj.reverse_orientation();
+    }
+  }
 }
 
 std::ostream& PlaneGroup::print_debug(std::ostream& os) const {
