@@ -75,7 +75,7 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({ cp, setCP, cpRef }) => {
 
     // Camera
     const camera = new THREE.PerspectiveCamera(
-      100,
+      40,
       mountRef.current.clientWidth / mountRef.current.clientHeight,
       0.1,
       1000

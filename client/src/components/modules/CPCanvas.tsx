@@ -103,7 +103,7 @@ const inspector = (
       />
     </div>
     <div className="flex-1">
-      <p>Inspector</p>
+      <p style={{ fontSize: "16px" }}>Inspector</p>
     </div>
     <div className="flex-2"></div>
   </div>
