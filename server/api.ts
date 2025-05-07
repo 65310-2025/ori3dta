@@ -3,6 +3,7 @@ import { Socket as SocketIO } from "socket.io";
 
 import { DesignMetadataDto, ServerCPDto } from "../dto/dto";
 import { login, logout } from "./auth";
+import { layersolverHandler } from "./layersolver";
 import CP, { ICP } from "./models/cp";
 import DesignMetadata from "./models/designMetadata";
 import User from "./models/user";
@@ -22,6 +23,8 @@ router.get("/whoami", (req: Request, res: Response) => {
   }
   res.send(req.user);
 });
+
+router.post("/layersolver", layersolverHandler);
 
 router.post("/initsocket", (req: Request, res: Response) => {
   // do nothing if user not logged in

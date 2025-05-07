@@ -81,8 +81,6 @@ void PlaneArrangement::compute_arrangement(planegroup_id_t planegroup_id) {
   Arr_vertex_index_map verts_idx(arr);
   Arr_face_index_map stacks_idx(arr);
 
-  std::clog << arr.number_of_vertices() << "," << arr.number_of_faces() << std::endl;
-
   vert_id_t n_verts = arr.number_of_vertices();
   vert_id_t vert_idx_base = subvertices_coords.size();
   subvertices_coords.resize(vert_idx_base + n_verts);
@@ -101,7 +99,6 @@ void PlaneArrangement::compute_arrangement(planegroup_id_t planegroup_id) {
   face_id_t n_stacks = arr.number_of_faces();
 
   face_id_t stack_id_base = stacks_vertices.size();
-  std::clog <<  stack_id_base << "+" << n_stacks << std::endl;
   stacks_vertices.resize(stack_id_base + n_stacks);
   stacks_subfaces.resize(stack_id_base + n_stacks);
 
