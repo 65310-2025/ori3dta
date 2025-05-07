@@ -1,6 +1,24 @@
 .Home {
   height: calc(100vh - var(--header-height));
   color: var(--text-color);
+  background: var(--background);
+}
+
+h1 {
+  font-size: min(6rem, 10vw);
+}
+
+h2 {
+  font-size: min(4rem, min(7vh, 7vw));
+  margin: 0.5rem 0;
+}
+
+h3 {
+  font-size: min(3rem, min(5vw, 5vh));
+}
+
+p {
+  font-size: min(1.5rem, 3vw);
 }
 
 .Home-title-block {
