@@ -147,19 +147,6 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({ cp, setCP, cpRef }) => {
             const polygon = polygon3D(face);
             sceneRef.current.add(polygon);
           }
-
-          // const geometry = new THREE.BufferGeometry();
-          // const vertices = new Float32Array([
-          //   0, 0, 0, // Point 1
-          //   1, 0, 0, // Point 2
-          //   1, 0, 1, // Point 3
-          //   0, 0, 1, // Point 4
-          // ]);
-          // geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
-          // geometry.setIndex([0, 1, 2, 0, 2, 3]); // Define two triangles for the polygon
-
-          // const polygon = new THREE.Mesh(geometry, faceMaterial);
-          // sceneRef.current.add(polygon);
         }
       }
     };

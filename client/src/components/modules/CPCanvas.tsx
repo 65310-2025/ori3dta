@@ -28,7 +28,7 @@ const SNAP_TOLERANCE = 30;
 const STROKE_WIDTH = 4; //0.004;
 const ERROR_CIRCLE_RADIUS = 10;
 const TEMP_STROKE_WIDTH = 0.002;
-const CLICK_TOLERANCE = 10;
+const CLICK_TOLERANCE = 20;
 const ANGLE_TOLERANCE = 0.1; // radians for kawasaki fix
 
 enum MvMode {
@@ -159,6 +159,14 @@ const handleLeftClick = (
 
   const handleMouseDown = (pos: [number, number]) => {
     clickStart = pos;
+    if (modeRef.current === Mode.Drawing && cpRef.current) {
+      const nearestVertex = findNearestVertex(
+        cpRef.current,
+        pos,
+        CLICK_TOLERANCE / canvas.getZoom(),
+      );
+      if(nearestVertex!=-1){clickStart = cpRef.current.vertices_coords[nearestVertex]};
+    }
   };
 
   const handleMouseMove = (pos: [number, number]) => {
@@ -248,11 +256,18 @@ const handleLeftClick = (
     if (modeRef.current === Mode.Drawing) {
       // console.log(clickStart,clickEnd,cpRef.current)
       if (cpRef.current) {
-        console.log(cpRef.current);
+        const nearestVertex = findNearestVertex(
+          cpRef.current,
+          clickStart,
+          CLICK_TOLERANCE / canvas.getZoom(),
+        );
+        const clickEnd = cpRef.current.vertices_coords[nearestVertex];
+        // console.log(cpRef.current);
         const output = createEdge(
           cpRef.current,
           clickStart,
           pos,
+          // nearestVertex!=-1? clickEnd : pos,
           mvmodeRef.current == MvMode.Valley
             ? Math.PI
             : mvmodeRef.current == MvMode.Mountain
@@ -617,7 +632,7 @@ const renderCP = (
     const start = vertices_coords[startIndex];
     const end = vertices_coords[endIndex];
     const theme = document.documentElement.getAttribute("data-theme");
-    console.log("theme", theme);
+    // console.log("theme", theme);
     const color =
       edge_colors[theme || "dark"][edges_assignment[index]] ?? "green";
     if (start && end) {
@@ -670,11 +685,11 @@ export const CPCanvas: React.FC<CPCanvasProps> = ({ cp, setCP, cpRef }) => {
       // (parent of the parent because FabricJS adds a wrapper div around the canvas)
       const parent = canvasRef.current?.parentElement?.parentElement;
       if (parent) {
-        console.log(
-          "Resizing canvas to parent dimensions:",
-          parent.clientWidth,
-          parent.clientHeight,
-        );
+        // console.log(
+        //   "Resizing canvas to parent dimensions:",
+        //   parent.clientWidth,
+        //   parent.clientHeight,
+        // );
         fabricCanvas.setDimensions({
           width: parent.clientWidth,
           height: parent.clientHeight,
@@ -774,15 +789,18 @@ export const CPCanvas: React.FC<CPCanvasProps> = ({ cp, setCP, cpRef }) => {
   useEffect(() => {
     if (fabricCanvasRef.current && cp) {
       const fabricCanvas = fabricCanvasRef.current;
-      const errors = cp.vertices_coords
-        .keys()
-        .filter((index) => !checkKawasakiVertex(cp, index));
+      let errors: number[] = [];
+      if(showKawasaki){
+        errors = Array.from(cp.vertices_coords
+          .keys()
+          .filter((index) => !checkKawasakiVertex(cp, index)));
+      } else {errors = []}
       fabricCanvas.clear();
       console.log("rerendering");
       renderCP(
         cp,
         fabricCanvas,
-        Array.from(errors),
+        errors,
         showKawasaki,
         selectedCrease,
         selectedVertexRef,

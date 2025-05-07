@@ -25,9 +25,14 @@ export function multiply2Matrices(a: number[][], b: number[][]): number[][] {
 
 export function multiplyMatricesList(matrices: number[][][]): number[][] {
   //Multiply a list of matrices together and renormalize to avoid floating point errors
-  return normalizeRotationMatrix(
-    matrices.reduce((acc, matrix) => multiply2Matrices(acc, matrix)),
-  );
+  try {
+    return normalizeRotationMatrix(
+      matrices.reduce((acc, matrix) => multiply2Matrices(acc, matrix)),
+    );
+  } catch (error) {
+    console.error("Error while multiplying matrices:", error);
+    throw error;
+  }
 }
 
 function normalizeRotationMatrix(matrix: number[][]): number[][] {

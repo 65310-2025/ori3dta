@@ -128,14 +128,6 @@ export function makeKawasakiFoldable(
 
   //For each candidate crease, check if it actually makes the vertex foldable.
   let verifiedCreases: Array<{ theta: number; rho: number }> = [];
-  //Zip the candidate creases with their matrix forms
-  // const candidateCreaseMatrices = candidateCreases.map(({ theta, rho }) => ({
-  //   theta: theta,
-  //   rho: rho,
-  //   matrix: matrices.rotationMatrix(theta, rho),
-  // }));
-  //Also zip the original rotation matrices with their thetas
-  // const zipped_rotationMatrices = rotationMatrices.map(({matrix})=>matrix).map((matrix) => ({theta:Math.atan2(matrix[0][2],matrix[2][1]), matrix:matrix}));
 
   for (const candidate of candidateCreases) {
     //insert the candidate
