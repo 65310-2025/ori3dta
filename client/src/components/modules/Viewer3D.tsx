@@ -34,6 +34,10 @@ const polygon3D = (vertices:[number,number,number][]) => {
   const polygon = new THREE.Group();
   polygon.add(front);
   polygon.add(back);
+  // Create an outline for the polygon
+  const edges = new THREE.EdgesGeometry(geometry);
+  const outline = new THREE.LineSegments(edges, lineMaterial);
+  polygon.add(outline);
   return polygon;
 }
 
@@ -48,6 +52,10 @@ const faceMaterialBack = new THREE.MeshBasicMaterial({
   transparent: true,
   opacity: 0.2,
   side: THREE.BackSide, 
+});
+const lineMaterial = new THREE.LineBasicMaterial({
+  color: 0x000000,
+  linewidth: 2,
 });
 
 export const Viewer3D: React.FC<Viewer3DProps> = ({ cp, setCP, cpRef }) => {
@@ -117,7 +125,16 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({ cp, setCP, cpRef }) => {
 
       if (event.key === "b") {
         if (cpRef.current=== null) return;
-        // console.log(getFoldedFaces(cpRef.current));
+        const clippedCP = {
+          ...cpRef.current,
+          foldAngles: Object.fromEntries(
+            Object.entries(cpRef.current.foldAngles || {}).map(([key, value]) => [
+              key,
+              Math.max(-180, Math.min(180, value as number)),
+            ])
+          ),
+        };
+        setCP(clippedCP);
         const foldedFaces = getFoldedFaces(cpRef.current);
 
         // Access and modify the scene

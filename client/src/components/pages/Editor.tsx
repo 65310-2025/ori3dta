@@ -62,6 +62,14 @@ const Editor: React.FC = () => {
         cp.vertices_vertices[start].push(end);
         cp.vertices_vertices[end].push(start);
       });
+      // cp.edges_foldAngle.forEach((angle, index) => {
+      //   if (angle>180) {
+      //     return 180
+      //   }
+      //   if (angle<180) {
+      //     return 180
+      //   }
+      // })
       console.log(cp);
       setCP(cp);
     });
