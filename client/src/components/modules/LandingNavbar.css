@@ -40,16 +40,16 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  width: 30%;
+  width: 35%;
   height: var(--header-height);
 }
 
 .Navbar-dropdown {
-  margin: 0px 10px;
   align-self: flex-start;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  box-shadow: 0px 4px 6px var(--shadow-color);
 }
 
 .Navbar-dropdown-username-wrap {
@@ -92,4 +92,5 @@
 .Navbar-theme-toggle {
   height: calc(var(--header-height) - 20px);
   filter: invert(var(--darkmode-invert));
+  margin: 0px 20px;
 }
