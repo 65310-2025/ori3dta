@@ -268,7 +268,7 @@ function rotateFaceOverRoute(
     for (let i = 0; i < edgeRoute.length; i++) {
         const edgeIndex = edgeRoute[i][0];
         const edge = fold.edges_vertices[edgeIndex];
-        const angle = fold.edges_foldAngle[edgeIndex] * (edgeRoute[i][1]?1:-1);
+        const angle = fold.edges_foldAngle[edgeIndex] * (edgeRoute[i][1]?1:-1)*0.99;
         // const angle = fold.edges_foldAngle[edgeIndex] * (isFaceOnRight(faceindex,edgeIndex,fold)? 1 : -1);
         face = rotateFace(face, [fold.vertices_coords[edge[0]],fold.vertices_coords[edge[1]]], angle);
     }
