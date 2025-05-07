@@ -102,10 +102,22 @@ export function getFaces(oldfold: Fold): Fold {
     }
 
     // Fill out edges_faces
+    // fold.faces_edges.forEach((edges, faceIndex) => {
+    //     edges.forEach((edgeIndex) => {
+    //         const edgeFaces = fold.edges_faces[edgeIndex];
+    //         if (edgeFaces.left === null) {
+    //             edgeFaces.left = faceIndex;
+    //         } else {
+    //             edgeFaces.right = faceIndex;
+    //         }
+    //     });
+    // });
     fold.faces_edges.forEach((edges, faceIndex) => {
         edges.forEach((edgeIndex) => {
+            const [v1, v2] = fold.edges_vertices[edgeIndex];
             const edgeFaces = fold.edges_faces[edgeIndex];
-            if (edgeFaces.left === null) {
+            const face = fold.faces_vertices[faceIndex];
+            if (isFaceToLeftOfEdge([v1, v2], face, fold)) {
                 edgeFaces.left = faceIndex;
             } else {
                 edgeFaces.right = faceIndex;
@@ -176,7 +188,7 @@ export function getFoldedFaces(oldfold: Fold, root_index: number = 0): [number, 
         const faceVertices = fold.faces_vertices[i];
         const foldedFace = rotateFaceOverRoute(
             faceVertices.map((v) => [fold.vertices_coords[v][0],fold.vertices_coords[v][1],0]),
-            edgeRoute.reverse(),
+            edgeRoute.slice().reverse(),
             fold,
             i
         );
@@ -256,7 +268,8 @@ function rotateFaceOverRoute(
     for (let i = 0; i < edgeRoute.length; i++) {
         const edgeIndex = edgeRoute[i][0];
         const edge = fold.edges_vertices[edgeIndex];
-        const angle = fold.edges_foldAngle[edgeIndex] * (edgeRoute[i][1]?1:-1)//(isFaceOnRight(faceindex,edgeIndex,fold)? 1 : -1);
+        const angle = fold.edges_foldAngle[edgeIndex] * (edgeRoute[i][1]?1:-1)*0.99;
+        // const angle = fold.edges_foldAngle[edgeIndex] * (isFaceOnRight(faceindex,edgeIndex,fold)? 1 : -1);
         face = rotateFace(face, [fold.vertices_coords[edge[0]],fold.vertices_coords[edge[1]]], angle);
     }
     return face;
@@ -315,3 +328,25 @@ function isFaceOnRight(faceindex:number,edgeindex:number,fold:Fold):boolean {
     // All vertices are on the left side or on the line
     return false;
 }
+
+function isFaceToLeftOfEdge(edge: [number, number], face: number[], fold: Fold): boolean {
+    const [v1, v2] = edge;
+    const edgeVec = subtract(fold.vertices_coords[v2], fold.vertices_coords[v1]);
+
+    for (let i = 0; i < face.length; i++) {
+        const a = face[i];
+        const b = face[(i + 1) % face.length];
+        if ((a === v1 && b === v2) || (a === v2 && b === v1)) {
+            // Found the edge in this face
+            const prevVertex = face[(i - 1 + face.length) % face.length];
+            const toPrev = subtract(fold.vertices_coords[prevVertex], fold.vertices_coords[v1]);
+            const cross = edgeVec[0] * toPrev[1] - edgeVec[1] * toPrev[0];
+            return cross > 0; // Left if cross product is positive
+        }
+    }
+    return false;
+}
+function subtract([x1, y1]: [number, number], [x2, y2]: [number, number]): [number, number] {
+    return [x1 - x2, y1 - y2];
+}
+
