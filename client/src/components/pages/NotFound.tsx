@@ -11,7 +11,7 @@ const NotFound: React.FC = () => {
       <div className="Home">
         <div className="Notfound-container">
           <h1>404 Not Found</h1>
-          <p>The page you requested couldn't be found.</p>
+          <p>The page you requested couldn&apos;t be found.</p>
           <button className="Notfound-home-button">
             <a className="Notfound-home-link" href="/">
               Go back to the homepage
