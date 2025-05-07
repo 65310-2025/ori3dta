@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "format": "prettier --ignore-path .gitignore --write .",
-    "start": "nodemon --exec ts-node server/server.ts"
+    "start": "nodemon --exec ts-node server/server.ts",
+    "prod": "vite build && ts-node server/server.ts 5173"
   },
   "repository": {
     "type": "git",

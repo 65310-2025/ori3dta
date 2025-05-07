@@ -91,6 +91,7 @@ router.post("/designs", async (req: Request, res: Response) => {
       const uploadedDesign = JSON.parse(design.design);
       newCP = new CP(uploadedDesign);
       let is200scale = false;
+      let isDegrees = false;
       for (let i = 0; i < newCP.vertices_coords.length; i++) {
         if (
           Math.abs(newCP.vertices_coords[i][0]) > 100 ||
@@ -104,6 +105,17 @@ router.post("/designs", async (req: Request, res: Response) => {
         for (let i = 0; i < newCP.vertices_coords.length; i++) {
           newCP.vertices_coords[i][0] = newCP.vertices_coords[i][0] / 400 + 0.5;
           newCP.vertices_coords[i][1] = newCP.vertices_coords[i][1] / 400 + 0.5;
+        }
+      }
+      for (let i = 0; i < newCP.edges_foldAngle.length; i++) {
+        if (Math.abs(newCP.edges_foldAngle[i]) > 10) {
+          isDegrees = true;
+          break;
+        }
+      }
+      if (isDegrees) {
+        for (let i = 0; i < newCP.edges_foldAngle.length; i++) {
+          newCP.edges_foldAngle[i] = (newCP.edges_foldAngle[i] * Math.PI) / 180;
         }
       }
     } catch (error) {

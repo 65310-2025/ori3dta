@@ -129,6 +129,14 @@ const Navbar: React.FC = () => {
         >
           Home
         </a>
+        <a
+          className="Navbar-link"
+          onClick={() => {
+            navigate("/docs");
+          }}
+        >
+          Docs
+        </a>
       </div>
       <div className="Navbar-login" ref={dropdownRef}>
         <img
