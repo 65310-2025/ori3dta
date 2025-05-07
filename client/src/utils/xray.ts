@@ -136,7 +136,7 @@ export function getFoldedFaces(oldfold: Fold, root_index: number = 0): [number, 
 
     // const fold = structuredClone(oldfold);
     // For each face, get a path of edges (represented by their indices) to cross to reach the root face
-    const edgeRoutes: number[][] = Array.from(
+    const edgeRoutes: [number,Boolean][][] = Array.from(
         { length: fold.faces_vertices.length },
         (_, index) => {
             return [];
@@ -164,12 +164,12 @@ export function getFoldedFaces(oldfold: Fold, root_index: number = 0): [number, 
                 );
 
                 if (edgeBetween !== undefined) {
-                    edgeRoutes[neighbor] = [...currentRoute, edgeBetween];
+                    edgeRoutes[neighbor] = [...currentRoute, [edgeBetween, fold.edges_faces[edgeBetween].left === currentFace ? true : false]];
                 }
             }
         }
     }
-
+    console.log(edgeRoutes);
     const foldedFaces:[number, number, number][][] = []
     for(let i = 0; i < edgeRoutes.length; i++) {
         const edgeRoute = edgeRoutes[i];
@@ -248,15 +248,15 @@ function rotateFace(
 
 function rotateFaceOverRoute(
     oldface: [number, number, number][],
-    edgeRoute: number[],
+    edgeRoute: [number,Boolean][],
     fold: Fold,
     faceindex:number
 ): [number, number, number][] {
     let face = structuredClone(oldface);
     for (let i = 0; i < edgeRoute.length; i++) {
-        const edgeIndex = edgeRoute[i];
+        const edgeIndex = edgeRoute[i][0];
         const edge = fold.edges_vertices[edgeIndex];
-        const angle = fold.edges_foldAngle[edgeIndex] * (isFaceOnRight(faceindex,edgeIndex,fold)? 1 : -1);
+        const angle = fold.edges_foldAngle[edgeIndex] * (edgeRoute[i][1]?1:-1)//(isFaceOnRight(faceindex,edgeIndex,fold)? 1 : -1);
         face = rotateFace(face, [fold.vertices_coords[edge[0]],fold.vertices_coords[edge[1]]], angle);
     }
     return face;
@@ -279,6 +279,7 @@ function isFaceClockwise(vertices: number[], fold: Fold): boolean {
     return sum < 0;
 }
 
+//this is better but not quite right. needs to check that the first face is the edges's left and the second face is the edges's right. will need to keep track of face path
 function isFaceOnRight(faceindex:number,edgeindex:number,fold:Fold):boolean {
     const edge = fold.edges_vertices[edgeindex];
     const face = fold.faces_vertices[faceindex];
