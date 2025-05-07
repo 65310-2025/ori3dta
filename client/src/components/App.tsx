@@ -1,23 +1,28 @@
-import React, { useState, useEffect, createContext } from "react";
-import { Outlet } from "react-router-dom";
+import React, { createContext, useEffect, useState } from "react";
+
 import jwt_decode from "jwt-decode";
+import { Outlet } from "react-router-dom";
+
+import { UserDto } from "../../../dto/dto";
 import { socket } from "../client-socket";
-import { get, post } from "../utilities";
-import { User, AuthContextValue } from "../types/types";
+import { AuthContextValue } from "../types/types";
+import { get, post } from "../utils/requests";
 
 export const UserContext = createContext<AuthContextValue | null>(null);
 
-/**
- * Define the "App" component
- */
 const App: React.FC = () => {
-  const [userId, setUserId] = useState<string | undefined>(undefined);
+  const [userId, setUserId] = useState<string | undefined | null>(undefined);
+  const [userName, setUserName] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    get("/api/whoami").then((user: User) => {
+    get("/api/whoami").then((user: UserDto) => {
       if (user._id) {
-        // they are registered in the database, and currently logged in.
+        // logged in
         setUserId(user._id);
+        setUserName(user.name);
+      } else {
+        // not logged in
+        setUserId(null);
       }
     });
   }, []);
@@ -26,19 +31,22 @@ const App: React.FC = () => {
     const userToken = credentialResponse.credential;
     const decodedCredential = jwt_decode(userToken) as { name: string };
     console.log(`Logged in as ${decodedCredential.name}`);
-    post("/api/login", { token: userToken }).then((user: User) => {
+    post("/api/login", { token: userToken }).then((user: UserDto) => {
       setUserId(user._id);
+      setUserName(user.name);
       post("/api/initsocket", { socketid: socket.id });
     });
   };
 
   const handleLogout = () => {
-    setUserId(undefined);
+    setUserId(null);
+    setUserName(undefined);
     post("/api/logout");
   };
 
   const authContextValue: AuthContextValue = {
     userId,
+    userName,
     handleLogin,
     handleLogout,
   };

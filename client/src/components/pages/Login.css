@@ -1,0 +1,25 @@
+.Login-page {
+  display: flex;
+  justify-content: space-around;
+  background-color: var(--background);
+  height: calc(100vh - var(--header-height));
+}
+
+.Login-box {
+  width: max(400px, 30%);
+  padding: 30px;
+  margin-top: 50px;
+  border: 1px solid var(--text-color);
+  border-radius: 20px;
+  height: max(200px, 25%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: var(--background-dark);
+  color: var(--text-color);
+}
+
+.Login-title {
+  font-size: 2em;
+  padding: 20px;
+}

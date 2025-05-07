@@ -1,6 +1,7 @@
 import { Server } from "http";
-import { Server as SocketIOServer, Socket as SocketIO } from "socket.io";
-import { IUser, ISocket } from "./types/types";
+import { Socket as SocketIO, Server as SocketIOServer } from "socket.io";
+
+import { ISocket, IUser } from "./types/types";
 
 let io: SocketIOServer;
 
@@ -8,9 +9,12 @@ const userToSocketMap: { [key: string]: SocketIO } = {}; // maps user ID to sock
 const socketToUserMap: { [key: string]: IUser } = {}; // maps socket ID to user object
 
 const getAllConnectedUsers = (): IUser[] => Object.values(socketToUserMap);
-const getSocketFromUserID = (userid: string): SocketIO | undefined => userToSocketMap[userid];
-const getUserFromSocketID = (socketid: string): IUser | undefined => socketToUserMap[socketid];
-const getSocketFromSocketID = (socketid: string): SocketIO | undefined => io.sockets.sockets.get(socketid);
+const getSocketFromUserID = (userid: string): SocketIO | undefined =>
+  userToSocketMap[userid];
+const getUserFromSocketID = (socketid: string): IUser | undefined =>
+  socketToUserMap[socketid];
+const getSocketFromSocketID = (socketid: string): SocketIO | undefined =>
+  io.sockets.sockets.get(socketid);
 
 const addUser = (user: IUser, socket: SocketIO): void => {
   const oldSocket = userToSocketMap[user._id];
