@@ -95,6 +95,7 @@ export function makeKawasakiFoldable(
   }
   // console.log("Rotation matrices: ", rotationMatrices);
   //rotationMatrices is a circular list. Make n copies so that each copy starts with a different rotation matrix
+  console.log("Rotation matrices: ", rotationMatrices);
   const n = rotationMatrices.length;
   const rotationMatricesCopies = Array.from({ length: n }, (_, index) => {
     return rotationMatrices
@@ -103,19 +104,21 @@ export function makeKawasakiFoldable(
   });
   //for each copy, multiply the matrices to get a net rotation
   const netMatrices = rotationMatricesCopies.map((rotationMatrices) =>
-    matrices.multiplyMatricesList(rotationMatrices.map(({ matrix }) => matrix)),
+    matrices.multiplyMatricesList(rotationMatrices.map(({theta,rho, matrix }) => matrix)),
   );
 
+  console.log("Net matrices: ", netMatrices);
   const candidateCreases: Array<{
     theta: number;
     rho: number;
     matrix: number[][];
   }> = [];
   //For each matrix in netMatrices, check if matrix[1][0] == matrix[0][1]. This means the rotation matrix has no z component, and can be expressed as a single crease
+  // console.log("Net matrices: ", netMatrices);
   for (const matrix of netMatrices) {
     if (float.eq(matrix[1][0], matrix[0][1])) {
       //Find the theta and rho values of this single creases
-      const theta = Math.atan2(matrix[0][2], matrix[2][1]); //really is the theta of the transpose, which is also the inverse
+      const theta = Math.atan2(matrix[2][1], matrix[0][2]); //really is the theta of the transpose, which is also the inverse
       const rho = Math.atan2(matrix[2][1] / Math.cos(theta), matrix[2][2]); //this is also the rho of the transpose
       candidateCreases.push({ theta: theta, rho: rho, matrix: matrix });
       candidateCreases.push({
@@ -125,7 +128,7 @@ export function makeKawasakiFoldable(
       }); //add the opposite solution
     }
   }
-
+  console.log("Candidate creases: ", candidateCreases);
   //For each candidate crease, check if it actually makes the vertex foldable.
   let verifiedCreases: Array<{ theta: number; rho: number }> = [];
 
