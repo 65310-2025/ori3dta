@@ -10,6 +10,7 @@ import {
 } from "react-router-dom";
 
 import App from "./components/App";
+import Docs from "./components/pages/Docs";
 import Editor from "./components/pages/Editor";
 import Landing from "./components/pages/Landing";
 import Library from "./components/pages/Library";
@@ -23,6 +24,7 @@ const router = createBrowserRouter(
       <Route path="/login" element={<Login />} />
       <Route path="/library" element={<Library />} />
       <Route path="/editor/:cpID" element={<Editor />} />
+      <Route path="/docs" element={<Docs />} />
     </Route>,
   ),
 );
