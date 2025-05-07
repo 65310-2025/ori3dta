@@ -25,6 +25,7 @@ const router = createBrowserRouter(
       <Route path="/library" element={<Library />} />
       <Route path="/editor/:cpID" element={<Editor />} />
       <Route path="/docs" element={<Docs />} />
+      <Route path="*" element={<NotFound />} />
     </Route>,
   ),
 );
