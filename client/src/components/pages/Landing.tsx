@@ -1,7 +1,7 @@
 import React from "react";
 
 import logo from "../../../favicon.svg";
-import demo from "../../assets/img/demo.jpg";
+import demo from "../../assets/img/demo.png";
 import Navbar from "../modules/LandingNavbar";
 import "./Landing.css";
 

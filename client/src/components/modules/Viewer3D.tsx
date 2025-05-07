@@ -42,13 +42,13 @@ const polygon3D = (vertices:[number,number,number][]) => {
 }
 
 const faceMaterial = new THREE.MeshBasicMaterial({
-  color: 0x00ff00,
+  color: 0xff0000,
   transparent: true,
   opacity: 0.2,
   side: THREE.FrontSide//THREE.DoubleSide,
 });
 const faceMaterialBack = new THREE.MeshBasicMaterial({
-  color: 0x000000,
+  color: 0x0000ff,
   transparent: true,
   opacity: 0.2,
   side: THREE.BackSide, 
@@ -115,6 +115,21 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({ cp, setCP, cpRef }) => {
       renderer.dispose();
     };
   }, []);
+  useEffect(() => {
+    if (cpRef.current === null) return;
+    const foldedFaces = getFoldedFaces(cpRef.current);
+    // Access and modify the scene
+    if (sceneRef.current) {
+      console.log("Clearing the scene");
+      while (sceneRef.current.children.length > 0) {
+        sceneRef.current.remove(sceneRef.current.children[0]);
+      }
+      for(const face of foldedFaces) {
+        const polygon = polygon3D(face);
+        sceneRef.current.add(polygon);
+      }
+    }
+  }, [cp]);
 
   // Register keybinds
   useEffect(() => {
@@ -125,16 +140,16 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({ cp, setCP, cpRef }) => {
 
       if (event.key === "b") {
         if (cpRef.current=== null) return;
-        const clippedCP = {
-          ...cpRef.current,
-          foldAngles: Object.fromEntries(
-            Object.entries(cpRef.current.foldAngles || {}).map(([key, value]) => [
-              key,
-              Math.max(-180, Math.min(180, value as number)),
-            ])
-          ),
-        };
-        setCP(clippedCP);
+        // const clippedCP = {
+        //   ...cpRef.current,
+        //   foldAngles: Object.fromEntries(
+        //     Object.entries(cpRef.current.foldAngles || {}).map(([key, value]) => [
+        //       key,
+        //       Math.max(-180, Math.min(180, value as number)),
+        //     ])
+        //   ),
+        // };
+        // setCP(clippedCP);
         const foldedFaces = getFoldedFaces(cpRef.current);
 
         // Access and modify the scene
