@@ -11,10 +11,34 @@
   width: var(--sidebar-width);
   background-color: var(--background-dark);
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.Docs-sidebar a {
+  margin-left: 20px;
+  margin-bottom: 5px;
+  font-size: 1.2rem;
 }
 
 .Docs-content {
   padding: 40px;
   width: calc(100vw - var(--sidebar-width));
+  overflow: scroll;
+}
+
+.Docs h1 {
+  font-size: 3.5rem;
+  margin-bottom: 20px;
+}
+
+.Docs h2 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+}
+
+.Docs p {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
 }
 
