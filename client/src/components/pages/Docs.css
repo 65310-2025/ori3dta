@@ -27,6 +27,14 @@
   overflow: scroll;
 }
 
+.Docs-content a {
+  text-decoration: underline;
+}
+
+.Docs-content a:hover {
+  cursor: pointer;
+}
+
 .Docs h1 {
   font-size: 3.5rem;
   margin-bottom: 20px;

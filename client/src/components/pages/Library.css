@@ -23,8 +23,11 @@
   height: min(100%, 120px);
 }
 
+.Library-new-icon:hover {
+  cursor: pointer;
+}
+
 .Library-upload-icon {
-  /* filter: invert(var(--darkmode-invert)); */
   height: min(40px);
   margin: 5px 20px;
 }
