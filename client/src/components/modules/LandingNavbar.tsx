@@ -3,16 +3,27 @@ import React, { useContext, useEffect, useState } from "react";
 import { googleLogout } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 
-import logo from "../../../favicon.svg";
-import { UserContext } from "../App";
-import "./Navbar.css";
+import logo from "../../../logo_text.png";
+import themeToggle from "../../assets/icons/theme-toggle.svg";
+import { ThemeContext, UserContext } from "../App";
+import "./LandingNavbar.css";
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const context = useContext(UserContext);
+  const themeContext = useContext(ThemeContext);
 
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [dropdownVisible, setDropdownVisible] = useState(false);
+
+  const { theme, setTheme } = themeContext || {
+    theme: "dark",
+    setTheme: () => {},
+  };
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
 
   if (!context) {
     return null;
@@ -38,8 +49,6 @@ const Navbar: React.FC = () => {
   };
 
   const toggleDropdown = () => {
-    console.log(`Setting dropdownVisible to ${!dropdownVisible}`);
-    console.log(dropdownVisible.toString());
     setDropdownVisible(!dropdownVisible);
   };
 
@@ -91,20 +100,21 @@ const Navbar: React.FC = () => {
       </div>
     </div>
   ) : (
-    <a
+    <button
       className="Navbar-link"
       onClick={() => {
         navigate("/login");
       }}
     >
       Login / Sign Up
-    </a>
+    </button>
   );
 
   return (
     <div className="Navbar">
       <div className="Navbar-items">
         <a
+          className="Navbar-link"
           onClick={() => {
             navigate("/");
           }}
@@ -119,8 +129,22 @@ const Navbar: React.FC = () => {
         >
           Home
         </a>
+        <a
+          className="Navbar-link"
+          onClick={() => {
+            navigate("/docs");
+          }}
+        >
+          Docs
+        </a>
       </div>
       <div className="Navbar-login" ref={dropdownRef}>
+        <img
+          src={themeToggle}
+          alt="Theme Toggle"
+          className="Navbar-theme-toggle"
+          onClick={toggleTheme}
+        />
         {loginElement}
       </div>
     </div>

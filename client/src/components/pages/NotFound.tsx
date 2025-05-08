@@ -1,10 +1,24 @@
 import React from "react";
 
-const NotFound = () => {
+import Navbar from "../modules/LandingNavbar";
+import "./NotFound.css";
+
+const NotFound: React.FC = () => {
+  console.log("404 Not Found");
   return (
     <div>
-      <h1>404 Not Found</h1>
-      <p>The page you requested couldn't be found.</p>
+      <Navbar />
+      <div className="Home">
+        <div className="Notfound-container">
+          <h1>404 Not Found</h1>
+          <p>The page you requested couldn&apos;t be found.</p>
+          <button className="Notfound-home-button">
+            <a className="Notfound-home-link" href="/">
+              Go back to the homepage
+            </a>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

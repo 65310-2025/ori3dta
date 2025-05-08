@@ -1,33 +1,43 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import { googleLogout } from "@react-oauth/google";
-import { Button, Card, Flex, Form, Input, Menu, Modal } from "antd";
-import type { MenuProps } from "antd";
+import { CloseOutlined } from "@ant-design/icons";
+import { Form, Input, Modal, Upload } from "antd";
 import { useNavigate } from "react-router-dom";
 
 import { DesignMetadataDto, NewDesignDto } from "../../../../dto/dto";
-import LogoutIcon from "../../assets/icons/logout.svg";
 import NewIcon from "../../assets/icons/new.svg";
+import UploadIcon from "../../assets/icons/upload.svg";
 import { get, post } from "../../utils/requests";
 import { UserContext } from "../App";
+import DesignCard from "../modules/DesignCard";
+import Navbar from "../modules/LandingNavbar";
+import "./Library.css";
 
 const Library: React.FC = () => {
+  const navigate = useNavigate();
+
   const context = useContext(UserContext);
 
   if (!context) {
     return <p>Error: User context is not available.</p>;
   }
 
-  const { userId, handleLogout } = context;
+  const { userId } = context;
 
   if (!userId) {
-    return <p>Error: You must be logged in to view this page.</p>;
+    navigate("/login");
   }
 
   const [designs, setDesigns] = useState<DesignMetadataDto[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState<string>("");
+  const [uploadFileName, setUploadFileName] = useState<string>("");
   const [form] = Form.useForm();
-  const navigate = useNavigate(); // Get the navigate function
+
+  const handleRemove = () => {
+    setUploadFile("");
+    setUploadFileName("");
+  };
 
   // Get metadata for all designs from server
   // TODO: later on, implement pagination in the /designs endpoint in case we have some
@@ -44,40 +54,7 @@ const Library: React.FC = () => {
     };
 
     getDesigns();
-  }, []);
-
-  const items: MenuProps["items"] = [
-    {
-      label: "Some other pages that don't exist yet",
-      key: "app",
-    },
-    {
-      key: "new",
-      icon: (
-        <img
-          src={NewIcon}
-          alt="New crease pattern"
-          style={{ width: "50px" }}
-          onClick={() => setIsModalOpen(true)}
-        />
-      ),
-    },
-    {
-      key: "logout",
-      icon: (
-        <img
-          src={LogoutIcon}
-          alt="Logout"
-          style={{ width: "50px" }}
-          onClick={() => {
-            googleLogout();
-            handleLogout();
-            navigate("/");
-          }}
-        />
-      ),
-    },
-  ];
+  }, [userId]);
 
   const handleCancel = () => {
     setIsModalOpen(false);
@@ -90,6 +67,7 @@ const Library: React.FC = () => {
       const newDesign: NewDesignDto = {
         name: values.name,
         description: values.description,
+        design: uploadFile,
       };
       await post("/api/designs", newDesign);
       setIsModalOpen(false);
@@ -103,54 +81,91 @@ const Library: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen">
-      <Menu mode="horizontal" items={items} />
-      <Modal
-        title="New Crease Pattern"
-        open={isModalOpen}
-        onCancel={handleCancel}
-        onOk={handleSubmit}
-        okText="Create"
-        cancelText="Cancel"
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="name"
-            label="Name"
-            rules={[{ required: true, message: "Please enter the name" }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="description"
-            label="Description"
-            rules={[
-              { required: true, message: "Please enter the description" },
-            ]}
-          >
-            <Input.TextArea />
-          </Form.Item>
-        </Form>
-      </Modal>
-      <Flex wrap>
-        {designs.map((design: DesignMetadataDto) => (
-          <div className="m-2" key={design._id}>
-            <Card title={design.name} variant="borderless">
-              <p>{design.description}</p>
-              <p>Creator: {design.creatorName}</p>
-              <Button
-                type="default"
-                onClick={() => {
-                  navigate(`/editor/${design.cpID}`);
+    <>
+      <Navbar />
+      <div className="Library">
+        <Modal
+          className="Library-new-form"
+          title="New Crease Pattern"
+          open={isModalOpen}
+          onCancel={handleCancel}
+          onOk={handleSubmit}
+          okText="Create"
+          cancelText="Cancel"
+        >
+          <Form className="Library-new-form" form={form} layout="vertical">
+            <Form.Item
+              name="name"
+              label="Name"
+              rules={[{ required: true, message: "Please enter the name" }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="description"
+              label="Description"
+              rules={[
+                { required: true, message: "Please enter the description" },
+              ]}
+            >
+              <Input.TextArea />
+            </Form.Item>
+            <Form.Item
+              name="file"
+              rules={[{ required: false, message: "Upload a .fold file" }]}
+              valuePropName="fileList"
+              getValueFromEvent={(e) => (Array.isArray(e) ? e : e?.fileList)}
+            >
+              <Upload
+                accept=".fold"
+                showUploadList={false}
+                beforeUpload={(file) => {
+                  const reader = new FileReader();
+                  reader.onload = (e) => {
+                    const content = e.target?.result as string;
+                    setUploadFile(content);
+                    setUploadFileName(file.name);
+                  };
+                  reader.readAsText(file);
+                  return false; // Prevent automatic upload
                 }}
               >
-                Edit
-              </Button>
-            </Card>
+                <button className="Library-upload-button">
+                  <p>Upload .fold file</p>
+                  <img className="Library-upload-icon" src={UploadIcon}></img>
+                </button>
+              </Upload>
+              {uploadFileName && (
+                <div className="Library-uploaded-file">
+                  <p>Uploaded file: {uploadFileName}</p>
+                  <CloseOutlined
+                    onClick={handleRemove}
+                    style={{ cursor: "pointer" }}
+                  />
+                </div>
+              )}
+            </Form.Item>
+          </Form>
+        </Modal>
+        <div className="Library-design-list">
+          {designs.map((design: DesignMetadataDto) => (
+            <DesignCard
+              design={design}
+              setDesigns={setDesigns}
+              key={design._id}
+            />
+          ))}
+          <div className="Library-design">
+            <div className="Library-new">
+              <p>New Design</p>
+              <button onClick={() => setIsModalOpen(true)}>
+                <img className="Library-new-icon" src={NewIcon}></img>
+              </button>
+            </div>
           </div>
-        ))}
-      </Flex>
-    </div>
+        </div>
+      </div>
+    </>
   );
 };
 

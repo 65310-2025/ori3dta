@@ -3,8 +3,9 @@ import React, { useContext } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 
+import logo from "../../../logo_text.png";
 import { UserContext } from "../App";
-import Navbar from "../modules/Navbar";
+import Navbar from "../modules/LandingNavbar";
 import "./Login.css";
 
 const Login: React.FC = () => {
@@ -15,11 +16,15 @@ const Login: React.FC = () => {
     return null; // or handle the case where context is null
   }
 
-  const { handleLogin } = context;
+  const { userId, handleLogin } = context;
+
+  if (userId) {
+    navigate("/library");
+  }
 
   const handleLoginAndNavigate = (credentialResponse: any) => {
     handleLogin(credentialResponse);
-    navigate("/");
+    navigate("/library");
   };
 
   return (
@@ -27,7 +32,9 @@ const Login: React.FC = () => {
       <Navbar />
       <div className="Login-page">
         <div className="Login-box">
+          <img src={logo} alt="Ori3dita Logo" className="Login-logo" />
           <h1 className="Login-title">Log in to Ori3dita</h1>
+
           <GoogleLogin
             onSuccess={handleLoginAndNavigate}
             onError={() => console.log("Login failed")}

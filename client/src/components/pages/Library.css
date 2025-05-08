@@ -1,0 +1,44 @@
+.Library-design-list {
+  display: flex;
+  flex-wrap: wrap;
+  background-color: var(--background);
+  height: calc(100vh - var(--header-height));
+  padding: 30px;
+  overflow: scroll;
+  align-content: flex-start;
+}
+
+.Library-new {
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-direction: column;
+  width: 100%;
+  padding: 15px;
+}
+
+.Library-new-icon {
+  filter: invert(var(--darkmode-invert));
+  height: min(100%, 120px);
+}
+
+.Library-new-icon:hover {
+  cursor: pointer;
+}
+
+.Library-upload-icon {
+  height: min(40px);
+  margin: 5px 20px;
+}
+
+.Library-upload-button {
+  display: flex;
+  align-items: center;
+}
+
+.Library-uploaded-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

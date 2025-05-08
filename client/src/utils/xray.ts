@@ -1,0 +1,337 @@
+import { NumberKeyframeTrack } from "three";
+import { Fold } from "../types/fold";
+
+const DISTORTION = 0.001; // how much to distort the face when folding
+
+export function getFaces(oldfold: Fold): Fold {
+    const fold = structuredClone(oldfold);
+    fold.faces_vertices = [];
+    fold.faces_edges = [];
+    fold.faces_faces = [];
+    fold.edges_faces = Array.from({ length: fold.edges_vertices.length }, () => ({
+        left: null,
+        right: null,
+    }));
+
+    const N = fold.edges_vertices.length;
+    let halfEdges: {
+        vertices: [number, number];
+        fullEdge: number;
+        index: number;
+    }[] = structuredClone(fold.edges_vertices).map(([v1, v2], index) => ({
+        vertices: [v1, v2],
+        fullEdge: index,
+        index: index,
+    }));
+
+    halfEdges = halfEdges.concat(
+        halfEdges.map(({ vertices: [v1, v2], fullEdge }) => ({
+            vertices: [v2, v1],
+            fullEdge: fullEdge,
+            index: fullEdge + N,
+        })),
+    ); // should be 2N long
+
+    // outgoing half edges from each vertex
+    let vertices_outgoingEdges: {
+        vertices: [number, number];
+        fullEdge: number;
+        index: number;
+    }[][] = Array.from({ length: fold.vertices_coords.length }, () => []);
+    for (const halfEdge of halfEdges) {
+        vertices_outgoingEdges[halfEdge.vertices[0]].push(halfEdge);
+    }
+    // sort vertices_outgoingEdges by angle
+    vertices_outgoingEdges = vertices_outgoingEdges.map((edges, vindex) =>
+        edges.sort(
+            (halfEdgeA, halfEdgeB) =>
+                angle(vindex, halfEdgeA.vertices[1], fold) -
+                angle(vindex, halfEdgeB.vertices[1], fold),
+        ),
+    );
+
+    const mutableHalfEdges = structuredClone(halfEdges);
+    while (mutableHalfEdges.length > 0) {
+        const face_vertices: number[] = [];
+        const face_edges: number[] = [];
+
+        let currentHalfEdge = mutableHalfEdges[0];
+        mutableHalfEdges.shift();
+
+        face_vertices.push(currentHalfEdge.vertices[0]);
+        face_edges.push(currentHalfEdge.fullEdge);
+
+        while (true) {
+            const nextVertex: number = currentHalfEdge.vertices[1];
+            const outgoingEdges: {
+                vertices: [number, number];
+                fullEdge: number;
+                index: number;
+            }[] = vertices_outgoingEdges[nextVertex];
+
+            // index in the list of outgoingEdges
+            const currentOutgoingIndex = outgoingEdges.findIndex(
+                (halfEdge) => halfEdge.vertices[1] == currentHalfEdge.vertices[0],
+            );
+
+            currentHalfEdge =
+                outgoingEdges[
+                    currentOutgoingIndex < outgoingEdges.length - 1
+                        ? currentOutgoingIndex + 1
+                        : 0
+                ];
+
+            face_vertices.push(currentHalfEdge.vertices[0]);
+            face_edges.push(currentHalfEdge.fullEdge);
+            const indexToRemove = mutableHalfEdges.findIndex(
+                (halfEdge) =>
+                    halfEdge.vertices[0] === currentHalfEdge.vertices[0] &&
+                    halfEdge.vertices[1] === currentHalfEdge.vertices[1],
+            );
+            if (indexToRemove !== -1) {
+                mutableHalfEdges.splice(indexToRemove, 1);
+            }
+
+            if (currentHalfEdge.vertices[1] === face_vertices[0]) {
+                break;
+            }
+        }
+        // One of the faces will be tracing the outside of the cp. We can find it and avoid adding it because its orientation will be different.
+        if (!isFaceClockwise(face_vertices, fold)) {
+            fold.faces_vertices.push(face_vertices);
+            fold.faces_edges.push(face_edges);
+        }
+    }
+
+    // Fill out edges_faces
+    // fold.faces_edges.forEach((edges, faceIndex) => {
+    //     edges.forEach((edgeIndex) => {
+    //         const edgeFaces = fold.edges_faces[edgeIndex];
+    //         if (edgeFaces.left === null) {
+    //             edgeFaces.left = faceIndex;
+    //         } else {
+    //             edgeFaces.right = faceIndex;
+    //         }
+    //     });
+    // });
+    fold.faces_edges.forEach((edges, faceIndex) => {
+        edges.forEach((edgeIndex) => {
+            const [v1, v2] = fold.edges_vertices[edgeIndex];
+            const edgeFaces = fold.edges_faces[edgeIndex];
+            const face = fold.faces_vertices[faceIndex];
+            if (isFaceToLeftOfEdge([v1, v2], face, fold)) {
+                edgeFaces.left = faceIndex;
+            } else {
+                edgeFaces.right = faceIndex;
+            }
+        });
+    });
+    // Fill out faces_faces
+    const faceCount = fold.faces_vertices.length;
+    fold.faces_faces = Array.from({ length: faceCount }, () => []);
+    fold.edges_faces.forEach(({ left, right }) => {
+        if (left !== null && right !== null) {
+            fold.faces_faces[left].push(right);
+            fold.faces_faces[right].push(left);
+        }
+    });
+
+    return fold;
+}
+
+export function getFoldedFaces(oldfold: Fold, root_index: number = 0): [number, number, number][][] {
+    const fold = getFaces(oldfold);
+    // Clip all fold.foldAngles to be between -180 and 180
+    fold.edges_foldAngle = fold.edges_foldAngle.map((angle) => {
+        while (angle > 180) angle -= 360;
+        while (angle < -180) angle += 360;
+        return angle;
+    });
+
+    // const fold = structuredClone(oldfold);
+    // For each face, get a path of edges (represented by their indices) to cross to reach the root face
+    const edgeRoutes: [number,Boolean][][] = Array.from(
+        { length: fold.faces_vertices.length },
+        (_, index) => {
+            return [];
+        },
+    );
+
+    // Using fold.faces_faces, fold.faces_edges, and fold.edges_faces, create a spanning tree that starts at the root face and maps a route to the root face for each face
+    // the ith element in edgeRoutes represents the ith face as an array of edges that cross to reach the root face
+    const visited = new Array(fold.faces_vertices.length).fill(false);
+    const queue = [root_index];
+    visited[root_index] = true;
+
+    while (queue.length > 0) {
+        const currentFace = queue[0];
+        queue.shift();
+        const currentRoute = edgeRoutes[currentFace];
+
+        for (const neighbor of fold.faces_faces[currentFace]) {
+            if (!visited[neighbor]) {
+                visited[neighbor] = true;
+                queue.push(neighbor);
+
+                const edgeBetween = fold.faces_edges[currentFace].find((edge) =>
+                    fold.faces_edges[neighbor].includes(edge),
+                );
+
+                if (edgeBetween !== undefined) {
+                    edgeRoutes[neighbor] = [...currentRoute, [edgeBetween, fold.edges_faces[edgeBetween].left === currentFace ? true : false]];
+                }
+            }
+        }
+    }
+    console.log(edgeRoutes);
+    const foldedFaces:[number, number, number][][] = []
+    for(let i = 0; i < edgeRoutes.length; i++) {
+        const edgeRoute = edgeRoutes[i];
+        const faceVertices = fold.faces_vertices[i];
+        const foldedFace = rotateFaceOverRoute(
+            faceVertices.map((v) => [fold.vertices_coords[v][0],fold.vertices_coords[v][1],0]),
+            edgeRoute.slice().reverse(),
+            fold,
+            i
+        );
+        foldedFaces.push(foldedFace);
+    }
+
+    // Translate all folded faces to center around the origin
+    const allVertices = foldedFaces.flat();
+    const total = allVertices.reduce(
+        (acc, [x, y, z]) => {
+            acc[0] += x;
+            acc[1] += y;
+            acc[2] += z;
+            return acc;
+        },
+        [0, 0, 0],
+    );
+    const vertexCount = allVertices.length;
+    const center = [total[0] / vertexCount, total[1] / vertexCount, total[2] / vertexCount];
+
+    for (let i = 0; i < foldedFaces.length; i++) {
+        const face = foldedFaces[i];
+        for (let j = 0; j < face.length; j++) {
+            face[j][0] -= center[0];
+            face[j][1] -= center[1];
+            face[j][2] -= center[2];
+        }
+    }
+    return foldedFaces
+}
+
+//=====
+// math helper functions
+
+function rotateFace(
+    face: [number,number,number][],
+    edge: [[number, number], [number, number]],
+    angle: number,
+): [number,number,number][] {
+    const [A2D, B2D] = edge;
+    const A = [A2D[0], A2D[1], 0];
+    const B = [B2D[0], B2D[1], 0];
+
+    const axis = [
+        B[0] - A[0],
+        B[1] - A[1],
+        B[2] - A[2],
+    ];
+
+    const axisLength = Math.hypot(axis[0], axis[1], axis[2]);
+    if (axisLength === 0) throw new Error("Edge points must be different.");
+
+    // Normalize the axis
+    const u = axis.map(v => v / axisLength);
+
+    const cosTheta = Math.cos(angle);
+    const sinTheta = Math.sin(angle);
+
+    const rotatedFace = face.map((P) => {
+        // P - A
+        const pRel = [
+            P[0] - A[0],
+            P[1] - A[1],
+            P[2] - A[2],
+        ];
+
+        // Cross product: u × pRel
+        const cross = [
+            u[1] * pRel[2] - u[2] * pRel[1],
+            u[2] * pRel[0] - u[0] * pRel[2],
+            u[0] * pRel[1] - u[1] * pRel[0],
+        ];
+
+        // Dot product: u ⋅ pRel
+        const dot = u[0] * pRel[0] + u[1] * pRel[1] + u[2] * pRel[2];
+
+        // Rodrigues' rotation formula
+        const rotated = [
+            A[0] + cosTheta * pRel[0] + sinTheta * cross[0] + (1 - cosTheta) * dot * u[0],
+            A[1] + cosTheta * pRel[1] + sinTheta * cross[1] + (1 - cosTheta) * dot * u[1],
+            A[2] + cosTheta * pRel[2] + sinTheta * cross[2] + (1 - cosTheta) * dot * u[2],
+        ];
+
+        return rotated as [number, number, number];
+    });
+
+    return rotatedFace;
+}
+
+function rotateFaceOverRoute(
+    oldface: [number, number, number][],
+    edgeRoute: [number,Boolean][],
+    fold: Fold,
+    faceindex:number
+): [number, number, number][] {
+    let face = structuredClone(oldface);
+    for (let i = 0; i < edgeRoute.length; i++) {
+        const edgeIndex = edgeRoute[i][0];
+        const edge = fold.edges_vertices[edgeIndex];
+        const angle = fold.edges_foldAngle[edgeIndex] * (edgeRoute[i][1]?1:-1)*(1-DISTORTION);
+        // const angle = fold.edges_foldAngle[edgeIndex] * (isFaceOnRight(faceindex,edgeIndex,fold)? 1 : -1);
+        face = rotateFace(face, [fold.vertices_coords[edge[0]],fold.vertices_coords[edge[1]]], angle);
+    }
+    return face;
+}
+
+function angle(vertex1: number, vertex2: number, fold: Fold): number {
+    return Math.atan2(
+        fold.vertices_coords[vertex2][1] - fold.vertices_coords[vertex1][1],
+        fold.vertices_coords[vertex2][0] - fold.vertices_coords[vertex1][0],
+    );
+}
+
+function isFaceClockwise(vertices: number[], fold: Fold): boolean {
+    let sum = 0;
+    for (let i = 0; i < vertices.length; i++) {
+        const [x1, y1] = fold.vertices_coords[vertices[i]];
+        const [x2, y2] = fold.vertices_coords[vertices[(i + 1) % vertices.length]];
+        sum += (x2 - x1) * (y2 + y1);
+    }
+    return sum < 0;
+}
+
+function isFaceToLeftOfEdge(edge: [number, number], face: number[], fold: Fold): boolean {
+    const [v1, v2] = edge;
+    const edgeVec = subtract(fold.vertices_coords[v2], fold.vertices_coords[v1]);
+
+    for (let i = 0; i < face.length; i++) {
+        const a = face[i];
+        const b = face[(i + 1) % face.length];
+        if ((a === v1 && b === v2) || (a === v2 && b === v1)) {
+            // Found the edge in this face
+            const prevVertex = face[(i - 1 + face.length) % face.length];
+            const toPrev = subtract(fold.vertices_coords[prevVertex], fold.vertices_coords[v1]);
+            const cross = edgeVec[0] * toPrev[1] - edgeVec[1] * toPrev[0];
+            return cross > 0; // Left if cross product is positive
+        }
+    }
+    return false;
+}
+function subtract([x1, y1]: [number, number], [x2, y2]: [number, number]): [number, number] {
+    return [x1 - x2, y1 - y2];
+}
+

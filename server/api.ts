@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import { Socket as SocketIO } from "socket.io";
 
-import { DesignMetadataDto, ServerCPDto } from "../dto/dto";
+import { DesignMetadataDto, NewDesignDto, ServerCPDto } from "../dto/dto";
 import { login, logout } from "./auth";
 import CP, { ICP } from "./models/cp";
 import DesignMetadata from "./models/designMetadata";
@@ -79,34 +79,69 @@ router.post("/designs", async (req: Request, res: Response) => {
 
   try {
     // Validate request body
-    const { name, description } = req.body;
-    if (!name || !description) {
+    const design = req.body as NewDesignDto;
+    if (!design.name || !design.description) {
       res.status(400).send({ msg: "Name and description are required" });
       return;
     }
 
     // Create new document for the CP itself
-    const newCP = new CP({
-      vertices_coords: [
-        [0, 0],
-        [1, 0],
-        [1, 1],
-        [0, 1],
-      ],
-      edges_vertices: [
-        [0, 1],
-        [1, 2],
-        [2, 3],
-        [3, 0],
-      ],
-      edges_assignment: ["B", "B", "B", "B"],
-      edges_foldAngle: [0, 0, 0, 0],
-    });
+    let newCP;
+    try {
+      const uploadedDesign = JSON.parse(design.design);
+      newCP = new CP(uploadedDesign);
+      let is200scale = false;
+      let isDegrees = false;
+      for (let i = 0; i < newCP.vertices_coords.length; i++) {
+        if (
+          Math.abs(newCP.vertices_coords[i][0]) > 100 ||
+          Math.abs(newCP.vertices_coords[i][1]) > 100
+        ) {
+          is200scale = true;
+          break;
+        }
+      }
+      if (is200scale) {
+        for (let i = 0; i < newCP.vertices_coords.length; i++) {
+          newCP.vertices_coords[i][0] = newCP.vertices_coords[i][0] / 400 + 0.5;
+          newCP.vertices_coords[i][1] = newCP.vertices_coords[i][1] / 400 + 0.5;
+        }
+      }
+      for (let i = 0; i < newCP.edges_foldAngle.length; i++) {
+        if (Math.abs(newCP.edges_foldAngle[i]) > 10) {
+          isDegrees = true;
+          break;
+        }
+      }
+      if (isDegrees) {
+        for (let i = 0; i < newCP.edges_foldAngle.length; i++) {
+          newCP.edges_foldAngle[i] = (newCP.edges_foldAngle[i] * Math.PI) / 180;
+        }
+      }
+    } catch (error) {
+      newCP = new CP({
+        vertices_coords: [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 1],
+        ],
+        edges_vertices: [
+          [0, 1],
+          [1, 2],
+          [2, 3],
+          [3, 0],
+        ],
+        edges_assignment: ["B", "B", "B", "B"],
+        edges_foldAngle: [0, 0, 0, 0],
+      });
+    }
     const cpDocument: ICP = await newCP.save();
     const cpID = cpDocument._id;
 
     const newDesign = new DesignMetadata({
-      ...req.body,
+      name: design.name,
+      description: design.description,
       creatorID: req.user._id,
       dateCreated: new Date(),
       dateLastModified: new Date(),
@@ -134,7 +169,7 @@ router.get("/designs/:id", async (req: Request, res: Response) => {
   const metadata = await DesignMetadata.find({
     cpID: req.params.id,
   });
-  if (!metadata || !metadata[0].readAccess.includes(req.user._id)) {
+  if (!metadata[0] || !metadata[0].readAccess.includes(req.user._id)) {
     res.status(403).send({ msg: "Forbidden" });
     return;
   }
@@ -183,21 +218,23 @@ router.post("/designs/:id", async (req: Request, res: Response) => {
   res.send(design);
 });
 
-router.delete("/designs/:id", async (req: Request, res: Response) => {
+router.post("/designs/delete/:id", async (req: Request, res: Response) => {
   if (!req.user) {
     // not logged in
     res.status(401).send({ msg: "Unauthorized" });
     return;
   }
 
-  const design = await DesignMetadata.findById(req.params.id);
-  if (!design || design.creatorID !== req.user._id) {
+  const design = await DesignMetadata.find({
+    cpID: req.params.id,
+  });
+  if (!design || !design[0] || design[0].creatorID !== req.user._id) {
     res.status(403).send({ msg: "Forbidden" });
     return;
   }
 
-  const cp = await CP.findById(design.cpID);
-  await design.deleteOne();
+  const cp = await CP.findById(design[0].cpID);
+  await design[0].deleteOne();
   await cp?.deleteOne();
   res.send({ msg: "Design deleted" });
 });
