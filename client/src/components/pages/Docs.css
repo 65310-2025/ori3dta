@@ -42,3 +42,20 @@
   margin-bottom: 10px;
 }
 
+.Docs a {
+  color: var(--primary-light);
+  text-decoration: underline;
+}
+
+.Docs table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.Docs table th,
+.Docs table td {
+  text-align: center;
+}
+
