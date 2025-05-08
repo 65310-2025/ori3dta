@@ -1,6 +1,8 @@
 import { NumberKeyframeTrack } from "three";
 import { Fold } from "../types/fold";
 
+const DISTORTION = 0.001; // how much to distort the face when folding
+
 export function getFaces(oldfold: Fold): Fold {
     const fold = structuredClone(oldfold);
     fold.faces_vertices = [];
@@ -195,8 +197,28 @@ export function getFoldedFaces(oldfold: Fold, root_index: number = 0): [number, 
         foldedFaces.push(foldedFace);
     }
 
-    // console.log(edgeRoutes);
-    // return fold;
+    // Translate all folded faces to center around the origin
+    const allVertices = foldedFaces.flat();
+    const total = allVertices.reduce(
+        (acc, [x, y, z]) => {
+            acc[0] += x;
+            acc[1] += y;
+            acc[2] += z;
+            return acc;
+        },
+        [0, 0, 0],
+    );
+    const vertexCount = allVertices.length;
+    const center = [total[0] / vertexCount, total[1] / vertexCount, total[2] / vertexCount];
+
+    for (let i = 0; i < foldedFaces.length; i++) {
+        const face = foldedFaces[i];
+        for (let j = 0; j < face.length; j++) {
+            face[j][0] -= center[0];
+            face[j][1] -= center[1];
+            face[j][2] -= center[2];
+        }
+    }
     return foldedFaces
 }
 
@@ -268,7 +290,7 @@ function rotateFaceOverRoute(
     for (let i = 0; i < edgeRoute.length; i++) {
         const edgeIndex = edgeRoute[i][0];
         const edge = fold.edges_vertices[edgeIndex];
-        const angle = fold.edges_foldAngle[edgeIndex] * (edgeRoute[i][1]?1:-1)*0.99;
+        const angle = fold.edges_foldAngle[edgeIndex] * (edgeRoute[i][1]?1:-1)*(1-DISTORTION);
         // const angle = fold.edges_foldAngle[edgeIndex] * (isFaceOnRight(faceindex,edgeIndex,fold)? 1 : -1);
         face = rotateFace(face, [fold.vertices_coords[edge[0]],fold.vertices_coords[edge[1]]], angle);
     }
@@ -290,43 +312,6 @@ function isFaceClockwise(vertices: number[], fold: Fold): boolean {
         sum += (x2 - x1) * (y2 + y1);
     }
     return sum < 0;
-}
-
-//this is better but not quite right. needs to check that the first face is the edges's left and the second face is the edges's right. will need to keep track of face path
-function isFaceOnRight(faceindex:number,edgeindex:number,fold:Fold):boolean {
-    const edge = fold.edges_vertices[edgeindex];
-    const face = fold.faces_vertices[faceindex];
-    
-    const v1 = fold.vertices_coords[edge[0]]; // vertex1
-    const v2 = fold.vertices_coords[edge[1]]; // vertex2
-
-    // Vector from v1 to v2
-    const dx = v2[0] - v1[0];
-    const dy = v2[1] - v1[1];
-
-    // Compute angle to rotate so that edge aligns with positive y-axis
-    const angle = -Math.atan2(dx, dy); // note: atan2(y, x) but we swap dx/dy to align with y-axis
-
-    // Check all vertices of the face
-    for (const vertexIndex of face) {
-        const v = fold.vertices_coords[vertexIndex];
-
-        // Translate so v1 is at the origin
-        const x = v[0] - v1[0];
-        const y = v[1] - v1[1];
-
-        // Rotate point by `angle`
-        const rotatedX = x * Math.cos(angle) - y * Math.sin(angle);
-        const rotatedY = x * Math.sin(angle) + y * Math.cos(angle);
-
-        // If any vertex is on the right side (rotatedX > 0), return true
-        if (rotatedX > 1e-10) {
-            return true;
-        }
-    }
-
-    // All vertices are on the left side or on the line
-    return false;
 }
 
 function isFaceToLeftOfEdge(edge: [number, number], face: number[], fold: Fold): boolean {

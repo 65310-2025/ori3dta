@@ -42,13 +42,13 @@ const polygon3D = (vertices:[number,number,number][]) => {
 }
 
 const faceMaterial = new THREE.MeshBasicMaterial({
-  color: 0xff0000,
+  color: 0x00ffff,
   transparent: true,
   opacity: 0.2,
   side: THREE.FrontSide//THREE.DoubleSide,
 });
 const faceMaterialBack = new THREE.MeshBasicMaterial({
-  color: 0x0000ff,
+  color: 0xffff00,
   transparent: true,
   opacity: 0.2,
   side: THREE.BackSide, 
@@ -64,11 +64,24 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({ cp, setCP, cpRef }) => {
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null); // Ref for the camera
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null); // Ref for the renderer
 
+
+  const [rootFaceIndex, setRootFaceIndex] = useState<number>(0);
+  const rootFaceIndexRef = useRef<number>(0);
+  // Update rootFaceIndexRef whenever rootFaceIndex changes
+  useEffect(() => {
+    rootFaceIndexRef.current = rootFaceIndex;
+  }, [rootFaceIndex]);
+
+
   // Set up the 3D scene
   useEffect(() => {
     if (!mountRef.current) return;
 
+
     // Scene
+    const theme = document.documentElement.getAttribute("data-theme");
+    // const color =
+    //   edge_colors[theme || "dark"][edges_assignment[index]] ?? "green";
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xffffff); // Set background color to white
     sceneRef.current = scene; // Store the scene in the ref
@@ -115,54 +128,99 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({ cp, setCP, cpRef }) => {
       renderer.dispose();
     };
   }, []);
+
   useEffect(() => {
-    if (cpRef.current === null) return;
-    const foldedFaces = getFoldedFaces(cpRef.current);
+    const theme = document.documentElement.getAttribute("data-theme");
+    if (sceneRef.current) {
+      const backgroundColor = theme === "dark" ? 0x333333 : 0xffffff;
+      sceneRef.current.background = new THREE.Color(backgroundColor);
+    }
+    // if (cpRef.current === null) return;
+    // const foldedFaces = getFoldedFaces(cpRef.current,rootFaceIndexRef.current);
+    // Access and modify the scene
+    render()
+    // if (sceneRef.current) {
+    //   console.log("Clearing the scene");
+    //   while (sceneRef.current.children.length > 0) {
+    //     sceneRef.current.remove(sceneRef.current.children[0]);
+    //   }
+    //   for(const face of foldedFaces) {
+    //     const polygon = polygon3D(face);
+    //     sceneRef.current.add(polygon);
+    //   }
+    // }
+  }, [cp,rootFaceIndex]);
+
+  // Update the background color based on the theme
+  useEffect(() => {
+    if (!sceneRef.current) return;
+  
+    // Function to update the background color based on the theme
+    const updateTheme = () => {
+      const theme = document.documentElement.getAttribute("data-theme");
+      const backgroundColor = theme === "dark" ? 0x333333 : 0xffffff;
+      sceneRef.current!.background = new THREE.Color(backgroundColor);
+    };
+  
+    // Initial theme setup
+    updateTheme();
+  
+    // Create a MutationObserver to watch for changes to the `data-theme` attribute
+    const observer = new MutationObserver(() => {
+      updateTheme();
+    });
+  
+    // Observe changes to the `data-theme` attribute on the <html> element
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+  
+    // Cleanup the observer when the component unmounts
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+
+  const render = () =>{
+    if (cpRef.current=== null) return;
+    const foldedFaces = getFoldedFaces(cpRef.current,rootFaceIndexRef.current);
+
     // Access and modify the scene
     if (sceneRef.current) {
       console.log("Clearing the scene");
       while (sceneRef.current.children.length > 0) {
         sceneRef.current.remove(sceneRef.current.children[0]);
       }
+
+      // draw axes
+      const axesHelper = new THREE.AxesHelper(0.1);
+      sceneRef.current?.add(axesHelper);
+
       for(const face of foldedFaces) {
         const polygon = polygon3D(face);
         sceneRef.current.add(polygon);
       }
     }
-  }, [cp]);
 
+  }
   // Register keybinds
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === " ") {
         event.preventDefault();
       }
-
       if (event.key === "b") {
-        if (cpRef.current=== null) return;
-        // const clippedCP = {
-        //   ...cpRef.current,
-        //   foldAngles: Object.fromEntries(
-        //     Object.entries(cpRef.current.foldAngles || {}).map(([key, value]) => [
-        //       key,
-        //       Math.max(-180, Math.min(180, value as number)),
-        //     ])
-        //   ),
-        // };
-        // setCP(clippedCP);
-        const foldedFaces = getFoldedFaces(cpRef.current);
-
-        // Access and modify the scene
-        if (sceneRef.current) {
-          console.log("Clearing the scene");
-          while (sceneRef.current.children.length > 0) {
-            sceneRef.current.remove(sceneRef.current.children[0]);
-          }
-          for(const face of foldedFaces) {
-            const polygon = polygon3D(face);
-            sceneRef.current.add(polygon);
-          }
-        }
+        render()
+      }
+      if (event.key === "-") {
+        setRootFaceIndex(Math.max(rootFaceIndexRef.current - 1, 0));
+        console.log("Root face index: ", rootFaceIndexRef.current);
+      }
+      if (event.key === "=") {
+        setRootFaceIndex(rootFaceIndexRef.current + 1);
+        console.log("Root face index: ", rootFaceIndexRef.current);
       }
     };
 
@@ -179,3 +237,5 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({ cp, setCP, cpRef }) => {
     />
   );
 };
+
+
