@@ -45,6 +45,11 @@
   margin-bottom: 15px;
 }
 
+.Docs h3 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
 .Docs p {
   font-size: 1.2rem;
   margin-bottom: 10px;
@@ -66,4 +71,3 @@
 .Docs table td {
   text-align: center;
 }
-
