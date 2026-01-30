@@ -1,6 +1,7 @@
 .Grid-settings {
   background-color: var(--foreground);
-  z-index: 10;
+  height: 50%;
+  border-bottom: 2px solid var(--text-color);
 }
 
 .Grid-settings-title h3 {

@@ -1,5 +1,6 @@
 .Edge-menu {
   background-color: var(--foreground);
+  height: 50%;
 }
 
 .Edge-menu-title h3 {

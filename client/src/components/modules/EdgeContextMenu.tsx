@@ -30,7 +30,14 @@ const EdgeContextMenu: React.FC<EdgeContextMenuProps> = ({
   }, [cp, selection]);
 
   if (selection.length < 1) {
-    return null;
+    return (
+      <div className="Edge-menu" ref={ref}>
+        <div className="Edge-menu-title">
+          <h3>Edit Crease</h3>
+        </div>
+        <p className="Edge-menu-form">No Crease Selected</p>
+      </div>
+    );
   }
 
   const edgeID = selection[0];
