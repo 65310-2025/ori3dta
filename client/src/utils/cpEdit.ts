@@ -1,5 +1,6 @@
+import { SNAP_ANGLE_TOLERANCE, SNAP_TOLERANCE } from "../constants/editor";
 import { CP, Edge, EdgeAssignment, Point } from "../types/cp";
-import { MvMode } from "../types/ui";
+import { GridSettings, MvMode, ViewBox } from "../types/ui";
 import { isEndpoint, pointsEqual } from "./cp";
 import {
   edgeLength,
@@ -10,11 +11,12 @@ import {
   projectToLine,
 } from "./geometry";
 
-const SNAP_TOLERANCE = 0.03;
-const SNAP_ANGLE_TOLERANCE = Math.PI / 36;
-
-export const getSnapPoints = (cp: CP) => {
-  return [
+export const getSnapPoints = (
+  cp: CP,
+  gridSettings: GridSettings,
+  viewBox: ViewBox,
+) => {
+  const points = [
     ...cp.vertices,
     ...cp.edges.map((e: Edge) => {
       return {
@@ -23,15 +25,39 @@ export const getSnapPoints = (cp: CP) => {
       };
     }),
   ];
+
+  if (gridSettings.showGrid) {
+    const n = gridSettings.gridSize;
+    const minGridX = gridSettings.extendGrid ? Math.floor(viewBox.x * n) : 0;
+    const minGridY = gridSettings.extendGrid ? Math.floor(viewBox.y * n) : 0;
+    const maxGridX = gridSettings.extendGrid
+      ? Math.ceil((viewBox.x + 1 / viewBox.zoom) * n)
+      : n;
+    const maxGridY = gridSettings.extendGrid
+      ? Math.ceil((viewBox.y + 1 / viewBox.zoom) * n)
+      : n;
+
+    for (let i = minGridX; i <= maxGridX; i++) {
+      for (let j = minGridY; j <= maxGridY; j++) {
+        const gridPoint = { x: i / n, y: j / n };
+        if (!points.find((p: Point) => pointsEqual(p, gridPoint))) {
+          points.push(gridPoint);
+        }
+      }
+    }
+  }
+
+  return points;
 };
 
 export const snapVertex = (
   cp: CP,
   point: Point,
-  zoom: number,
+  gridSettings: GridSettings,
+  viewBox: ViewBox,
   start: Point | null = null,
 ) => {
-  const snapPoints = getSnapPoints(cp);
+  const snapPoints = getSnapPoints(cp, gridSettings, viewBox);
 
   const distance = (p: Point) => {
     return Math.sqrt(
@@ -40,7 +66,7 @@ export const snapVertex = (
   };
 
   const vertex = snapPoints.find(
-    (p: Point) => distance(p) <= SNAP_TOLERANCE / zoom,
+    (p: Point) => distance(p) <= SNAP_TOLERANCE / viewBox.zoom,
   );
   if (vertex) {
     return vertex;
@@ -60,7 +86,7 @@ export const snapVertex = (
 
   const edge = cp.edges.find((e: Edge) => {
     return (
-      lineDistance(e, point) <= SNAP_TOLERANCE / zoom &&
+      lineDistance(e, point) <= SNAP_TOLERANCE / viewBox.zoom &&
       (!start || !isEndpoint(e, start)) &&
       onSegment(e.vertex1, e.vertex2, projectToLine(e, point))
     );

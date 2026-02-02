@@ -1,10 +1,6 @@
 import { useRef, useState } from "react";
 
-export interface ViewBox {
-  x: number;
-  y: number;
-  zoom: number;
-}
+import { ViewBox } from "../../types/ui";
 
 interface PanState {
   x: number;

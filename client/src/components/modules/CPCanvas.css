@@ -3,6 +3,7 @@
   width: 60vw;
   height: calc(100vh - var(--header-height));
   position: relative;
+  display: flex;
 }
 
 .CP-vertex {
@@ -47,8 +48,37 @@
   stroke: var(--valley-edge-color);
 }
 
+.grid-line {
+  stroke: var(--text-color-secondary);
+  stroke-width: 1;
+  opacity: 0.3;
+  pointer-events: none;
+  vector-effect: non-scaling-stroke;
+}
+
 .Pen-path {
   opacity: 0.8;
+}
+
+.Pen-previewDot {
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.Pen-previewDot-M {
+  fill: var(--mountain-edge-color);
+}
+
+.Pen-previewDot-V {
+  fill: var(--valley-edge-color);
+}
+
+.Pen-previewDot-B {
+  fill: var(--border-edge-color);
+}
+
+.Pen-previewDot-A {
+  fill: var(--aux-edge-color);
 }
 
 .Editor-canvas-toolbar {
@@ -59,20 +89,21 @@
 }
 
 #Mode-toolbar {
-  flex-direction: column;
-  inset-block-start: 50px;
-  inset-inline-start: 25px;
+  flex-direction: row;
+  position: relative;
+  height: 80px;
+  border-radius: 0;
 }
 
 #MvMode-toolbar {
   flex-direction: row;
-  inset-block-start: 30px;
-  inset-inline-start: 120px;
+  inset-block-start: 110px;
+  inset-inline-start: calc(100px + 20vw);
 }
 
 .Editor-canvas-modeIcon {
-  width: 50px;
-  margin: 5px;
+  width: 60px;
+  padding: 5px;
   filter: invert(var(--darkmode-invert));
 }
 
@@ -81,7 +112,7 @@
   border: 2px solid;
   border-radius: 5px;
   width: 50px;
-  margin: 5px;
+  padding: 5px;
 }
 
 .Editor-canvas-toolbar:hover {
@@ -94,6 +125,7 @@
 
 .Editor-canvas-toolbar-icon-active {
   opacity: 1;
+  background-color: rgb(var(--toolbar-bg) / 0.3);
 }
 
 .Editor-canvas-toolbar-icon-inactive:hover {
@@ -129,4 +161,21 @@
 
 #MvIcon-V {
   color: var(--valley-edge-color);
+}
+
+.Canvas-sidebar {
+  width: max(13vw, 225px);
+  background: var(--foreground);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.Canvas {
+  width: calc(60vw - max(13vw, 225px));
+  height: calc(100% - 80px);
+}
+
+.Canvas-toolbar-wrap {
+  width: 40vw;
 }
