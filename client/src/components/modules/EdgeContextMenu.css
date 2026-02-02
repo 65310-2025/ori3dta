@@ -1,11 +1,6 @@
 .Edge-menu {
-  width: 250px;
-  /* height: 300px; */
-  border-radius: 25px;
   background-color: var(--foreground);
-  position: absolute;
-  inset-block-start: 40px;
-  inset-inline-end: 40px;
+  height: 50%;
 }
 
 .Edge-menu-title h3 {
@@ -47,10 +42,10 @@
   padding: 5px;
   border-radius: 5px;
   margin: 20px 10px 10px 10px;
-  color: var(--danger-color);
+  /* color: var(--danger-color); */
 }
 
 .Edge-menu-close:hover {
-  background-color: var(--danger-color);
-  color: var(--text-color);
+  background-color: var(--text-color);
+  color: var(--background);
 }

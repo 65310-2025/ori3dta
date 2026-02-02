@@ -1,8 +1,3 @@
-import deleteIcon from "../assets/icons/eraser.svg";
-import drawIcon from "../assets/icons/pencil.svg";
-import changeMvIcon from "../assets/icons/switch_mv.svg";
-import selectIcon from "../assets/icons/wrench.svg";
-
 export enum MvMode {
   Mountain = "M",
   Valley = "V",
@@ -17,26 +12,20 @@ export enum Mode {
   ChangeMV = "changmv", // box change mv
 }
 
-export const modeKeys = [" ", "q", "w", "e"] as const;
-export const mvKeys = ["a", "s", "d", "f"] as const;
+export interface ViewBox {
+  x: number;
+  y: number;
+  zoom: number;
+}
 
-export const modeMap: Record<string, Mode> = {
-  " ": Mode.Drawing,
-  q: Mode.Selecting,
-  w: Mode.Deleting,
-  e: Mode.ChangeMV,
-};
+export interface GridSettings {
+  showGrid: boolean;
+  gridSize: number;
+  extendGrid: boolean;
+}
 
-export const modeIcons: Record<Mode, string> = {
-  [Mode.Drawing]: drawIcon,
-  [Mode.Selecting]: selectIcon,
-  [Mode.Deleting]: deleteIcon,
-  [Mode.ChangeMV]: changeMvIcon,
-};
-
-export const mvMap: Record<string, MvMode> = {
-  a: MvMode.Mountain,
-  s: MvMode.Valley,
-  d: MvMode.Border,
-  f: MvMode.Aux,
+export const defaultGridSettings = {
+  showGrid: false,
+  gridSize: 8,
+  extendGrid: false,
 };
