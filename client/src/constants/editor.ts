@@ -6,8 +6,7 @@ import { Mode, MvMode } from "../types/ui";
 
 export const CIRCLE_RADIUS = 0.015;
 
-export const DRAW_SNAP_TOLERANCE_PX = 20;
-export const DRAW_PREVIEW_DOT_RADIUS_PX = 4;
+export const SNAP_TOLERANCE = 0.03;
 
 export const modeKeys = [" ", "q", "w", "e"] as const;
 export const mvKeys = ["a", "s", "d", "f"] as const;

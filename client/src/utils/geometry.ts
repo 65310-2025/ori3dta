@@ -1,4 +1,16 @@
-import { Point } from "../types/cp";
+import { Edge, Point } from "../types/cp";
+import { getOtherVertex } from "./cp";
+
+export interface EdgeLike {
+  vertex1: Point;
+  vertex2: Point;
+}
+
+export const edgeLength = (e: EdgeLike) => {
+  const dx = e.vertex1.x - e.vertex2.x;
+  const dy = e.vertex1.y - e.vertex2.y;
+  return Math.sqrt(dx * dx + dy * dy);
+};
 
 // Compute the cross product of \vec{AB} and \vec{AC}
 export const cross = (a: Point, b: Point, c: Point) => {
@@ -57,4 +69,31 @@ export const intersectSegments = (
     return b;
   }
   return null;
+};
+
+export const getEdgeAngle = (e: Edge, reference: Point): number => {
+  const other = getOtherVertex(e, reference);
+  return Math.atan2(other.y - reference.y, other.x - reference.x);
+};
+
+// Distance from C to line AB
+export const lineDistance = (e: EdgeLike, c: Point) => {
+  const { vertex1: a, vertex2: b } = e;
+  const c1 = b.y - a.y;
+  const c2 = a.x - b.x;
+  const c3 = c1 * a.x + c2 * a.y;
+  return Math.abs(c.x * c1 + c.y * c2 - c3) / Math.sqrt(c1 * c1 + c2 * c2);
+};
+
+// Project C onto line AB
+export const projectToLine = (e: EdgeLike, c: Point) => {
+  const { vertex1: a, vertex2: b } = e;
+  const c1 = b.x - a.x;
+  const c2 = b.y - a.y;
+  const dot = c1 * (c.x - a.x) + c2 * (c.y - a.y);
+  const norm = c1 * c1 + c2 * c2;
+  return {
+    x: (c1 * dot) / norm + a.x,
+    y: (c2 * dot) / norm + a.y,
+  };
 };

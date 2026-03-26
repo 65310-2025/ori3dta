@@ -5,7 +5,11 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { ServerCPDto } from "../../../../dto/dto";
 import { CP } from "../../types/cp";
-import { convertServerCPDto, convertToClientCPDto } from "../../utils/cp";
+import {
+  convertServerCPDto,
+  convertToClientCPDto,
+  getDefaultCP,
+} from "../../utils/cp";
 import { get, post } from "../../utils/requests";
 import { UserContext } from "../App";
 import CPCanvas from "../modules/CPCanvas";
@@ -18,7 +22,7 @@ const Editor: React.FC = () => {
   const navigate = useNavigate();
   const context = useContext(UserContext);
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [cp, setCP] = useState<CP | null>(null);
 
@@ -31,23 +35,18 @@ const Editor: React.FC = () => {
   const { cpID } = useParams<{ cpID: string }>();
 
   useEffect(() => {
-    if (userId !== undefined) {
-      setIsLoading(false);
-      if (!userId) {
-        navigate("/login");
-      }
+    if (userId && cpID) {
+      get(`/api/designs/${cpID}`).then((serverCP: ServerCPDto) => {
+        const convertedCP = convertServerCPDto(serverCP);
+        setCP(convertedCP);
+      });
+    } else {
+      setCP(getDefaultCP);
     }
-  }, [userId]);
-
-  useEffect(() => {
-    get(`/api/designs/${cpID}`).then((serverCP: ServerCPDto) => {
-      const convertedCP = convertServerCPDto(serverCP);
-      setCP(convertedCP);
-    });
   }, [cpID]);
 
   useEffect(() => {
-    if (!cp) {
+    if (!cp || !userId) {
       return;
     }
     console.log("Posting CP to server", cp);

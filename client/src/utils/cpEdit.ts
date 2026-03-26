@@ -1,9 +1,16 @@
+import { SNAP_TOLERANCE } from "../constants/editor";
 import { CP, Edge, EdgeAssignment, Point } from "../types/cp";
 import { GridSettings, MvMode, ViewBox } from "../types/ui";
-import { isEndpoint, pointsEqual } from "./cp";
-import { intersectSegments, onSegment } from "./geometry";
-
-const SNAP_TOLERANCE = 0.03;
+import { getOtherVertex, isEndpoint, pointsEqual } from "./cp";
+import {
+  EdgeLike,
+  edgeLength,
+  getEdgeAngle,
+  intersectSegments,
+  lineDistance,
+  onSegment,
+  projectToLine,
+} from "./geometry";
 
 export const getSnapPoints = (
   cp: CP,
@@ -49,8 +56,10 @@ export const snapVertex = (
   point: Point,
   gridSettings: GridSettings,
   viewBox: ViewBox,
+  start: Point | null = null,
 ) => {
   const snapPoints = getSnapPoints(cp, gridSettings, viewBox);
+  const tolerance = SNAP_TOLERANCE / viewBox.zoom;
 
   const distance = (p: Point) => {
     return Math.sqrt(
@@ -58,9 +67,65 @@ export const snapVertex = (
     );
   };
 
-  return snapPoints.find(
-    (p: Point) => distance(p) <= SNAP_TOLERANCE / viewBox.zoom,
-  );
+  const vertex = snapPoints.find((p: Point) => distance(p) <= tolerance);
+  if (vertex) {
+    return vertex;
+  }
+
+  const getBisector = (e: Edge, e2: Edge, p: Point) => {
+    const ex = getOtherVertex(e, p).x - p.x;
+    const ey = getOtherVertex(e, p).y - p.y;
+    const e2x = getOtherVertex(e2, p).x - p.x;
+    const e2y = getOtherVertex(e2, p).y - p.y;
+    return {
+      x: p.x + ex / edgeLength(e) + e2x / edgeLength(e2),
+      y: p.y + ey / edgeLength(e) + e2y / edgeLength(e2),
+    };
+  };
+
+  let bisectorToSnap: EdgeLike | undefined = undefined;
+  if (start) {
+    const startEdges = cp.edges.filter((e: Edge) => isEndpoint(e, start));
+    startEdges.sort((a, b) => {
+      const angleA = getEdgeAngle(a, start);
+      const angleB = getEdgeAngle(b, start);
+      return angleA - angleB;
+    });
+    bisectorToSnap = startEdges
+      .map((e: Edge, idx: number) => {
+        const e2 = startEdges[(idx + 1) % startEdges.length];
+        return {
+          vertex1: start,
+          vertex2: getBisector(e, e2, start),
+        } as EdgeLike;
+      })
+      .find((e: EdgeLike) => {
+        return lineDistance(e, point) <= tolerance;
+      });
+  }
+
+  const edge = cp.edges.find((e: Edge) => {
+    return (
+      lineDistance(e, point) <= tolerance &&
+      (!start || !isEndpoint(e, start)) &&
+      onSegment(e.vertex1, e.vertex2, projectToLine(e, point))
+    );
+  });
+  if (edge) {
+    const b = bisectorToSnap;
+    if (b) {
+      return intersectSegments(
+        edge.vertex1,
+        edge.vertex2,
+        b.vertex1,
+        b.vertex2,
+      );
+    }
+    return projectToLine(edge, point);
+  }
+  if (bisectorToSnap) {
+    return projectToLine(bisectorToSnap, point);
+  }
 };
 
 export const addEdge = (

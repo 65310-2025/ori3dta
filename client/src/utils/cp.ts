@@ -33,6 +33,26 @@ export const convertToClientCPDto = (cp: CP): ClientCPDto => {
   };
 };
 
+export const getDefaultCP = () => {
+  return convertServerCPDto({
+    vertices_coords: [
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [0, 1],
+    ],
+    edges_vertices: [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+      [3, 0],
+    ],
+    edges_assignment: ["B", "B", "B", "B"],
+    edges_foldAngle: [0, 0, 0, 0],
+    _id: "",
+  });
+};
+
 export const pointToKey = (point: Point) => {
   return `Point(${point.x},${point.y})`;
 };
