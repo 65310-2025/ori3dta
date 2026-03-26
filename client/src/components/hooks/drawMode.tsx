@@ -19,7 +19,8 @@ export const useDrawMode = (
   const onMove = (start: Point, end: Point) => {
     if (cp === null) return;
     const snapStart = snapVertex(cp, start, gridSettings, viewBox);
-    const snapEnd = snapVertex(cp, end, gridSettings, viewBox) || end;
+    const snapEnd =
+      snapVertex(cp, end, gridSettings, viewBox, snapStart) || end;
     if (snapStart) {
       pathRef.current?.setAttribute(
         "d",
@@ -31,7 +32,7 @@ export const useDrawMode = (
   const submit = (start: Point, end: Point) => {
     if (cp === null) return;
     const snapStart = snapVertex(cp, start, gridSettings, viewBox);
-    const snapEnd = snapVertex(cp, end, gridSettings, viewBox);
+    const snapEnd = snapVertex(cp, end, gridSettings, viewBox, snapStart);
     if (snapStart && snapEnd) {
       setCP(addEdge(cp, snapStart, snapEnd, mvMode));
     }

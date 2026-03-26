@@ -1,7 +1,10 @@
 import { Edge, Point } from "../types/cp";
 import { getOtherVertex } from "./cp";
 
-type EdgeLike = { vertex1: Point; vertex2: Point };
+export interface EdgeLike {
+  vertex1: Point;
+  vertex2: Point;
+}
 
 export const edgeLength = (e: EdgeLike) => {
   const dx = e.vertex1.x - e.vertex2.x;
