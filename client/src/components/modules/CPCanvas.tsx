@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 
 import {
   CIRCLE_RADIUS,
@@ -15,10 +15,8 @@ import {
   Mode,
   MvMode,
   ViewBox,
-  defaultGridSettings,
 } from "../../types/ui";
 import { getSnapPoints } from "../../utils/cpEdit";
-import { checkVertexFoldable } from "../../utils/kawasaki";
 import { pointsEqual } from "../../utils/cp";
 import { useChangeMvMode } from "../hooks/changeMvMode";
 import { useDeleteMode } from "../hooks/deleteMode";
@@ -99,9 +97,12 @@ const renderCP = (
 export interface CPCanvasProps {
   cp: CP | null;
   setCP: (cp: CP) => void;
+  gridSettings: GridSettings;
+  setGridSettings: React.Dispatch<React.SetStateAction<GridSettings>>;
+  invalidVertices: Point[];
 }
 
-const CPCanvas: React.FC<CPCanvasProps> = ({ cp, setCP }) => {
+const CPCanvas: React.FC<CPCanvasProps> = ({ cp, setCP, gridSettings, setGridSettings, invalidVertices }) => {
   const editorRef = useRef<HTMLDivElement | null>(null);
 
   const [width, setWidth] = useState<number>(0);
@@ -128,13 +129,6 @@ const CPCanvas: React.FC<CPCanvasProps> = ({ cp, setCP }) => {
     setSelection,
     edgeOnClick: selectEdgeOnClick,
   } = useSelectMode(mode);
-  const [gridSettings, setGridSettings] =
-    useState<GridSettings>(defaultGridSettings);
-
-  const invalidVertices = useMemo(() => {
-    if (!cp || !gridSettings.checkFoldability) return [];
-    return cp.vertices.filter(v => !checkVertexFoldable(v, cp));
-  }, [cp, gridSettings.checkFoldability]);
 
   const {
     ui: drawUi,
