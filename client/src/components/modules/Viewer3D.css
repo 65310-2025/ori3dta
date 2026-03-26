@@ -1,3 +1,48 @@
 .Viewer {
   width: 40vw;
+  position: relative;
+  height: 100%;
+}
+
+.Viewer-controls {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: rgba(255, 255, 255, 0.85);
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  pointer-events: auto;
+}
+
+.Viewer-controls label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.Viewer-controls input[type="range"] {
+  width: 100px;
+}
+
+.Viewer-reset {
+  margin-top: 4px;
+  padding: 4px 8px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.2s;
+}
+
+.Viewer-reset:hover {
+  background-color: #e0e0e0;
 }
