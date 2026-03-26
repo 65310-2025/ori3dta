@@ -1,7 +1,8 @@
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import {
   CIRCLE_RADIUS,
+  CIRCLE_OPACITY,
   modeIcons,
   modeKeys,
   modeMap,
@@ -17,6 +18,8 @@ import {
   defaultGridSettings,
 } from "../../types/ui";
 import { getSnapPoints } from "../../utils/cpEdit";
+import { checkVertexFoldable } from "../../utils/kawasaki";
+import { pointsEqual } from "../../utils/cp";
 import { useChangeMvMode } from "../hooks/changeMvMode";
 import { useDeleteMode } from "../hooks/deleteMode";
 import { useDrawMode } from "../hooks/drawMode";
@@ -37,20 +40,32 @@ const renderCP = (
   ) => (event: React.PointerEvent<SVGPathElement>) => void,
   mode: Mode,
   gridSettings: GridSettings,
+  invalidVertices: Point[],
 ) => {
   const vertices =
     mode === Mode.Drawing
       ? getSnapPoints(cp, gridSettings, viewBox)
       : cp.vertices;
   const verticesComponents = vertices.map((v: Point, idx: number) => {
+    const isInvalid = invalidVertices.some(iv => pointsEqual(iv, v));
     return (
-      <circle
-        cx={v.x}
-        cy={v.y}
-        r={Math.min(CIRCLE_RADIUS / viewBox.zoom, CIRCLE_RADIUS / 1.5)}
-        className="CP-vertex"
-        key={`vertex-${idx}`}
-      />
+      <g key={`vertex-${idx}`}>
+        {isInvalid && (
+           <circle
+             cx={v.x}
+             cy={v.y}
+             r={CIRCLE_RADIUS / viewBox.zoom}
+             fill="red"
+             opacity={CIRCLE_OPACITY}
+           />
+        )}
+        <circle
+          cx={v.x}
+          cy={v.y}
+          r={Math.min(CIRCLE_RADIUS / viewBox.zoom, CIRCLE_RADIUS / 1.5)}
+          className="CP-vertex"
+        />
+      </g>
     );
   });
 
@@ -115,6 +130,11 @@ const CPCanvas: React.FC<CPCanvasProps> = ({ cp, setCP }) => {
   } = useSelectMode(mode);
   const [gridSettings, setGridSettings] =
     useState<GridSettings>(defaultGridSettings);
+
+  const invalidVertices = useMemo(() => {
+    if (!cp || !gridSettings.checkFoldability) return [];
+    return cp.vertices.filter(v => !checkVertexFoldable(v, cp));
+  }, [cp, gridSettings.checkFoldability]);
 
   const {
     ui: drawUi,
@@ -281,6 +301,7 @@ const CPCanvas: React.FC<CPCanvasProps> = ({ cp, setCP }) => {
                   edgeOnClick,
                   mode,
                   gridSettings,
+                  invalidVertices,
                 )}
             </g>
             {drawUi}
