@@ -227,12 +227,10 @@ const shouldFlip = (face: Face, edge: Edge) => {
   }
   return false; 
 };
-
 export const foldFaces = (faces: Face[], cp: CP): FoldedFace[] => {
   if (!faces || faces.length === 0) return [];
 
-  // Derive adjacency strictly from the faces themselves, rather than cp.edges.
-  // This allows it to handle the dynamically merged edges we created in findFaces.
+  // Derive adjacency strictly from the faces themselves
   const edgeFaces = new Map<string, { edge: Edge; faces: Face[] }>();
 
   faces.forEach((f: Face) =>
@@ -249,8 +247,13 @@ export const foldFaces = (faces: Face[], cp: CP): FoldedFace[] => {
   
   edgeFaces.forEach(({ edge, faces: fs }) => {
     if (fs.length === 2) {
-      faceAdj.get(fs[0])!.push({ face: fs[1], edge: edge });
-      faceAdj.get(fs[1])!.push({ face: fs[0], edge: edge });
+      // ADJACENCY CHECK: Only connect faces across Mountain or Valley folds.
+      // Border edges ('B') or internal cuts will effectively split the graph.
+      const assignment = (edge as any).assignment;
+      if (assignment === "M" || assignment === "V") {
+        faceAdj.get(fs[0])!.push({ face: fs[1], edge: edge });
+        faceAdj.get(fs[1])!.push({ face: fs[0], edge: edge });
+      }
     }
   });
 
@@ -265,17 +268,28 @@ export const foldFaces = (faces: Face[], cp: CP): FoldedFace[] => {
       dfsFaces(e.face, { ...e, face: face });
     });
   };
-  dfsFaces(faces[0]);
+
+  // SPANNING FOREST: Start a DFS for every unvisited face to handle 
+  // multiple disconnected components/sub-graphs.
+  faces.forEach((f: Face) => {
+    if (!facesVisited.has(f)) {
+      dfsFaces(f, null); 
+    }
+  });
 
   return faces.map((f: Face) => {
     let curFace = f;
     let points = f.border.map((p: Point) => [p.x, p.y, 0] as Point3D);
     let par;
+    
+    // This will naturally stop at the local root of whichever 
+    // disconnected component the curFace belongs to.
     while ((par = faceParent.get(curFace))) {
       const flip = shouldFlip(curFace, par.edge) ? -1 : 1;
       points = rotateFace(points, par.edge, flip);
       curFace = par.face;
     }
+    
     return { border: points, id: f.id };
   });
 };
