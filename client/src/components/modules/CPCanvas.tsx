@@ -1,8 +1,8 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
 
 import {
-  CIRCLE_RADIUS,
   CIRCLE_OPACITY,
+  CIRCLE_RADIUS,
   modeIcons,
   modeKeys,
   modeMap,
@@ -10,14 +10,9 @@ import {
   mvMap,
 } from "../../constants/editor";
 import { CP, Edge, Point } from "../../types/cp";
-import {
-  GridSettings,
-  Mode,
-  MvMode,
-  ViewBox,
-} from "../../types/ui";
-import { getSnapPoints } from "../../utils/cpEdit";
+import { GridSettings, Mode, MvMode, ViewBox } from "../../types/ui";
 import { pointsEqual } from "../../utils/cp";
+import { getSnapPoints } from "../../utils/cpEdit";
 import { useChangeMvMode } from "../hooks/changeMvMode";
 import { useDeleteMode } from "../hooks/deleteMode";
 import { useDrawMode } from "../hooks/drawMode";
@@ -45,17 +40,17 @@ const renderCP = (
       ? getSnapPoints(cp, gridSettings, viewBox)
       : cp.vertices;
   const verticesComponents = vertices.map((v: Point, idx: number) => {
-    const isInvalid = invalidVertices.some(iv => pointsEqual(iv, v));
+    const isInvalid = invalidVertices.some((iv) => pointsEqual(iv, v));
     return (
       <g key={`vertex-${idx}`}>
         {isInvalid && (
-           <circle
-             cx={v.x}
-             cy={v.y}
-             r={CIRCLE_RADIUS / viewBox.zoom}
-             fill="red"
-             opacity={CIRCLE_OPACITY}
-           />
+          <circle
+            cx={v.x}
+            cy={v.y}
+            r={CIRCLE_RADIUS / viewBox.zoom}
+            fill="red"
+            opacity={CIRCLE_OPACITY}
+          />
         )}
         <circle
           cx={v.x}
@@ -102,7 +97,13 @@ export interface CPCanvasProps {
   invalidVertices: Point[];
 }
 
-const CPCanvas: React.FC<CPCanvasProps> = ({ cp, setCP, gridSettings, setGridSettings, invalidVertices }) => {
+const CPCanvas: React.FC<CPCanvasProps> = ({
+  cp,
+  setCP,
+  gridSettings,
+  setGridSettings,
+  invalidVertices,
+}) => {
   const editorRef = useRef<HTMLDivElement | null>(null);
 
   const [width, setWidth] = useState<number>(0);

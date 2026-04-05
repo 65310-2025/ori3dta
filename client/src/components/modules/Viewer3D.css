@@ -12,7 +12,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background-color: rgba(255, 255, 255, 0.85);
+  background-color: var(--foreground);
+  color: var(--text-color);
   padding: 12px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -33,9 +34,10 @@
 }
 
 .Viewer-reset {
+  color: var(--text-color-dark);
   margin-top: 4px;
   padding: 4px 8px;
-  background-color: #f0f0f0;
+  background-color: var(--foreground-secondary);
   border: 1px solid #ccc;
   border-radius: 4px;
   cursor: pointer;
@@ -44,5 +46,6 @@
 }
 
 .Viewer-reset:hover {
-  background-color: #e0e0e0;
+  color: var(--text-color);
+  background-color: var(--highlight);
 }

@@ -24,11 +24,12 @@ const Editor: React.FC = () => {
 
   const [cp, setCP] = useState<CP | null>(null);
 
-  const [gridSettings, setGridSettings] = useState<GridSettings>(defaultGridSettings);
+  const [gridSettings, setGridSettings] =
+    useState<GridSettings>(defaultGridSettings);
 
   const invalidVertices = React.useMemo(() => {
     if (!cp || !gridSettings.checkFoldability) return [];
-    return cp.vertices.filter(v => !checkVertexFoldable(v, cp));
+    return cp.vertices.filter((v) => !checkVertexFoldable(v, cp));
   }, [cp, gridSettings.checkFoldability]);
 
   if (!context) {
@@ -90,16 +91,20 @@ const Editor: React.FC = () => {
     <>
       <Navbar />
       <div className="Editor">
-        <CPCanvas 
-          cp={cp} 
-          setCP={setCP} 
-          gridSettings={gridSettings} 
-          setGridSettings={setGridSettings} 
-          invalidVertices={invalidVertices} 
+        <CPCanvas
+          cp={cp}
+          setCP={setCP}
+          gridSettings={gridSettings}
+          setGridSettings={setGridSettings}
+          invalidVertices={invalidVertices}
         />
         <div className="Editor-sidebar">
           <div className="Viewer-container">
-            <Viewer3D cp={cp} invalidVertices={invalidVertices} checkFoldability={gridSettings.checkFoldability} />
+            <Viewer3D
+              cp={cp}
+              invalidVertices={invalidVertices}
+              checkFoldability={gridSettings.checkFoldability}
+            />
           </div>
           {/* <div className="viewer-buttons">
             <button>Hi</button>

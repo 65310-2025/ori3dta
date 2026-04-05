@@ -4,13 +4,12 @@ import { getOtherVertex, pointToKey, pointsEqual } from "./cp";
 
 const DISTORTION = 0.001; // how much to distort the face when folding
 
-
 const getSignedArea = (points: Point[]): number => {
   let area = 0;
   for (let i = 0; i < points.length; i++) {
     const p1 = points[i];
     const p2 = points[(i + 1) % points.length];
-    area += (p1.x * p2.y - p2.x * p1.y);
+    area += p1.x * p2.y - p2.x * p1.y;
   }
   return area / 2;
 };
@@ -24,15 +23,6 @@ const getEdgeAngle = (e: Edge, reference: Point): number => {
   return Math.atan2(other.y - reference.y, other.x - reference.x);
 };
 
-// const isFaceClockwise = (face: Point[]): boolean => {
-//   const sum = face
-//     .map((p1: Point, ind: number) => {
-//       const p2 = face[(ind + 1) % face.length];
-//       return p1.x * p2.y - p2.x * p1.y;
-//     })
-//     .reduce((acc: number, curr: number) => acc + curr);
-//   return sum < 0;
-// };
 const traceFace = (
   startVertex: Point,
   startEdge: Edge,
@@ -52,15 +42,20 @@ const traceFace = (
     usedEdges.add(getDirectedEdgeKey(currentVertex, nextVertex));
 
     const edgesAtVertex = edgeMap.get(pointToKey(nextVertex));
-    if (!edgesAtVertex) throw new Error("Graph disjointed: Vertex not found in edge map.");
+    if (!edgesAtVertex)
+      throw new Error("Graph disjointed: Vertex not found in edge map.");
 
-    const currentIndex = edgesAtVertex.findIndex((e) => e.id === currentEdge.id);
-    if (currentIndex === -1) throw new Error("Graph disjointed: Edge missing from vertex.");
+    const currentIndex = edgesAtVertex.findIndex(
+      (e) => e.id === currentEdge.id,
+    );
+    if (currentIndex === -1)
+      throw new Error("Graph disjointed: Edge missing from vertex.");
 
     // THE FIX: Use - 1 to make "Left Turns" (Counter-Clockwise traversal)
     // We add edgesAtVertex.length before modulo to handle negative numbers in JS
-    const nextIndex = (currentIndex - 1 + edgesAtVertex.length) % edgesAtVertex.length;
-    
+    const nextIndex =
+      (currentIndex - 1 + edgesAtVertex.length) % edgesAtVertex.length;
+
     currentEdge = edgesAtVertex[nextIndex];
     currentVertex = nextVertex;
   } while (!pointsEqual(currentVertex, startVertex));
@@ -71,23 +66,29 @@ const traceFace = (
 export const findFaces = (cp: CP): Face[] => {
   // 1. Filter out non-structural lines
   let activeEdges = cp.edges.filter(
-    (e: any) => e.assignment !== "A" && e.assignment !== "F"
+    (e: any) => e.assignment !== "A" && e.assignment !== "F",
   );
 
   // 2. Iteratively merge collinear edges (Robustly decoupled from cp.vertices)
   let changed = true;
   while (changed) {
     changed = false;
-    
+
     // Dynamically map vertices strictly from current activeEdges
     const vMap = new Map<string, Edge[]>();
     const vPoints = new Map<string, Point>();
-    
+
     activeEdges.forEach((e) => {
       const k1 = pointToKey(e.vertex1);
       const k2 = pointToKey(e.vertex2);
-      if (!vMap.has(k1)) { vMap.set(k1, []); vPoints.set(k1, e.vertex1); }
-      if (!vMap.has(k2)) { vMap.set(k2, []); vPoints.set(k2, e.vertex2); }
+      if (!vMap.has(k1)) {
+        vMap.set(k1, []);
+        vPoints.set(k1, e.vertex1);
+      }
+      if (!vMap.has(k2)) {
+        vMap.set(k2, []);
+        vPoints.set(k2, e.vertex2);
+      }
       vMap.get(k1)!.push(e);
       vMap.get(k2)!.push(e);
     });
@@ -100,13 +101,17 @@ export const findFaces = (cp: CP): Face[] => {
         const other2 = getOtherVertex(e2, v);
 
         // Check collinearity
-        const cross = (other1.x - v.x) * (other2.y - v.y) - (other1.y - v.y) * (other2.x - v.x);
-        const dot = (other1.x - v.x) * (other2.x - v.x) + (other1.y - v.y) * (other2.y - v.y);
+        const cross =
+          (other1.x - v.x) * (other2.y - v.y) -
+          (other1.y - v.y) * (other2.x - v.x);
+        const dot =
+          (other1.x - v.x) * (other2.x - v.x) +
+          (other1.y - v.y) * (other2.y - v.y);
 
         if (Math.abs(cross) < 1e-7 && dot < 0) {
-          const a1 = (e1 as any).assignment;
-          const a2 = (e2 as any).assignment;
-          
+          const a1 = e1.assignment;
+          const a2 = e2.assignment;
+
           if (a1 === a2 && e1.foldAngle === e2.foldAngle) {
             const newEdge: Edge = {
               ...e1,
@@ -114,8 +119,10 @@ export const findFaces = (cp: CP): Face[] => {
               vertex1: other1,
               vertex2: other2,
             };
-            
-            activeEdges = activeEdges.filter((e) => e.id !== e1.id && e.id !== e2.id);
+
+            activeEdges = activeEdges.filter(
+              (e) => e.id !== e1.id && e.id !== e2.id,
+            );
             activeEdges.push(newEdge);
             changed = true;
             break; // Restart loop with fresh activeEdges
@@ -133,10 +140,16 @@ export const findFaces = (cp: CP): Face[] => {
   activeEdges.forEach((edge) => {
     const k1 = pointToKey(edge.vertex1);
     const k2 = pointToKey(edge.vertex2);
-    
-    if (!edgeMap.has(k1)) { edgeMap.set(k1, []); pointMap.set(k1, edge.vertex1); }
-    if (!edgeMap.has(k2)) { edgeMap.set(k2, []); pointMap.set(k2, edge.vertex2); }
-    
+
+    if (!edgeMap.has(k1)) {
+      edgeMap.set(k1, []);
+      pointMap.set(k1, edge.vertex1);
+    }
+    if (!edgeMap.has(k2)) {
+      edgeMap.set(k2, []);
+      pointMap.set(k2, edge.vertex2);
+    }
+
     edgeMap.get(k1)!.push(edge);
     edgeMap.get(k2)!.push(edge);
   });
@@ -151,16 +164,16 @@ export const findFaces = (cp: CP): Face[] => {
   const usedDirectedEdges = new Set<string>();
 
   // TRAVERSAL: Find all minimal cycles (faces)
-  activeEdges.forEach(edge => {
-    [edge.vertex1, edge.vertex2].forEach(v => {
+  activeEdges.forEach((edge) => {
+    [edge.vertex1, edge.vertex2].forEach((v) => {
       const nextV = getOtherVertex(edge, v);
       const key = getDirectedEdgeKey(v, nextV);
-      
+
       if (usedDirectedEdges.has(key)) return;
 
       const currentFace = traceFace(v, edge, edgeMap, usedDirectedEdges);
-      
-      // Because we use `currentIndex - 1` (Left Turns), internal minimal 
+
+      // Because we use `currentIndex - 1` (Left Turns), internal minimal
       // faces will be CCW (Area > 0). The infinite face will trace CW (Area < 0).
       const area = getSignedArea(currentFace.border);
       if (area > 0) {
@@ -200,8 +213,14 @@ const rotateFace = (
     const dot = u[0] * pRel[0] + u[1] * pRel[1] + u[2] * pRel[2];
 
     const rotated = [
-      A.x + cosTheta * pRel[0] + sinTheta * cross[0] + (1 - cosTheta) * dot * u[0],
-      A.y + cosTheta * pRel[1] + sinTheta * cross[1] + (1 - cosTheta) * dot * u[1],
+      A.x +
+        cosTheta * pRel[0] +
+        sinTheta * cross[0] +
+        (1 - cosTheta) * dot * u[0],
+      A.y +
+        cosTheta * pRel[1] +
+        sinTheta * cross[1] +
+        (1 - cosTheta) * dot * u[1],
       cosTheta * pRel[2] + sinTheta * cross[2] + (1 - cosTheta) * dot * u[2],
     ];
 
@@ -221,11 +240,13 @@ const shouldFlip = (face: Face, edge: Edge) => {
     const p1 = face.border[i];
     const p2 = face.border[(i + 1) % n];
     // If we find the edge in standard sequence, no flip required
-    if (pointsEqual(p1, edge.vertex1) && pointsEqual(p2, edge.vertex2)) return false;
+    if (pointsEqual(p1, edge.vertex1) && pointsEqual(p2, edge.vertex2))
+      return false;
     // If we find the edge in reverse sequence, flip is required
-    if (pointsEqual(p1, edge.vertex2) && pointsEqual(p2, edge.vertex1)) return true;
+    if (pointsEqual(p1, edge.vertex2) && pointsEqual(p2, edge.vertex1))
+      return true;
   }
-  return false; 
+  return false;
 };
 export const foldFaces = (faces: Face[], cp: CP): FoldedFace[] => {
   if (!faces || faces.length === 0) return [];
@@ -244,12 +265,12 @@ export const foldFaces = (faces: Face[], cp: CP): FoldedFace[] => {
 
   const faceAdj = new Map<Face, FaceEdge[]>();
   faces.forEach((f: Face) => faceAdj.set(f, []));
-  
+
   edgeFaces.forEach(({ edge, faces: fs }) => {
     if (fs.length === 2) {
       // ADJACENCY CHECK: Only connect faces across Mountain or Valley folds.
       // Border edges ('B') or internal cuts will effectively split the graph.
-      const assignment = (edge as any).assignment;
+      const assignment = edge.assignment;
       if (assignment === "M" || assignment === "V") {
         faceAdj.get(fs[0])!.push({ face: fs[1], edge: edge });
         faceAdj.get(fs[1])!.push({ face: fs[0], edge: edge });
@@ -259,7 +280,7 @@ export const foldFaces = (faces: Face[], cp: CP): FoldedFace[] => {
 
   const faceParent = new Map<Face, FaceEdge | null>();
   const facesVisited = new Set<Face>();
-  
+
   const dfsFaces = (face: Face, from: FaceEdge | null = null) => {
     faceParent.set(face, from);
     facesVisited.add(face);
@@ -269,11 +290,11 @@ export const foldFaces = (faces: Face[], cp: CP): FoldedFace[] => {
     });
   };
 
-  // SPANNING FOREST: Start a DFS for every unvisited face to handle 
+  // SPANNING FOREST: Start a DFS for every unvisited face to handle
   // multiple disconnected components/sub-graphs.
   faces.forEach((f: Face) => {
     if (!facesVisited.has(f)) {
-      dfsFaces(f, null); 
+      dfsFaces(f, null);
     }
   });
 
@@ -281,15 +302,15 @@ export const foldFaces = (faces: Face[], cp: CP): FoldedFace[] => {
     let curFace = f;
     let points = f.border.map((p: Point) => [p.x, p.y, 0] as Point3D);
     let par;
-    
-    // This will naturally stop at the local root of whichever 
+
+    // This will naturally stop at the local root of whichever
     // disconnected component the curFace belongs to.
     while ((par = faceParent.get(curFace))) {
       const flip = shouldFlip(curFace, par.edge) ? -1 : 1;
       points = rotateFace(points, par.edge, flip);
       curFace = par.face;
     }
-    
+
     return { border: points, id: f.id };
   });
 };
