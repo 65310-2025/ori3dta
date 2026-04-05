@@ -76,6 +76,18 @@ const GridMenu: React.FC<GridSettingsProps> = ({
           />
           Extend grid
         </label>
+        <label className="Grid-settings-form-label">
+          <input
+            type="checkbox"
+            checked={gridSettings.checkFoldability}
+            onChange={(e) =>
+              setGridSettings((prev: GridSettings) => {
+                return { ...prev, checkFoldability: e.target.checked };
+              })
+            }
+          />
+          Check foldability
+        </label>
         <label className="Grid-settings-form-label" htmlFor="gridSize"></label>
         <input
           className="Grid-settings-form-text"

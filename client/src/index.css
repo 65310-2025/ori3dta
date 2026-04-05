@@ -9,6 +9,7 @@
   --background-dark: #061156;
   --background-light: #3344b2;
   --foreground: #374b9e;
+  --highlight: #076fbf;
   --foreground-secondary: #cccccc;
   --text-color: #ffffff;
   --text-color-secondary: #dddddd;
@@ -32,6 +33,7 @@
   --background-dark: #aaaaaa;
   --background-light: #ffffff;
   --foreground: #dddddd;
+  --highlight: #c0c0c0;
   --foreground-secondary: #cccccc;
   --text-color: #000000;
   --text-color-secondary: #333333;

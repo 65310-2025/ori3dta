@@ -5,7 +5,9 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { ServerCPDto } from "../../../../dto/dto";
 import { CP } from "../../types/cp";
+import { GridSettings, defaultGridSettings } from "../../types/ui";
 import { convertServerCPDto, convertToClientCPDto } from "../../utils/cp";
+import { checkVertexFoldable } from "../../utils/kawasaki";
 import { get, post } from "../../utils/requests";
 import { UserContext } from "../App";
 import CPCanvas from "../modules/CPCanvas";
@@ -21,6 +23,14 @@ const Editor: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const [cp, setCP] = useState<CP | null>(null);
+
+  const [gridSettings, setGridSettings] =
+    useState<GridSettings>(defaultGridSettings);
+
+  const invalidVertices = React.useMemo(() => {
+    if (!cp || !gridSettings.checkFoldability) return [];
+    return cp.vertices.filter((v) => !checkVertexFoldable(v, cp));
+  }, [cp, gridSettings.checkFoldability]);
 
   if (!context) {
     return <Error />;
@@ -81,10 +91,20 @@ const Editor: React.FC = () => {
     <>
       <Navbar />
       <div className="Editor">
-        <CPCanvas cp={cp} setCP={setCP} />
+        <CPCanvas
+          cp={cp}
+          setCP={setCP}
+          gridSettings={gridSettings}
+          setGridSettings={setGridSettings}
+          invalidVertices={invalidVertices}
+        />
         <div className="Editor-sidebar">
           <div className="Viewer-container">
-            <Viewer3D cp={cp} />
+            <Viewer3D
+              cp={cp}
+              invalidVertices={invalidVertices}
+              checkFoldability={gridSettings.checkFoldability}
+            />
           </div>
           {/* <div className="viewer-buttons">
             <button>Hi</button>

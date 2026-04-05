@@ -4,7 +4,8 @@ import selectIcon from "../assets/icons/protractor.svg";
 import changeMvIcon from "../assets/icons/switch_mv.svg";
 import { Mode, MvMode } from "../types/ui";
 
-export const CIRCLE_RADIUS = 0.015;
+export const CIRCLE_RADIUS = 0.02;
+export const CIRCLE_OPACITY = 0.3;
 
 export const DRAW_SNAP_TOLERANCE_PX = 20;
 export const DRAW_PREVIEW_DOT_RADIUS_PX = 4;

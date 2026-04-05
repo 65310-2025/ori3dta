@@ -22,10 +22,12 @@ export interface GridSettings {
   showGrid: boolean;
   gridSize: number;
   extendGrid: boolean;
+  checkFoldability: boolean;
 }
 
 export const defaultGridSettings = {
   showGrid: false,
   gridSize: 8,
   extendGrid: false,
+  checkFoldability: false,
 };

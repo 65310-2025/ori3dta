@@ -1,6 +1,7 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
 
 import {
+  CIRCLE_OPACITY,
   CIRCLE_RADIUS,
   modeIcons,
   modeKeys,
@@ -9,13 +10,8 @@ import {
   mvMap,
 } from "../../constants/editor";
 import { CP, Edge, Point } from "../../types/cp";
-import {
-  GridSettings,
-  Mode,
-  MvMode,
-  ViewBox,
-  defaultGridSettings,
-} from "../../types/ui";
+import { GridSettings, Mode, MvMode, ViewBox } from "../../types/ui";
+import { pointsEqual } from "../../utils/cp";
 import { getSnapPoints } from "../../utils/cpEdit";
 import { useChangeMvMode } from "../hooks/changeMvMode";
 import { useDeleteMode } from "../hooks/deleteMode";
@@ -37,20 +33,32 @@ const renderCP = (
   ) => (event: React.PointerEvent<SVGPathElement>) => void,
   mode: Mode,
   gridSettings: GridSettings,
+  invalidVertices: Point[],
 ) => {
   const vertices =
     mode === Mode.Drawing
       ? getSnapPoints(cp, gridSettings, viewBox)
       : cp.vertices;
   const verticesComponents = vertices.map((v: Point, idx: number) => {
+    const isInvalid = invalidVertices.some((iv) => pointsEqual(iv, v));
     return (
-      <circle
-        cx={v.x}
-        cy={v.y}
-        r={Math.min(CIRCLE_RADIUS / viewBox.zoom, CIRCLE_RADIUS / 1.5)}
-        className="CP-vertex"
-        key={`vertex-${idx}`}
-      />
+      <g key={`vertex-${idx}`}>
+        {isInvalid && (
+          <circle
+            cx={v.x}
+            cy={v.y}
+            r={CIRCLE_RADIUS / viewBox.zoom}
+            fill="red"
+            opacity={CIRCLE_OPACITY}
+          />
+        )}
+        <circle
+          cx={v.x}
+          cy={v.y}
+          r={Math.min(CIRCLE_RADIUS / viewBox.zoom, CIRCLE_RADIUS / 1.5)}
+          className="CP-vertex"
+        />
+      </g>
     );
   });
 
@@ -84,9 +92,18 @@ const renderCP = (
 export interface CPCanvasProps {
   cp: CP | null;
   setCP: (cp: CP) => void;
+  gridSettings: GridSettings;
+  setGridSettings: React.Dispatch<React.SetStateAction<GridSettings>>;
+  invalidVertices: Point[];
 }
 
-const CPCanvas: React.FC<CPCanvasProps> = ({ cp, setCP }) => {
+const CPCanvas: React.FC<CPCanvasProps> = ({
+  cp,
+  setCP,
+  gridSettings,
+  setGridSettings,
+  invalidVertices,
+}) => {
   const editorRef = useRef<HTMLDivElement | null>(null);
 
   const [width, setWidth] = useState<number>(0);
@@ -113,8 +130,6 @@ const CPCanvas: React.FC<CPCanvasProps> = ({ cp, setCP }) => {
     setSelection,
     edgeOnClick: selectEdgeOnClick,
   } = useSelectMode(mode);
-  const [gridSettings, setGridSettings] =
-    useState<GridSettings>(defaultGridSettings);
 
   const {
     ui: drawUi,
@@ -281,6 +296,7 @@ const CPCanvas: React.FC<CPCanvasProps> = ({ cp, setCP }) => {
                   edgeOnClick,
                   mode,
                   gridSettings,
+                  invalidVertices,
                 )}
             </g>
             {drawUi}
